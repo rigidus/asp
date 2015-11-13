@@ -20,7 +20,7 @@ Jabber: saotomych@jabber.ru
 
 skype: sao-true
 
-+7 921 386 28 79 
++7 921 386 28 79
 
 * Владимир Богданов (Унримах)
 
@@ -57,3 +57,5 @@ Jabber: yuri.b.santi@gmail.com
 skype: santi-santilian
 
 +7 911 706 63 17
+* Иван Андреев
+  smallcinic@gmail.com
