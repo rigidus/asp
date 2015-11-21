@@ -1,0 +1,12 @@
+﻿<Voice_v2>
+<ServerIP>10.3.10.1</ServerIP>
+<TopMost>true</TopMost>
+<ShowOnCall>true</ShowOnCall>
+<Position>
+<Left>37</Left>
+<Right>421</Right>
+<Top>336</Top>
+<Bottom>636</Bottom>
+</Position>
+<LogPath>D:\АПС-СОН\ПО\ParkingVoice\ParkingVoice_v1_6\ParkingVoice_v1_6\VoiceLog</LogPath>
+</Voice_v2>

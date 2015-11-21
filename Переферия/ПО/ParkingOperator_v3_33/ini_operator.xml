@@ -1,0 +1,21 @@
+﻿<Operator_v2>
+<ComScaner>unknown</ComScaner>
+<ComKKM>COM4</ComKKM>
+<ComScanerSpeed>unknown</ComScanerSpeed>
+<ComKKMSpeed>115200</ComKKMSpeed>>
+<ServerIP>10.3.10.1</ServerIP>
+<ServerPhotoIP>10.3.10.1</ServerPhotoIP>
+<EnaAutoZReportTime>0</EnaAutoZReportTime>
+<ZReportHour>00</ZReportHour>
+<ZReportMin>00</ZReportMin>
+<OutTicketNum>32</OutTicketNum>
+<KKMinfo>
+<str1></str1>
+<str2></str2>
+<str3></str3>
+<str4></str4>
+<str5></str5>
+</KKMinfo>
+<KKMremember/>
+<str1> | Выезд по этому чеку в течение 10 минут | </str1>
+</Operator_v2>

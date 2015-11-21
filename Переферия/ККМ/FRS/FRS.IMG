@@ -1,0 +1,1332 @@
+VERSION 5.0001L8
+RECORD                             0 0 CMOS
+Информационная страница            0 10 InitPage
+Основная страница                  $2000 10 PermanentPage
+Рабочая страница                   $4000 10 WorkPage
+Трассовая информация               $6000 10 Trace
+Буфер приема                       $601C 14 RBuffer
+Код активизации                    $6280 29 DecCod
+Регистры CMOS                      $7FEE 17 Registers
+Таймер CMOS                        $7FF8 18 Timer
+END                                0 0 CMOS
+RECORD                             0 0 InitPage
+Сигнатура                          0 0 Sign
+Работа в сети                      $00D 1 WorkWithPrefix
+5-проводная линия                  $00E 1 Is5Wires
+Символ аппарата в сети             $00F 2 StationID
+Cкорость                           $010 3 BaudRate
+Дата/время в команде               $012 1 TimeInCommand
+Короткие ответы                    $013 1 SendShortAnswer
+Время импульса On                  $014 4 DrawerOnTime
+Время импульса Off                 $015 4 DrawerOffTime
+Параметры документа                $016 19 DocParameters
+Доп.параметры документа            $018 7 DocParameters1
+Версия CMOS                        $01A 5 CMOSVer
+Зарезервировано                    $01C 5 Reserved1
+Ожидание листа в сек.              $01E 3 SlipWaitTimeOut
+Константы                          $020 10 FRData
+Источники поступлений              $25D 10 PaysDef
+END                                0 0 InitPage
+RECORD                             0 0 FRData
+№ последнего Z-отч.                $000 3 FlashZNo
+Серийный № Flash                   $002 8 FlashSerialNo
+Пароль на связь                    $00A 9 CommandPassword
+Заголовок док-та                   $00E 10 ReceiptHeader
+Окончание док-та                   $104 10 ReceiptTail
+Названия операций                  $1A8 10 OperationNames
+Серийный номер ЭКЛЗ                $232 0 EKLZNo
+END                                0 0 FRData
+RECORD                             0 0 ReceiptHeader
+1                                  0 20
+2                                  $029 20
+3                                  $052 20
+4                                  $07B 20
+5                                  $0A4 20
+6                                  $0CD 20
+END                                0 0 ReceiptHeader
+RECORD                             0 0 ReceiptTail
+1                                  0 20
+2                                  $029 20
+3                                  $052 20
+4                                  $07B 20
+END                                0 0 ReceiptTail
+RECORD                             0 0 OperationNames
+ПРОДАЖА                            0 27
+СТОРН.ПРОДАЖА                      23 27
+ВОЗВРАТ                            46 27
+СТОРН.ВОЗВРАТ                      69 27
+ПОКУПКА                            92 27
+СТОРН.ПОКУПКА                      115 27
+END                                0 0 OperationNames
+RECORD                             0 0 PaysDef
+Валюта фискализации                0 4 FscCur
+Рабочая валюта                     1 4 WrkCur
+Сч. валют                          2 4 CurrenciesCount
+Сч. платежей                       3 4 PaysCount
+Валюты                             4 21 Currencies
+Платежи                            18 22 Payments
+Налоги                             $0DE 30 Taxes
+Тип ККМ                            $21E 4 KKMTyp
+Номер последнего отдела            $21F 3 LastDep
+Массив описателей отделов          $221 26 Depart
+Группа ККМ                         $1C81 4 Group
+END                                0 0 PaysDef
+RECORD                             0 0 PermanentPage
+Счетчики документов                0 10 DCounters
+Денежные счетчики                  $02B 10 DocData
+Описание документов                $123 10 MCounters
+END                                0 0 PermanentPage
+RECORD                             0 0 WorkPage
+Счетчики документов                0 10 DCounters
+Денежные счетчики                  $02B 10 DocData
+Описание документов                $123 10 MCounters
+END                                0 0 WorkPage
+RECORD                             0 0 DCounters
+Число документов в смене           0 3 DayDocCounter
+в т.ч. чеков                       2 3 DayDocCoun...[0]
+   аннулированных чеков            4 3 DayDocCoun...[1]
+   подкл.документов                6 3 DayDocCoun...[2]
+   аннулир.подкл.докумен.          8 3 DayDocCoun...[3]
+   произв.чеков.документов         10 3 DayDocCoun...[4]
+   произв.подкл.документов         12 3 DayDocCoun...[5]
+   прочих документов               12 3 DayDocCoun...[6]
+   подкреплений                    16 3 DayDocCoun...[7]
+   инкасаций                       18 3 DayDocCoun...[8]
+Номер докумена                     $01C 3 DocNo
+Число сторк произв.докум.          $01E 4 FreeDoc
+В смене число продаж               $01F 3 OpCounter[0]
+          сторн.продаж             $021 3 OpCounter[1]
+          возвратов                $023 3 OpCounter[2]
+          сторн.возвратов          $025 3 OpCounter[3]
+          покупок                  $027 3 OpCounter[4]
+          сторн.покупок            $029 3 OpCounter[5]
+END                                0 0 DCounters
+RECORD                             0 0 MCounters
+Последняя дата                     0 6 LastDate
+Последнее время                    2 11 LastTime
+Последняя дата                     4 6 LastRDate
+Последнее время                    6 11 LastRTime
+Сумма в кассе                      8 12 InCash
+Нарастающий итог продаж            $012 12 GrowingTotal[0]
+         возврата продаж           $01C 12 GrowingTotal[1]
+                 покупок           $026 12 GrowingTotal[2]
+        возврата покупок           $030 12 GrowingTotal[3]
+В смене сумма продаж               $03A 12 TotalDay[0]
+        возврата продаж            $044 12 TotalDay[1]
+                покупок            $04E 12 TotalDay[2]
+        возврата покупок           $058 12 TotalDay[3]
+Счетчики продаж                    $062 10 DPays
+Счетчики сторн.продаж              $09E 10 DPays
+Счетчики возвратов                 $0DA 10 DPays
+Счетчики покупок                   $152 10 DPays
+Счетчики возвр.покупок             $18E 10 DPays
+Счетчики тары                      $1CA 10 Boxes
+Сумма подкрепления                 $206 12 ToCash
+Сумма инкасации                    $210 12 FromCash
+Счетчики налога 0                  $21A 10 Tax
+Счетчики налога 1                  $256 10 Tax
+Счетчики налога 2                  $292 10 Tax
+Счетчики налога 3                  $2CE 10 Tax
+Счетчики налога 4                  $30A 10 Tax
+Счетчики налога 5                  $346 10 Tax
+Счетчики налога 6                  $382 10 Tax
+Счетчики налога 7                  $3BE 10 Tax
+Счетчики скидок                    $3FA 10 Margin
+Счетчики наценок                   $436 10 Discount
+Описатели товаров                  $472 28 GoodsDoc
+END                                0 0 MCounters
+RECORD                             0 0 DPays
+Сумма наличные                     0 12 DPays[..][0]
+      кредит                       10 12 DPays[..][1]
+      кредитная карта              20 12 DPays[..][2]
+      платеж 3                     30 12 DPays[..][3]
+      платеж 4                     40 12 DPays[..][4]
+      платеж 5                     50 12 DPays[..][5]
+END                                0 0 DPays
+RECORD                             0 0 Boxes
+Стоимость продажи                  0 12 Boxes[0]
+          сторн.продажи            10 12 Boxes[1]
+          возврата                 20 12 Boxes[2]
+          покупки                  40 12 Boxes[4]
+          сторн.покупки            50 12 Boxes[5]
+END                                0 0 Boxes
+RECORD                             0 0 Tax
+Сумма налога на продажу            0 12 Tax[0]
+  налога на сторн.продажи          10 12 Tax[1]
+  налога на возврат                20 12 Tax[2]
+  налога на покупки                40 12 Tax[4]
+  налога на сторн.покупки          50 12 Tax[5]
+END                                0 0 Tax
+RECORD                             0 0 Margin
+Сумма скидки на продажу            0 12 Margin[0]
+  скидки на сторн.продажи          10 12 Margin[1]
+  скидки на возврат                20 12 Margin[2]
+  скидки на покупки                40 12 Margin[4]
+  скидки на сторн.покупки          50 12 Margin[5]
+END                                0 0 Margin
+RECORD                             0 0 Discount
+Сумма наценки на продажу           0 12 Discount[0]
+  наценки на сторн.продажи         10 12 Discount[1]
+  наценки на возврат               20 12 Discount[2]
+  наценки на покупки               40 12 Discount[4]
+  наценки на сторн.покупки         50 12 Discount[5]
+END                                0 0 Discount
+RECORD                             0 0 DocData
+Тип документа                      0 4 aDocType
+Тип продажи                        1 4 aDocWareType
+Подитог документа                  2 12 aDocCurItem
+Сумма документа                    $00C 12 aDocTotal
+Сумма по отделу                    $016 12 aDocCurItemPrim
+Сумма налога по отделу             $020 12 aDocTotalPrim
+Сумма тары                         $02A 12 aDocBoxesTotal
+Сумма тары                         $034 12 aDocBoxesTotalPrim
+Сумма внесенная покупат.           $03E 12 aDocChange
+Сумма налогов                      $048 10 aTax
+Сумма скидок                       $098 12 aMargin
+Сумма наценок                      $0A2 12 aDiscount
+Сумма по видам оплат               $0AC 10 aDocPays
+Тип операции                       $0E8 4 OpType
+Дата документа                     $0E9 6 aDocDate
+Время документа                    $0EB 11 aDocTime
+Номер документа                    $0ED 3 aDocNo
+Номер подкл.документа              $0EF 3 aDocNoType
+Начальный номер чека               $0F1 3 aDocNoStart
+Начальный номер подкл.док.         $0F3 3 aDocNoTypeStart
+Признак нумерации                  $0F5 1 IndexTender
+Признак нумерации                  $0F6 1 DCountersUpdated
+Признак нумерации                  $0F7 1 MCountersUpdated
+END                                0 0 DocData
+RECORD                             0 0 aTax
+Сумма налога 1                     0 12 aTax[0]
+Сумма налога 2                     10 12 aTax[1]
+Сумма налога 3                     20 12 aTax[2]
+Сумма налога 4                     30 12 aTax[3]
+Сумма налога 5                     40 12 aTax[4]
+Сумма налога 6                     50 12 aTax[5]
+Сумма налога 7                     60 12 aTax[6]
+Сумма налога 8                     70 12 aTax[7]
+END                                0 0 aTax
+RECORD                             0 0 aDocPays
+Счетчик наличных                   0 12 aDocPays[0]
+Счетчик кредита                    10 12 aDocPays[1]
+Счетчик кредитной карты            20 12 aDocPays[2]
+Счетчик Платеж 3                   30 12 aDocPays[3]
+Счетчик Платеж 4                   40 12 aDocPays[4]
+Счетчик Платеж 5                   50 12 aDocPays[5]
+END                                0 0 aDocPays
+RECORD                             0 0 Trace
+Отличительный байт                 0 2 CommandID
+Код сообщения                      1 7 CommandCode
+Постоянный статус                  2 7 PerStatus
+Текущий статус                     3 13 CurStatus
+Рез-т вып-я команды                5 7 CmdResult
+Номер некорр.символа               6 7 CmdResultFld
+Длина команды                      7 3 CmdLen
+Статус предыд. ком.                9 7 CmdExStatus
+Аннулирование возможно             10 1 MayCancel
+Требуется эл.журн.                 11 1 NeedSlipJournal
+Тест CMOS не оконч.                12 1 TestCMOSNotFinished
+Статус аппаратуры                  13 23 HardFailExt
+Статус Flash                       14 3 FlashState
+Статус страниц CMOS                16 24 CMOSPagesState
+Статус CMOS                        18 25 CMOSState
+Дата ошибки CMOS                   20 6 ErrDate[0]
+Дата ошибки Flash                  22 6 ErrDate[1]
+Дата ошибки кода                   24 6 ErrDate[2]
+Зарезервировано                    26 3 Reserved1
+END                                0 0 Trace
+VERSION 5.0001s5
+RECORD                             0 0 CMOS
+Информационная страница            0 10 InitPage
+Основная страница                  $0800 10 PermanentPage
+Рабочая страница                   $1000 10 WorkPage
+Трассовая информация               $1800 10 Trace
+Буфер приема                       $181C 14 RBuffer
+Код активизации                    $1A80 29 DecCod
+Регистры CMOS                      $1FEE 17 Registers
+Таймер CMOS                        $1FF8 18 Timer
+END                                0 0 CMOS
+RECORD                             0 0 InitPage
+Сигнатура                          0 0 Sign
+Работа в сети                      $00D 1 WorkWithPrefix
+5-проводная линия                  $00E 1 Is5Wires
+Символ аппарата в сети             $00F 2 StationID
+Cкорость                           $010 3 BaudRate
+Дата/время в команде               $012 1 TimeInCommand
+Короткие ответы                    $013 1 SendShortAnswer
+Время импульса On                  $014 4 DrawerOnTime
+Время импульса Off                 $015 4 DrawerOffTime
+Параметры документа                $016 19 DocParameters
+Доп.параметры документа            $018 7 DocParameters1
+Версия CMOS                        $01A 5 CMOSVer
+Зарезервировано                    $01C 5 Reserved1
+Ожидание листа в сек.              $01E 3 SlipWaitTimeOut
+Константы                          $020 10 FRData
+Источники поступлений              $25D 10 PaysDef
+END                                0 0 InitPage
+RECORD                             0 0 FRData
+№ последнего Z-отч.                $000 3 FlashZNo
+Серийный № Flash                   $002 8 FlashSerialNo
+Пароль на связь                    $00A 9 CommandPassword
+Заголовок док-та                   $00E 10 ReceiptHeader
+Окончание док-та                   $104 10 ReceiptTail
+Названия операций                  $1A8 10 OperationNames
+Серийный номер ЭКЛЗ                $232 0 EKLZNo
+END                                0 0 FRData
+RECORD                             0 0 ReceiptHeader
+1                                  0 20
+2                                  $029 20
+3                                  $052 20
+4                                  $07B 20
+5                                  $0A4 20
+6                                  $0CD 20
+END                                0 0 ReceiptHeader
+RECORD                             0 0 ReceiptTail
+1                                  0 20
+2                                  $029 20
+3                                  $052 20
+4                                  $07B 20
+END                                0 0 ReceiptTail
+RECORD                             0 0 OperationNames
+ПРОДАЖА                            0 27
+СТОРН.ПРОДАЖА                      23 27
+ВОЗВРАТ                            46 27
+СТОРН.ВОЗВРАТ                      69 27
+ПОКУПКА                            92 27
+СТОРН.ПОКУПКА                      115 27
+END                                0 0 OperationNames
+RECORD                             0 0 PaysDef
+Валюта фискализации                0 4 FscCur
+Рабочая валюта                     1 4 WrkCur
+Сч. валют                          2 4 CurrenciesCount
+Сч. платежей                       3 4 PaysCount
+Валюты                             4 21 Currencies
+Платежи                            18 22 Payments
+Налоги                             $0DE 3 Taxes
+Тип ККМ                            $21E 4 KKMTyp
+Группа ККМ                         $21F 4 Group
+END                                0 0 PaysDef
+RECORD                             0 0 PermanentPage
+Счетчики документов                0 10 DCounters
+Денежные счетчики                  $02B 10 DocData
+Описание документов                $123 10 MCounters
+END                                0 0 PermanentPage
+RECORD                             0 0 WorkPage
+Счетчики документов                0 10 DCounters
+Денежные счетчики                  $02B 10 DocData
+Описание документов                $123 10 MCounters
+END                                0 0 WorkPage
+RECORD                             0 0 DCounters
+Число документов в смене           0 3 DayDocCounter
+в т.ч. чеков                       2 3 DayDocCoun...[0]
+   аннулированных чеков            4 3 DayDocCoun...[1]
+   подкл.документов                6 3 DayDocCoun...[2]
+   аннулир.подкл.докумен.          8 3 DayDocCoun...[3]
+   произв.чеков.документов         10 3 DayDocCoun...[4]
+   произв.подкл.документов         12 3 DayDocCoun...[5]
+   подкреплений                    16 3 DayDocCoun...[7]
+   инкасаций                       18 3 DayDocCoun...[8]
+Номер докумена                     $01A 3 DocNo
+Число сторк произв.докум.          $01C 4 FreeDoc
+В смене число продаж               $01D 3 OpCounter[0]
+          сторн.продаж             $01F 3 OpCounter[1]
+          возвратов                $021 3 OpCounter[2]
+          сторн.возвратов          $023 3 OpCounter[3]
+          покупок                  $025 3 OpCounter[4]
+          сторн.покупок            $027 3 OpCounter[5]
+END                                0 0 DCounters
+RECORD                             0 0 MCounters
+Последняя дата                     0 6 LastDate
+Последнее время                    2 11 LastTime
+Последняя дата                     4 6 LastRDate
+Последнее время                    6 11 LastRTime
+Сумма в кассе                      8 12 InCash
+Нарастающий итог продаж            $012 12 GrowingTotal[0]
+         возврата продаж           $01C 12 GrowingTotal[1]
+                 покупок           $026 12 GrowingTotal[2]
+        возврата покупок           $030 12 GrowingTotal[3]
+В смене сумма продаж               $03A 12 TotalDay[0]
+        возврата продаж            $044 12 TotalDay[1]
+                покупок            $04E 12 TotalDay[2]
+        возврата покупок           $058 12 TotalDay[3]
+Счетчики наличных                  $062 10 DPays
+Счетчики кредита                   $09E 10 DPays
+Счетчики кредитной карты           $0DA 10 DPays
+Счетчики Платеж 3                  $116 10 DPays
+Счетчики Платеж 4                  $152 10 DPays
+Счетчики Платеж 5                  $18E 10 DPays
+Счетчики тары                      $1CA 10 Boxes
+Сумма подкрепления                 $206 12 ToCash
+Сумма инкасации                    $210 12 FromCash
+Счетчики налога 0                  $21A 10 Tax
+Счетчики налога 1                  $256 10 Tax
+Счетчики налога 2                  $292 10 Tax
+Счетчики налога 3                  $2CE 10 Tax
+Счетчики налога 4                  $30A 10 Tax
+Счетчики налога 5                  $346 10 Tax
+Счетчики налога 6                  $382 10 Tax
+Счетчики налога 7                  $3BE 10 Tax
+Счетчики скидок                    $3FA 10 Margin
+Счетчики наценок                   $436 10 Discount
+END                                0 0 MCounters
+RECORD                             0 0 DPays
+Сумма наличные                     0 12 DPays[..][0]
+      кредит                       10 12 DPays[..][1]
+      кредитная карта              20 12 DPays[..][2]
+      платеж 3                     30 12 DPays[..][3]
+      платеж 4                     40 12 DPays[..][4]
+      платеж 5                     50 12 DPays[..][5]
+END                                0 0 DPays
+RECORD                             0 0 Boxes
+Стоимость продажи                  0 12 Boxes[0]
+          сторн.продажи            10 12 Boxes[1]
+          возврата                 20 12 Boxes[2]
+          покупки                  40 12 Boxes[4]
+          сторн.покупки            50 12 Boxes[5]
+END                                0 0 Boxes
+RECORD                             0 0 Tax
+Сумма налога на продажу            0 12 Tax[0]
+  налога на сторн.продажи          10 12 Tax[1]
+  налога на возврат                20 12 Tax[2]
+  налога на покупки                40 12 Tax[4]
+  налога на сторн.покупки          50 12 Tax[5]
+END                                0 0 Tax
+RECORD                             0 0 Margin
+Сумма скидки на продажу            0 12 Margin[0]
+  скидки на сторн.продажи          10 12 Margin[1]
+  скидки на возврат                20 12 Margin[2]
+  скидки на покупки                40 12 Margin[4]
+  скидки на сторн.покупки          50 12 Margin[5]
+END                                0 0 Margin
+RECORD                             0 0 Discount
+Сумма наценки на продажу           0 12 Discount[0]
+  наценки на сторн.продажи         10 12 Discount[1]
+  наценки на возврат               20 12 Discount[2]
+  наценки на покупки               40 12 Discount[4]
+  наценки на сторн.покупки         50 12 Discount[5]
+END                                0 0 Discount
+RECORD                             0 0 DocData
+Тип документа                      0 4 aDocType
+Тип продажи                        1 4 aDocWareType
+Подитог документа                  2 12 aDocCurItem
+Сумма документа                    $00C 12 aDocTotal
+Сумма по отделу                    $016 12 aDocCurItemPrim
+Сумма налога по отделу             $020 12 aDocTotalPrim
+Сумма тары                         $02A 12 aDocBoxesTotal
+Сумма тары                         $034 12 aDocBoxesTotalPrim
+Сумма внесенная покупат.           $03E 12 aDocChange
+Сумма налогов                      $048 10 aTax
+Сумма скидок                       $098 12 aMargin
+Сумма наценок                      $0A2 12 aDiscount
+Сумма по видам оплат               $0AC 10 aDocPays
+Тип операции                       $0E8 4 OpType
+Дата документа                     $0E9 6 aDocDate
+Время документа                    $0EB 11 aDocTime
+Номер документа                    $0ED 3 aDocNo
+Номер подкл.документа              $0EF 3 aDocNoType
+Начальный номер чека               $0F1 3 aDocNoStart
+Начальный номер подкл.док.         $0F3 3 aDocNoTypeStart
+Признак нумерации                  $0F5 1 IndexTender
+Признак нумерации                  $0F6 1 DCountersUpdated
+Признак нумерации                  $0F7 1 MCountersUpdated
+END                                0 0 DocData
+RECORD                             0 0 aTax
+Сумма налога 1                     0 12 aTax[0]
+Сумма налога 2                     10 12 aTax[1]
+Сумма налога 3                     20 12 aTax[2]
+Сумма налога 4                     30 12 aTax[3]
+Сумма налога 5                     40 12 aTax[4]
+Сумма налога 6                     50 12 aTax[5]
+Сумма налога 7                     60 12 aTax[6]
+Сумма налога 8                     70 12 aTax[7]
+END                                0 0 aTax
+RECORD                             0 0 aDocPays
+Счетчик наличных                   0 12 aDocPays[0]
+Счетчик кредита                    10 12 aDocPays[1]
+Счетчик кредитной карты            20 12 aDocPays[2]
+Счетчик Платеж 3                   30 12 aDocPays[3]
+Счетчик Платеж 4                   40 12 aDocPays[4]
+Счетчик Платеж 5                   50 12 aDocPays[5]
+END                                0 0 aDocPays
+RECORD                             0 0 Trace
+Отличительный байт                 0 2 CommandID
+Код сообщения                      1 7 CommandCode
+Постоянный статус                  2 7 PerStatus
+Текущий статус                     3 13 CurStatus
+Рез-т вып-я команды                5 7 CmdResult
+Номер некорр.символа               6 7 CmdResultFld
+Длина команды                      7 3 CmdLen
+Статус предыд. ком.                9 7 CmdExStatus
+Аннулирование возможно             10 1 MayCancel
+Требуется эл.журн.                 11 1 NeedSlipJournal
+Тест CMOS не оконч.                12 1 TestCMOSNotFinished
+Статус аппаратуры                  13 23 HardFailExt
+Статус Flash                       14 3 FlashState
+Статус страниц CMOS                16 24 CMOSPagesState
+Статус CMOS                        18 25 CMOSState
+Дата ошибки CMOS                   20 6 ErrDate[0]
+Дата ошибки Flash                  22 6 ErrDate[1]
+Дата ошибки кода                   24 6 ErrDate[2]
+Зарезервировано                    26 3 Reserved1
+END                                0 0 Trace
+RECORD                             0 0 aDocPays
+Счетчик наличных                   0 12 aDocPays[0]
+Счетчик кредита                    10 12 aDocPays[1]
+Счетчик кредитной карты            20 12 aDocPays[2]
+Счетчик Платеж 3                   30 12 aDocPays[3]
+Счетчик Платеж 4                   40 12 aDocPays[4]
+Счетчик Платеж 5                   50 12 aDocPays[5]
+END                                0 0 aDocPays
+VERSION 1.2LPC07
+RECORD                             0 0 CMOS
+Информационная страница            0 10 InitPage
+Основная страница                  $0CE8 10 PermanentPage
+Рабочая страница                   $2868 10 WorkPage
+Трассовая информация               $43E8 10 Trace
+Код активизации                    $4406 29 DecCod
+END                                0 0 CMOS
+RECORD                             0 0 InitPage
+Сигнатура                          0 0 Sign
+Работа в сети                      $00C 1 WorkWithPrefix
+5-проводная линия                  $00D 1 Is5Wires
+Символ аппарата в сети             $00E 2 StationID
+Дата/время в команде               $00F 1 TimeInCommand
+Короткие ответы                    $010 1 SendShortAnswer
+Время импульса On                  $011 4 DrawerOnTime
+Время импульса Off                 $012 4 DrawerOffTime
+Параметры документа                $014 19 DocParameters
+Доп.параметры документа            $016 13 DocParameters1
+Ожидание листа в сек.              $018 3 SlipWaitTimeOut
+Cкорость                           $01C 33 BaudRate
+Константы                          $020 10 FRData
+Источники поступлений              $25C 10 PaysDef
+END                                0 0 InitPage
+RECORD                             0 0 FRData
+Пароль на связь                    $000 9 CommandPassword
+Заголовок док-та                   $004 10 ReceiptHeader
+Окончание док-та                   $0FA 10 ReceiptTail
+Названия операций                  $19E 10 OperationNames
+Серийный номер ЭКЛЗ                $22E 0 EKLZNo
+№ последнего Z-отч.                $23A 3 FlashZNo
+END                                0 0 FRData
+RECORD                             0 0 ReceiptHeader
+1                                  0 20
+2                                  $029 20
+3                                  $052 20
+4                                  $07B 20
+5                                  $0A4 20
+6                                  $0CD 20
+END                                0 0 ReceiptHeader
+RECORD                             0 0 ReceiptTail
+1                                  0 20
+2                                  $029 20
+3                                  $052 20
+4                                  $07B 20
+END                                0 0 ReceiptTail
+RECORD                             0 0 OperationNames
+ПРОДАЖА                            0 27
+СТОРН.ПРОДАЖА                      24 27
+ВОЗВРАТ                            48 27
+СТОРН.ВОЗВРАТ                      72 27
+ПОКУПКА                            96 27
+СТОРН.ПОКУПКА                      120 27
+END                                0 0 OperationNames
+RECORD                             0 0 PaysDef
+Тип ККМ                            0 4 KKMTyp
+Группа ККМ                         1 4 Group
+Валюты                             2 21 Currencies
+Платежи                            18 22 Payments
+Налоги                             $194 10 Taxes
+Отделы                             $274 10 Depart
+END                                0 0 PaysDef
+RECORD                             0 0 Taxes
+Налог 1                            0   27
+    процент                        20  33
+Налог 2                            28  27
+    процент                        48  33
+Налог 3                            56  27
+    процент                        76  33
+Налог 4                            84  27
+    процент                        104 33
+Налог 5                            112 27
+    процент                        132 33
+Налог 6                            140 27
+    процент                        160 33
+Налог 7                            168 27
+    процент                        188 33
+Налог 8                            196 27
+    процент                        216 33
+END                                0 0 Taxes
+RECORD                             0 0 Depart
+Отдел 1                            0   27
+Отдел 2                            $20 27
+Отдел 3                            $40 27
+Отдел 4                            $60 27
+Отдел 5                            $80 27
+Отдел 6                            $A0 27
+Отдел 7                            $C0 27
+Отдел 8                            $E0 27
+Отдел 9                            $100 27
+Отдел 10                           $120 27
+Отдел 11                           $140 27
+Отдел 12                           $160 27
+Отдел 13                           $180 27
+Отдел 14                           $1A0 27
+Отдел 15                           $1C0 27
+Отдел 16                           $1E0 27
+Отдел 17                           $200 27
+Отдел 18                           $220 27
+Отдел 19                           $240 27
+Отдел 20                           $260 27
+Отдел 21                           $280 27
+Отдел 22                           $2A0 27
+Отдел 23                           $2C0 27
+Отдел 24                           $2E0 27
+Отдел 25                           $300 27
+Отдел 26                           $320 27
+Отдел 27                           $340 27
+Отдел 28                           $360 27
+Отдел 29                           $380 27
+Отдел 30                           $3A0 27
+Отдел 31                           $3C0 27
+Отдел 32                           $3E0 27
+Отдел 33                           $400 27
+Отдел 34                           $420 27
+Отдел 35                           $440 27
+Отдел 36                           $460 27
+Отдел 37                           $480 27
+Отдел 38                           $4A0 27
+Отдел 39                           $4C0 27
+Отдел 40                           $4E0 27
+Отдел 41                           $500 27
+Отдел 42                           $520 27
+Отдел 43                           $540 27
+Отдел 44                           $560 27
+Отдел 45                           $580 27
+Отдел 46                           $5A0 27
+Отдел 47                           $5C0 27
+Отдел 48                           $5E0 27
+Отдел 49                           $600 27
+Отдел 50                           $620 27
+Отдел 51                           $640 27
+Отдел 52                           $660 27
+Отдел 53                           $680 27
+Отдел 54                           $6A0 27
+Отдел 55                           $6C0 27
+Отдел 56                           $6E0 27
+Отдел 57                           $700 27
+Отдел 58                           $720 27
+Отдел 59                           $740 27
+Отдел 60                           $760 27
+Отдел 61                           $780 27
+Отдел 62                           $7A0 27
+Отдел 63                           $7C0 27
+Отдел 64                           $7E0 27
+END                                0 0 Depart
+RECORD                             0 0 PermanentPage
+Счетчики документов                0 10 DCounters
+Описание документов                $30 10 MCounters
+Денежные счетчики                  $1770 10 DocData
+END                                0 0 PermanentPage
+RECORD                             0 0 WorkPage
+Счетчики документов                0 10 DCounters
+Описание документов                $30 10 MCounters
+Денежные счетчики                  $1770 10 DocData
+END                                0 0 WorkPage
+RECORD                             0 0 DCounters
+Число документов в смене           0 3 DayDocCounter
+в т.ч. чеков                       2 3 DayDocCoun...[0]
+   аннулированных чеков            4 3 DayDocCoun...[1]
+   подкл.документов                6 3 DayDocCoun...[2]
+   аннулир.подкл.докумен.          8 3 DayDocCoun...[3]
+   произв.чеков.документов         10 3 DayDocCoun...[4]
+   произв.подкл.документов         12 3 DayDocCoun...[5]
+   подкреплений                    16 3 DayDocCoun...[7]
+   инкасаций                       18 3 DayDocCoun...[8]
+Номер докумена                     $01E 3 DocNo
+Число произв.фиск.докум.           $020 3 FreeDoc
+В смене число продаж               $022 3 OpCounter[0]
+          сторн.продаж             $024 3 OpCounter[1]
+          возвратов                $026 3 OpCounter[2]
+          сторн.возвратов          $028 3 OpCounter[3]
+          покупок                  $02A 3 OpCounter[4]
+          сторн.покупок            $02C 3 OpCounter[5]
+END                                0 0 DCounters
+RECORD                             0 0 MCounters
+Последняя дата                     0 6 LastDate
+Последнее время                    2 11 LastTime
+Последняя дата                     4 6 LastRDate
+Последнее время                    6 11 LastRTime
+Количество по отделам              8 10 Quantitys
+Сумма в кассе                      $608 12 InCash
+Нарастающий итог продаж            $610 12 GrowingTotal[0]
+         возврата продаж           $618 12 GrowingTotal[1]
+                 покупок           $620 12 GrowingTotal[2]
+        возврата покупок           $628 12 GrowingTotal[3]
+В смене сумма продаж               $630 12 TotalDay[0]
+        возврата продаж            $638 12 TotalDay[1]
+                покупок            $640 12 TotalDay[2]
+        возврата покупок           $648 12 TotalDay[3]
+Дневные счетчики                   $650 10 DayPays
+Счетчики по отделам                $950 10 DepTotals
+Сумма подкрепления                 $1550 12 ToCash
+Сумма инкасации                    $1558 12 FromCash
+Счетчики налогов                   $1560 10 DTax
+Счетчики скидок                    $16E0 10 Margin
+Счетчики наценок                   $1710 10 Discount
+END                                0 0 MCounters
+RECORD                             0 0 Quantitys
+Отдел 1                            0    10 PQuantity
+Отдел 2                            $018 10 PQuantity
+Отдел 3                            $030 10 PQuantity
+Отдел 4                            $048 10 PQuantity
+Отдел 5                            $060 10 PQuantity
+Отдел 6                            $078 10 PQuantity
+Отдел 7                            $090 10 PQuantity
+Отдел 8                            $0A8 10 PQuantity
+Отдел 9                            $0C0 10 PQuantity
+Отдел 10                           $0D8 10 PQuantity
+Отдел 11                           $0F0 10 PQuantity
+Отдел 12                           $108 10 PQuantity
+Отдел 13                           $120 10 PQuantity
+Отдел 14                           $138 10 PQuantity
+Отдел 15                           $150 10 PQuantity
+Отдел 16                           $168 10 PQuantity
+Отдел 17                           $180 10 PQuantity
+Отдел 18                           $198 10 PQuantity
+Отдел 19                           $1B0 10 PQuantity
+Отдел 20                           $1C8 10 PQuantity
+Отдел 21                           $1E0 10 PQuantity
+Отдел 22                           $1F8 10 PQuantity
+Отдел 23                           $210 10 PQuantity
+Отдел 24                           $228 10 PQuantity
+Отдел 25                           $240 10 PQuantity
+Отдел 26                           $258 10 PQuantity
+Отдел 27                           $270 10 PQuantity
+Отдел 28                           $288 10 PQuantity
+Отдел 29                           $2A0 10 PQuantity
+Отдел 30                           $2B8 10 PQuantity
+Отдел 31                           $2D0 10 PQuantity
+Отдел 32                           $2E8 10 PQuantity
+Отдел 33                           $300 10 PQuantity
+Отдел 34                           $318 10 PQuantity
+Отдел 35                           $330 10 PQuantity
+Отдел 36                           $348 10 PQuantity
+Отдел 37                           $360 10 PQuantity
+Отдел 38                           $378 10 PQuantity
+Отдел 39                           $390 10 PQuantity
+Отдел 40                           $3A8 10 PQuantity
+Отдел 41                           $3C0 10 PQuantity
+Отдел 42                           $3D8 10 PQuantity
+Отдел 43                           $3F0 10 PQuantity
+Отдел 44                           $408 10 PQuantity
+Отдел 45                           $420 10 PQuantity
+Отдел 46                           $438 10 PQuantity
+Отдел 47                           $450 10 PQuantity
+Отдел 48                           $468 10 PQuantity
+Отдел 49                           $480 10 PQuantity
+Отдел 50                           $498 10 PQuantity
+Отдел 51                           $4B0 10 PQuantity
+Отдел 52                           $4C8 10 PQuantity
+Отдел 53                           $4E0 10 PQuantity
+Отдел 54                           $4F8 10 PQuantity
+Отдел 55                           $510 10 PQuantity
+Отдел 56                           $528 10 PQuantity
+Отдел 57                           $540 10 PQuantity
+Отдел 58                           $558 10 PQuantity
+Отдел 59                           $570 10 PQuantity
+Отдел 60                           $588 10 PQuantity
+Отдел 61                           $5A0 10 PQuantity
+Отдел 62                           $5B8 10 PQuantity
+Отдел 63                           $5D0 10 PQuantity
+Отдел 64                           $5E8 10 PQuantity
+END                                0 0 Quantitys
+RECORD                             0 0 DepTotals
+Отдел 1                            0 10 DPays
+Отдел 2                            $030 10 DPays
+Отдел 3                            $060 10 DPays
+Отдел 4                            $090 10 DPays
+Отдел 5                            $0C0 10 DPays
+Отдел 6                            $0F0 10 DPays
+Отдел 7                            $120 10 DPays
+Отдел 8                            $150 10 DPays
+Отдел 9                            $180 10 DPays
+Отдел 10                           $1B0 10 DPays
+Отдел 11                           $1E0 10 DPays
+Отдел 12                           $210 10 DPays
+Отдел 13                           $240 10 DPays
+Отдел 14                           $270 10 DPays
+Отдел 15                           $2A0 10 DPays
+Отдел 16                           $2D0 10 DPays
+Отдел 17                           $300 10 DPays
+Отдел 18                           $330 10 DPays
+Отдел 19                           $360 10 DPays
+Отдел 20                           $390 10 DPays
+Отдел 21                           $3C0 10 DPays
+Отдел 22                           $3F0 10 DPays
+Отдел 23                           $420 10 DPays
+Отдел 24                           $450 10 DPays
+Отдел 25                           $480 10 DPays
+Отдел 26                           $4B0 10 DPays
+Отдел 27                           $4E0 10 DPays
+Отдел 28                           $510 10 DPays
+Отдел 29                           $540 10 DPays
+Отдел 30                           $570 10 DPays
+Отдел 31                           $5A0 10 DPays
+Отдел 32                           $5D0 10 DPays
+Отдел 33                           $600 10 DPays
+Отдел 34                           $630 10 DPays
+Отдел 35                           $660 10 DPays
+Отдел 36                           $690 10 DPays
+Отдел 37                           $6C0 10 DPays
+Отдел 38                           $6F0 10 DPays
+Отдел 39                           $720 10 DPays
+Отдел 40                           $750 10 DPays
+Отдел 41                           $780 10 DPays
+Отдел 42                           $7B0 10 DPays
+Отдел 43                           $7E0 10 DPays
+Отдел 44                           $810 10 DPays
+Отдел 45                           $840 10 DPays
+Отдел 46                           $870 10 DPays
+Отдел 47                           $8A0 10 DPays
+Отдел 48                           $8D0 10 DPays
+Отдел 49                           $900 10 DPays
+Отдел 50                           $930 10 DPays
+Отдел 51                           $960 10 DPays
+Отдел 52                           $990 10 DPays
+Отдел 53                           $9C0 10 DPays
+Отдел 54                           $9F0 10 DPays
+Отдел 55                           $A20 10 DPays
+Отдел 56                           $A50 10 DPays
+Отдел 57                           $A80 10 DPays
+Отдел 58                           $AB0 10 DPays
+Отдел 59                           $AE0 10 DPays
+Отдел 60                           $B10 10 DPays
+Отдел 61                           $B40 10 DPays
+Отдел 62                           $B70 10 DPays
+Отдел 63                           $BA0 10 DPays
+Отдел 64                           $BD0 10 DPays
+END                                0 0 DepTotals
+RECORD                             0 0 PQuantity
+Количество по продаже              0   33 Quantity[0]
+      по сторно продаже            $04 33 Quantity[1]
+      по возврату                  $08 33 Quantity[2]
+      резерв                       $0C 33 Quantity[3]
+      по покупке                   $10 33 Quantity[4]
+      по сторно покупке            $14 33 Quantity[5]
+END                                0 0 PQuantity
+RECORD                             0 0 DayPays
+Сумма наличные                     0   10 DPays
+      кредит                       $30 10 DPays
+      кредитная карта              $60 10 DPays
+      платеж 4                     $90 10 DPays
+      платеж 5                     $C0 10 DPays
+      платеж 6                     $F0 10 DPays
+      платеж 7                     $120 10 DPays
+      платеж 8                     $150 10 DPays
+      платеж 9                     $180 10 DPays
+      платеж 10                    $1B0 10 DPays
+      платеж 11                    $1E0 10 DPays
+      платеж 12                    $210 10 DPays
+      платеж 13                    $240 10 DPays
+      платеж 14                    $270 10 DPays
+      платеж 15                    $2A0 10 DPays
+      платеж 16                    $2D0 10 DPays
+END                                0 0 DayPays
+RECORD                             0 0 DTax
+Налог 1                            0   10 PTax
+Налог 2                            $30 10 PTax
+Налог 3                            $60 10 PTax
+Налог 4                            $90 10 PTax
+Налог 5                            $C0 10 PTax
+Налог 6                            $F0 10 PTax
+Налог 7                            $120 10 PTax
+Налог 8                            $150 10 PTax
+END                                0 0 DTax
+RECORD                             0 0 DPays
+Стоимость продажи                  0 12 DPays[0]
+          сторн.продажи            8 12 DPays[1]
+          возврата                 16 12 DPays[2]
+          покупки                  32 12 DPays[4]
+          сторн.покупки            40 12 DPays[5]
+END                                0 0 DPays
+RECORD                             0 0 PTax
+Налог с продажи                    0 12 PTax[0]
+      со сторн.продажи             8 12 PTax[1]
+      с возврата                   16 12 PTax[2]
+      с покупки                    32 12 PTax[4]
+      со сторн.покупки             40 12 PTax[5]
+END                                0 0 PTax
+RECORD                             0 0 Tax
+Сумма налога на продажу            0 12  Tax[0]
+  налога на сторн.продажи          8 12  Tax[1]
+  налога на возврат                16 12 Tax[2]
+  налога на покупки                32 12 Tax[4]
+  налога на сторн.покупки          40 12 Tax[5]
+END                                0 0 Tax
+RECORD                             0 0 Margin
+Сумма скидки на продажу            0 12 Margin[0]
+  скидки на сторн.продажи          16 12 Margin[1]
+  скидки на возврат                24 12 Margin[2]
+  скидки на покупки                32 12 Margin[4]
+  скидки на сторн.покупки          40 12 Margin[5]
+END                                0 0 Margin
+RECORD                             0 0 Discount
+Сумма наценки на продажу           0 12 Discount[0]
+  наценки на сторн.продажи         8 12 Discount[1]
+  наценки на возврат               16 12 Discount[2]
+  наценки на покупки               32 12 Discount[4]
+  наценки на сторн.покупки         40 12 Discount[5]
+END                                0 0 Discount
+RECORD                             0 0 DocData
+Тип документа                      0 4 aDocType
+Номер отдела                       1 4 aDocWareType
+Тип операции                       2 4 OpType
+Дата документа                     6 6 aDocDate
+Время документа                    8 11 aDocTime
+Номер документа                    10 3 aDocNo
+Номер подкл.документа              12 3 aDocNoType
+Начальный номер чека               14 3 aDocNoStart
+Начальный номер подкл.док.         16 3 aDocNoTypeStart
+Количество по отделам              $014 10 aQuantity
+Сумма по операции                  $114 12 aDocCurItem
+Сумма документа                    $11C 12 aDocTotal
+Сумма по операции                  $124 12 aDocCurItemPrim
+Сумма документа                    $12C 12 aDocTotalPrim
+Сумма внесенная покупат.           $134 12 aDocChange
+Сумма налогов                      $13C 10 aTax
+Сумма скидок                       $17C 12 aMargin
+Сумма наценок                      $184 12 aDiscount
+Сумма по отделам                   $18C 10 aDepTotal
+Сумма по видам оплат               $38C 10 aDocPays
+END                                0 0 DocData
+RECORD                             0 0 aQuantity
+Отдел 1                            0 33 aQuantity[0]
+Отдел 2                            4 33 aQuantity[1]
+Отдел 3                            8 33 aQuantity[2]
+Отдел 4                            12 33 aQuantity[3]
+Отдел 5                            16 33 aQuantity[4]
+Отдел 6                            20 33 aQuantity[5]
+Отдел 7                            24 33 aQuantity[6]
+Отдел 8                            28 33 aQuantity[7]
+Отдел 9                            32 33 aQuantity[8]
+Отдел 10                           36 33 aQuantity[9]
+Отдел 11                           40 33 aQuantity[10]
+Отдел 12                           44 33 aQuantity[11]
+Отдел 13                           48 33 aQuantity[12]
+Отдел 14                           52 33 aQuantity[13]
+Отдел 15                           56 33 aQuantity[14]
+Отдел 16                           60 33 aQuantity[15]
+Отдел 17                           64 33 aQuantity[16]
+Отдел 18                           68 33 aQuantity[17]
+Отдел 19                           72 33 aQuantity[18]
+Отдел 20                           76 33 aQuantity[19]
+Отдел 21                           80 33 aQuantity[20]
+Отдел 22                           84 33 aQuantity[21]
+Отдел 23                           88 33 aQuantity[22]
+Отдел 24                           92 33 aQuantity[23]
+Отдел 25                           96 33 aQuantity[24]
+Отдел 26                           100 33 aQuantity[25]
+Отдел 27                           104 33 aQuantity[26]
+Отдел 28                           108 33 aQuantity[27]
+Отдел 29                           112 33 aQuantity[28]
+Отдел 30                           116 33 aQuantity[29]
+Отдел 31                           120 33 aQuantity[30]
+Отдел 32                           124 33 aQuantity[31]
+Отдел 33                           128 33 aQuantity[32]
+Отдел 34                           132 33 aQuantity[33]
+Отдел 35                           136 33 aQuantity[34]
+Отдел 36                           140 33 aQuantity[35]
+Отдел 37                           144 33 aQuantity[36]
+Отдел 38                           148 33 aQuantity[37]
+Отдел 39                           152 33 aQuantity[38]
+Отдел 40                           156 33 aQuantity[39]
+Отдел 41                           160 33 aQuantity[40]
+Отдел 42                           164 33 aQuantity[41]
+Отдел 43                           168 33 aQuantity[42]
+Отдел 44                           172 33 aQuantity[43]
+Отдел 45                           176 33 aQuantity[44]
+Отдел 46                           180 33 aQuantity[45]
+Отдел 47                           184 33 aQuantity[46]
+Отдел 48                           188 33 aQuantity[47]
+Отдел 49                           192 33 aQuantity[48]
+Отдел 50                           196 33 aQuantity[49]
+Отдел 51                           200 33 aQuantity[50]
+Отдел 52                           204 33 aQuantity[51]
+Отдел 53                           208 33 aQuantity[52]
+Отдел 54                           212 33 aQuantity[53]
+Отдел 55                           216 33 aQuantity[54]
+Отдел 56                           220 33 aQuantity[55]
+Отдел 57                           224 33 aQuantity[56]
+Отдел 58                           228 33 aQuantity[57]
+Отдел 59                           232 33 aQuantity[58]
+Отдел 60                           236 33 aQuantity[59]
+Отдел 61                           240 33 aQuantity[60]
+Отдел 62                           244 33 aQuantity[61]
+Отдел 63                           248 33 aQuantity[62]
+Отдел 64                           252 33 aQuantity[63]
+END                                0 0 aQuantity
+RECORD                             0 0 aTax
+Сумма налога 1                     0 12 aTax[0]
+Сумма налога 2                     8 12 aTax[1]
+Сумма налога 3                     16 12 aTax[2]
+Сумма налога 4                     24 12 aTax[3]
+Сумма налога 5                     32 12 aTax[4]
+Сумма налога 6                     40 12 aTax[5]
+Сумма налога 7                     48 12 aTax[6]
+Сумма налога 8                     56 12 aTax[7]
+END                                0 0 aTax
+RECORD                             0 0 aDepTotal
+Отдел 1                            0 12 aDepTotal[]
+Отдел 2                            $008 12 aDepTotal[]
+Отдел 3                            $010 12 aDepTotal[]
+Отдел 4                            $018 12 aDepTotal[]
+Отдел 5                            $020 12 aDepTotal[]
+Отдел 6                            $028 12 aDepTotal[]
+Отдел 7                            $030 12 aDepTotal[]
+Отдел 8                            $038 12 aDepTotal[]
+Отдел 9                            $040 12 aDepTotal[]
+Отдел 10                           $048 12 aDepTotal[]
+Отдел 11                           $050 12 aDepTotal[]
+Отдел 12                           $058 12 aDepTotal[]
+Отдел 13                           $060 12 aDepTotal[]
+Отдел 14                           $068 12 aDepTotal[]
+Отдел 15                           $070 12 aDepTotal[]
+Отдел 16                           $078 12 aDepTotal[]
+Отдел 17                           $080 12 aDepTotal[]
+Отдел 18                           $088 12 aDepTotal[]
+Отдел 19                           $090 12 aDepTotal[]
+Отдел 20                           $098 12 aDepTotal[]
+Отдел 21                           $0A0 12 aDepTotal[]
+Отдел 22                           $0A8 12 aDepTotal[]
+Отдел 23                           $0B0 12 aDepTotal[]
+Отдел 24                           $0B8 12 aDepTotal[]
+Отдел 25                           $0C0 12 aDepTotal[]
+Отдел 26                           $0C8 12 aDepTotal[]
+Отдел 27                           $0D0 12 aDepTotal[]
+Отдел 28                           $0D8 12 aDepTotal[]
+Отдел 29                           $0E0 12 aDepTotal[]
+Отдел 30                           $0E8 12 aDepTotal[]
+Отдел 31                           $0F0 12 aDepTotal[]
+Отдел 32                           $0F8 12 aDepTotal[]
+Отдел 33                           $100 12 aDepTotal[]
+Отдел 34                           $108 12 aDepTotal[]
+Отдел 35                           $110 12 aDepTotal[]
+Отдел 36                           $118 12 aDepTotal[]
+Отдел 37                           $120 12 aDepTotal[]
+Отдел 38                           $128 12 aDepTotal[]
+Отдел 39                           $130 12 aDepTotal[]
+Отдел 40                           $138 12 aDepTotal[]
+Отдел 41                           $140 12 aDepTotal[]
+Отдел 42                           $148 12 aDepTotal[]
+Отдел 43                           $150 12 aDepTotal[]
+Отдел 44                           $158 12 aDepTotal[]
+Отдел 45                           $160 12 aDepTotal[]
+Отдел 46                           $168 12 aDepTotal[]
+Отдел 47                           $170 12 aDepTotal[]
+Отдел 48                           $178 12 aDepTotal[]
+Отдел 49                           $180 12 aDepTotal[]
+Отдел 50                           $188 12 aDepTotal[]
+Отдел 51                           $190 12 aDepTotal[]
+Отдел 52                           $198 12 aDepTotal[]
+Отдел 53                           $1A0 12 aDepTotal[]
+Отдел 54                           $1A8 12 aDepTotal[]
+Отдел 55                           $1B0 12 aDepTotal[]
+Отдел 56                           $1B8 12 aDepTotal[]
+Отдел 57                           $1C0 12 aDepTotal[]
+Отдел 58                           $1C8 12 aDepTotal[]
+Отдел 59                           $1D0 12 aDepTotal[]
+Отдел 60                           $1D8 12 aDepTotal[]
+Отдел 61                           $1E0 12 aDepTotal[]
+Отдел 62                           $1E8 12 aDepTotal[]
+Отдел 63                           $1F0 12 aDepTotal[]
+Отдел 64                           $1F8 12 aDepTotal[]
+END                                0 0 aDepTotal
+RECORD                             0 0 aDocPays
+Счетчик наличных                   0 12 aDocPays[0]
+Счетчик кредита                    8 12 aDocPays[1]
+Счетчик кредитной карты            16 12 aDocPays[2]
+Счетчик Платеж 4                   24 12 aDocPays[3]
+Счетчик Платеж 5                   32 12 aDocPays[4]
+Счетчик Платеж 6                   40 12 aDocPays[5]
+Счетчик Платеж 7                   48 12 aDocPays[6]
+Счетчик Платеж 8                   56 12 aDocPays[7]
+Счетчик Платеж 9                   64 12 aDocPays[8]
+Счетчик Платеж 10                  72 12 aDocPays[9]
+Счетчик Платеж 11                  80 12 aDocPays[10]
+Счетчик Платеж 12                  88 12 aDocPays[11]
+Счетчик Платеж 13                  96 12 aDocPays[12]
+Счетчик Платеж 14                  104 12 aDocPays[13]
+Счетчик Платеж 15                  112 12 aDocPays[14]
+Счетчик Платеж 16                  120 12 aDocPays[15]
+END                                0 0 aDocPays
+RECORD                             0 0 Trace
+Отличительный байт                 0 2 CommandID
+Код сообщения                      1 7 CommandCode
+Постоянный статус                  2 7 PerStatus
+Текущий статус                     3 13 CurStatus
+Рез-т вып-я команды                5 7 CmdResult
+Номер некорр.символа               6 7 CmdResultFld
+Длина команды                      7 3 CmdLen
+Статус предыд. ком.                9 7 CmdExStatus
+Аннулирование возможно             10 1 MayCancel
+Требуется эл.журн.                 11 1 NeedSlipJournal
+Тест CMOS не оконч.                12 1 TestCMOSNotFinished
+Статус аппаратуры                  13 23 HardFailExt
+Статус Flash                       14 3 FlashState
+Статус страниц CMOS                16 24 CMOSPagesState
+Статус CMOS                        18 25 CMOSState
+Дата ошибки CMOS                   20 6 ErrDate[0]
+Дата ошибки Flash                  22 6 ErrDate[1]
+Дата ошибки кода                   24 6 ErrDate[2]
+Зарезервировано                    26 3 Reserved1
+END                                0 0 Trace
+VERSION 6.0001L6
+RECORD                             0 0 CMOS
+Информационная страница            0 10 InitPage
+Основная страница                  $2000 10 PermanentPage
+Рабочая страница                   $4000 10 WorkPage
+Трассовая информация               $6000 10 Trace
+Буфер приема                       $601C 14 RBuffer
+Код активизации                    $6280 29 DecCod
+Таймер CMOS                        $7FF8 18 Timer
+END                                0 0 CMOS
+RECORD                             0 0 InitPage
+Сигнатура                          0 0 Sign
+Работа в сети                      $00D 1 WorkWithPrefix
+5-проводная линия                  $00E 1 Is5Wires
+Символ аппарата в сети             $00F 2 StationID
+Cкорость                           $010 3 BaudRate
+Дата/время в команде               $012 1 TimeInCommand
+Короткие ответы                    $013 1 SendShortAnswer
+Время импульса On                  $014 4 DrawerOnTime
+Время импульса Off                 $015 4 DrawerOffTime
+Параметры документа                $016 19 DocParameters
+Доп.параметры документа            $018 7 DocParameters1
+Версия CMOS                        $01A 5 CMOSVer
+Зарезервировано                    $01C 5 Reserved1
+Ожидание листа в сек.              $01E 3 SlipWaitTimeOut
+Константы                          $020 10 FRData
+Источники поступлений              $25D 10 PaysDef
+END                                0 0 InitPage
+RECORD                             0 0 FRData
+№ последнего Z-отч.                $000 3 FlashZNo
+Серийный № Flash                   $002 8 FlashSerialNo
+Пароль на связь                    $00A 9 CommandPassword
+Заголовок док-та                   $00E 10 ReceiptHeader
+Окончание док-та                   $104 10 ReceiptTail
+Названия операций                  $1A8 10 OperationNames
+Серийный номер ЭКЛЗ                $232 0 EKLZNo
+END                                0 0 FRData
+RECORD                             0 0 ReceiptHeader
+1                                  0 20
+2                                  $029 20
+3                                  $052 20
+4                                  $07B 20
+5                                  $0A4 20
+6                                  $0CD 20
+END                                0 0 ReceiptHeader
+RECORD                             0 0 ReceiptTail
+1                                  0 20
+2                                  $029 20
+3                                  $052 20
+4                                  $07B 20
+END                                0 0 ReceiptTail
+RECORD                             0 0 OperationNames
+ПРОДАЖА                            0 27
+СТОРН.ПРОДАЖА                      23 27
+ВОЗВРАТ                            46 27
+СТОРН.ВОЗВРАТ                      69 27
+ПОКУПКА                            92 27
+СТОРН.ПОКУПКА                      115 27
+END                                0 0 OperationNames
+RECORD                             0 0 PaysDef
+Валюта фискализации                0 4 FscCur
+Рабочая валюта                     1 4 WrkCur
+Сч. валют                          2 4 CurrenciesCount
+Сч. платежей                       3 4 PaysCount
+Валюты                             4 21 Currencies
+Платежи                            18 22 Payments
+Налоги                             $200 30 Taxes
+Тип ККМ                            $340 4 KKMTyp
+Номер последнего отдела            $341 3 LastDep
+Массив описателей отделов          $343 26 Depart
+Группа ККМ                         $1DA3 4 Group
+Тип СКЛ                            $1DA4 4 TypeSKL
+Размер страницы СКЛ                $1DA5 3 BufSize
+Кол-во станиц в буф. СКЛ           $1DA7 4 CountSKL
+END                                0 0 PaysDef
+RECORD                             0 0 PermanentPage
+Счетчики документов                0 10 DCounters
+Денежные счетчики                  $02B 10 DocData
+Описание документов                $123 10 MCounters
+END                                0 0 PermanentPage
+RECORD                             0 0 WorkPage
+Счетчики документов                0 10 DCounters
+Денежные счетчики                  $02B 10 DocData
+Описание документов                $123 10 MCounters
+END                                0 0 WorkPage
+RECORD                             0 0 DCounters
+Число документов в смене           0 3 DayDocCounter
+в т.ч. чеков                       2 3 DayDocCoun...[0]
+   аннулированных чеков            4 3 DayDocCoun...[1]
+   подкл.документов                6 3 DayDocCoun...[2]
+   аннулир.подкл.докумен.          8 3 DayDocCoun...[3]
+   произв.чеков.документов         10 3 DayDocCoun...[4]
+   произв.подкл.документов         12 3 DayDocCoun...[5]
+   прочих документов               12 3 DayDocCoun...[6]
+   подкреплений                    16 3 DayDocCoun...[7]
+   инкасаций                       18 3 DayDocCoun...[8]
+Номер докумена                     $01C 3 DocNo
+Число сторк произв.докум.          $01E 4 FreeDoc
+В смене число продаж               $01F 3 OpCounter[0]
+          сторн.продаж             $021 3 OpCounter[1]
+          возвратов                $023 3 OpCounter[2]
+          сторн.возвратов          $025 3 OpCounter[3]
+          покупок                  $027 3 OpCounter[4]
+          сторн.покупок            $029 3 OpCounter[5]
+END                                0 0 DCounters
+RECORD                             0 0 MCounters
+Последняя дата                     0 6 LastDate
+Последнее время                    2 11 LastTime
+Последняя дата                     4 6 LastRDate
+Последнее время                    6 11 LastRTime
+Сумма в кассе                      8 12 InCash
+Нарастающий итог продаж            $012 12 GrowingTotal[0]
+         возврата продаж           $01C 12 GrowingTotal[1]
+                 покупок           $026 12 GrowingTotal[2]
+        возврата покупок           $030 12 GrowingTotal[3]
+В смене сумма продаж               $03A 12 TotalDay[0]
+        возврата продаж            $044 12 TotalDay[1]
+                покупок            $04E 12 TotalDay[2]
+        возврата покупок           $058 12 TotalDay[3]
+Счетчики продаж                    $062 10 DPays
+Счетчики сторн.продаж              $0F8 10 DPays
+Счетчики возвратов                 $18E 10 DPays
+Счетчики покупок                   $2BA 10 DPays
+Счетчики возвр.покупок             $350 10 DPays
+Счетчики тары                      $3E6 10 Boxes
+Сумма подкрепления                 $422 12 ToCash
+Сумма инкасации                    $42C 12 FromCash
+Счетчики налога 0                  $436 10 Tax
+Счетчики налога 1                  $472 10 Tax
+Счетчики налога 2                  $4AE 10 Tax
+Счетчики налога 3                  $4EA 10 Tax
+Счетчики налога 4                  $526 10 Tax
+Счетчики налога 5                  $562 10 Tax
+Счетчики налога 6                  $5DE 10 Tax
+Счетчики налога 7                  $61A 10 Tax
+Счетчики скидок                    $656 10 Margin
+Счетчики наценок                   $692 10 Discount
+Описатели товаров                  $6CE 28 GoodsDoc
+END                                0 0 MCounters
+RECORD                             0 0 DPays
+Сумма наличные                     0 12 DPays[..][0]
+      кредит                       10 12 DPays[..][1]
+      кредитная карта              20 12 DPays[..][2]
+      платеж 3                     30 12 DPays[..][3]
+      платеж 4                     40 12 DPays[..][4]
+      платеж 5                     50 12 DPays[..][5]
+      платеж 6                     60 12 DPays[..][6]
+      платеж 7                     70 12 DPays[..][7]
+      платеж 8                     80 12 DPays[..][8]
+      платеж 9                     90 12 DPays[..][9]
+      платеж 10                   100 12 DPays[..][10]
+      платеж 11                   110 12 DPays[..][11]
+      платеж 12                   120 12 DPays[..][12]
+      платеж 13                   130 12 DPays[..][13]
+      платеж 14                   140 12 DPays[..][14]
+END                                0 0 DPays
+RECORD                             0 0 Boxes
+Стоимость продажи                  0 12 Boxes[0]
+          сторн.продажи            10 12 Boxes[1]
+          возврата                 20 12 Boxes[2]
+          покупки                  40 12 Boxes[4]
+          сторн.покупки            50 12 Boxes[5]
+END                                0 0 Boxes
+RECORD                             0 0 Tax
+Сумма налога на продажу            0 12 Tax[0]
+  налога на сторн.продажи          10 12 Tax[1]
+  налога на возврат                20 12 Tax[2]
+  налога на покупки                40 12 Tax[4]
+  налога на сторн.покупки          50 12 Tax[5]
+END                                0 0 Tax
+RECORD                             0 0 Margin
+Сумма скидки на продажу            0 12 Margin[0]
+  скидки на сторн.продажи          10 12 Margin[1]
+  скидки на возврат                20 12 Margin[2]
+  скидки на покупки                40 12 Margin[4]
+  скидки на сторн.покупки          50 12 Margin[5]
+END                                0 0 Margin
+RECORD                             0 0 Discount
+Сумма наценки на продажу           0 12 Discount[0]
+  наценки на сторн.продажи         10 12 Discount[1]
+  наценки на возврат               20 12 Discount[2]
+  наценки на покупки               40 12 Discount[4]
+  наценки на сторн.покупки         50 12 Discount[5]
+END                                0 0 Discount
+RECORD                             0 0 DocData
+Тип документа                      0 4 aDocType
+Тип продажи                        1 4 aDocWareType
+Подитог документа                  2 12 aDocCurItem
+Сумма документа                    $00C 12 aDocTotal
+Сумма по отделу                    $016 12 aDocCurItemPrim
+Сумма налога по отделу             $020 12 aDocTotalPrim
+Сумма тары                         $02A 12 aDocBoxesTotal
+Сумма тары                         $034 12 aDocBoxesTotalPrim
+Сумма внесенная покупат.           $03E 12 aDocChange
+Сумма налогов                      $048 10 aTax
+Сумма скидок                       $098 12 aMargin
+Сумма наценок                      $0A2 12 aDiscount
+Сумма по видам оплат               $0AC 10 aDocPays
+Тип операции                       $0E8 4 OpType
+Дата документа                     $0E9 6 aDocDate
+Время документа                    $0EB 11 aDocTime
+Номер документа                    $0ED 3 aDocNo
+Номер подкл.документа              $0EF 3 aDocNoType
+Начальный номер чека               $0F1 3 aDocNoStart
+Начальный номер подкл.док.         $0F3 3 aDocNoTypeStart
+Признак нумерации                  $0F5 1 IndexTender
+Признак нумерации                  $0F6 1 DCountersUpdated
+Признак нумерации                  $0F7 1 MCountersUpdated
+END                                0 0 DocData
+RECORD                             0 0 aTax
+Сумма налога 1                     0 12 aTax[0]
+Сумма налога 2                     10 12 aTax[1]
+Сумма налога 3                     20 12 aTax[2]
+Сумма налога 4                     30 12 aTax[3]
+Сумма налога 5                     40 12 aTax[4]
+Сумма налога 6                     50 12 aTax[5]
+Сумма налога 7                     60 12 aTax[6]
+Сумма налога 8                     70 12 aTax[7]
+END                                0 0 aTax
+RECORD                             0 0 aDocPays
+Счетчик наличных                   0 12 aDocPays[0]
+Счетчик кредита                    10 12 aDocPays[1]
+Счетчик кредитной карты            20 12 aDocPays[2]
+Счетчик Платеж 3                   30 12 aDocPays[3]
+Счетчик Платеж 4                   40 12 aDocPays[4]
+Счетчик Платеж 5                   50 12 aDocPays[5]
+END                                0 0 aDocPays
+RECORD                             0 0 Trace
+Отличительный байт                 0 2 CommandID
+Код сообщения                      1 7 CommandCode
+Постоянный статус                  2 7 PerStatus
+Текущий статус                     3 13 CurStatus
+Рез-т вып-я команды                5 7 CmdResult
+Номер некорр.символа               6 7 CmdResultFld
+Длина команды                      7 3 CmdLen
+Статус предыд. ком.                9 7 CmdExStatus
+Аннулирование возможно             10 1 MayCancel
+Требуется эл.журн.                 11 1 NeedSlipJournal
+Тест CMOS не оконч.                12 1 TestCMOSNotFinished
+Статус аппаратуры                  13 23 HardFailExt
+Статус Flash                       14 3 FlashState
+Статус страниц CMOS                16 24 CMOSPagesState
+Статус CMOS                        18 25 CMOSState
+Дата ошибки CMOS                   20 6 ErrDate[0]
+Дата ошибки Flash                  22 6 ErrDate[1]
+Дата ошибки кода                   24 6 ErrDate[2]
+Зарезервировано                    26 3 Reserved1
+END                                0 0 Trace
+END.                               0 0 Конец
