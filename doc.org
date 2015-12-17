@@ -172,7 +172,8 @@
     функционирования каких-то компонентов. А есть - опциональная периферия. Светофор и
     светодиодное табло - это опциональная?
 
-**** Подьезд машины
+**** TODO Стойка в режиме ожидания (=standby=)
+**** Подьезд машины к стойке (=finding=)
 
      Машина подъезжает к стойке, срабатывает =датчик присутствия автомобиля= и
      информирует контроллер о том, что машина перед стойкой.
@@ -183,9 +184,9 @@
 
      #+NAME: define_events
      #+BEGIN_SRC lisp
-       (define-event car-presence (:standby detector)
+       (define-event car-presence (:finding detector)
          (let ((controller (get-controller-by-detector detector)))
-           (trans controller :standby :finding)))
+           (trans controller :finding :dialog)))
      #+END_SRC
 
      При переключении в активный режим происходят следующие действия:
@@ -194,24 +195,123 @@
 
      #+NAME: output_actions
      #+BEGIN_SRC lisp
-       (define-action red-trafic-light (:standby :finding controller)
+       (define-action red-trafic-light (:finding :dialog controller)
          (send-signal (trafic-light controller) :red))
 
-       (define-action send-to-server-car-is-present (:standby :finding controller)
+       (define-action send-to-server-car-is-present (:finding :dialog controller)
          (send-message (parent-server controller) :car-is-present))
      #+END_SRC
 
-**** =Активный режим (диалог с пользователем)=
-***** Контроллер переводит периферийные устройства в режим обслуживания клиента:
+**** Стойка в диалоговом режиме (=dialog=)
+
+     При переходе в диалоговый режим контроллер переводит периферийные устройства в
+     режим обслуживания клиента:
       - включается подсветка кнопки печати билета;
       - на дисплей выдаётся информационное сообщение "Нажмите кнопку и получите билет".
-***** Клиент нажимает кнопку печати билета, сигнал с кнопки приходит на сенсорный вход контроллера.
-***** Контроллер получает сигнал на печать билета и отправляет на принтер команду "напечатать билет с необходимой информацией" (штрих-код, зашифрованный в соответствии с предустановленным кодом; текущее время; номер терминала въезда; номер тарифной зоны; предустановленную доп. информацию).
-***** Принтер печатает билет, его сенсоры контролируют состояние печати (возможно замятие, окончание бумаги и т.п.). Когда печать завершена билет находится в презентере.
-***** Контроллер блокирет периферию, защищая систему от повторного получения въездного документа. На дисплей выводится сообщение "Забирите билет".
-***** Если билет не забран из презентера клиентом более t секунд - принтер сообщает об этом контроллеру, контроллер отбивает ошибку на сервер и анулирует билет.
-***** Еслли клиент забирает билет из презентера, принтер сообщает об этом контроллеру.
-***** Контроллер сообщает на сервер "Напечатан билет №".
+
+     #+NAME: output_actions
+     #+BEGIN_SRC lisp
+       (define-action print-ticket-button-light-on (:finding :dialog controller)
+         (send-signal (print-ticket-button controller) :on))
+
+       (define-action show-display-press-button-and-get-ticket (:finding :dialog controller)
+         (send-message (display controller) "Нажмите кнопку и получите билет"))
+     #+END_SRC
+
+     В этом режиме стойка обрабатывает возможные действия клиента:
+
+***** Печать билета по требованию клиента
+
+      Клиент нажимает кнопку печати билета, сигнал с кнопки приходит на сенсорный вход
+      контроллера.
+
+      Контроллер получает сигнал и отправляет на принтер команду "напечатать билет с
+      необходимой информацией" (штрих-код, зашифрованный в соответствии с
+      предустановленным кодом; текущее время; номер терминала въезда; номер тарифной
+      зоны; предустановленную доп. информацию).
+
+      Пользователю на экран выводится предложение подождать.
+
+      [TODO:pyub] - Тут скорее всего нужен таймер с watch-догом?
+
+      #+NAME: define_events
+      #+BEGIN_SRC lisp
+        (define-event ticket-printing (:dialog print-button)
+          (let ((controller (get-controller-by-print-button print-button)))
+            (send-message (display controller) "Распечатывается билет... Пожалуйста подождите..")
+            (send-command (printer contriller)
+                          :print-ticket
+                          barcode
+                          current-time
+                          (terminal-number controller)
+                          (tariff-zone controller)
+                          additional-data)))
+      #+END_SRC
+
+      Принтер печатает билет, его сенсоры контролируют состояние печати (возможно
+      замятие, окончание бумаги и т.п.).
+
+      [TODO:pyub] - Необходимо все возможные ситуации рассмотреть, вместе с их
+      последствиями, т.е. что делаем в каждом из случаев.
+
+      #+NAME: ticket_printing_emergency
+      #+BEGIN_SRC lisp
+        (define-emergency-event paper-jam (:dialog printer)
+          (TODO))
+
+        (define-emergency-event paper-over (:dialog printer)
+          (TODO))
+      #+END_SRC
+
+      Если печать завершена успешно - билет находится в презентере и контроллер должен
+      сам вызывать событие =printing-completed-successfully=
+
+      В обработчике этого события Контроллер блокирует периферию, защищая систему от
+      повторного получения въездного документа. На дисплей выводится сообщение
+      "Забирите билет".
+
+      [TODO:pyub] - Какую именно периферию блокирует контроллер?
+
+      В этом же обработчике устанавливается Watchdog timer на несколько секунд, который
+      вызовет событие =get-ticket-watchdog-timer-over= если клиент не заберет билет в
+      течении этого времени.
+
+      #+NAME: define_events
+      #+BEGIN_SRC lisp
+        (define-event printing-completed-successfully (:dialog controller ticket)
+          ;; Выключаем подсветку кнопки
+          (send-signal (print-ticket-button controller) :off)
+          ;; Выводим сообщение на экран
+          (send-message (display controller) "Заберите билет")
+          ;; Устанавливаем таймер
+          (set-watchdog 5 #'get-ticket-watchdog-timer-over ticket))
+      #+END_SRC
+
+      Если билет не забран из презентера клиентом более t секунд - принтер сообщает об
+      этом контроллеру, контроллер отбивает ошибку на сервер и анулирует билет.
+
+      #+NAME: define_events
+      #+BEGIN_SRC lisp
+        (define-event get-ticket-watchdog-timer-over (:dialog controller ticket)
+          (reset-watchdog get-ticket-watchdog-timer-over)
+          (send-message (parent-server controller) :get-ticket-watchdog-timer-over)
+          (ticket-cancel ticket))
+      #+END_SRC
+
+      Если клиент забирает билет из презентера, принтер сообщает об этом контроллеру,
+      вызывая событие =get-printed-ticket-successfully=. Контроллер сообщает на сервер
+      о том, что билет напечатан и прикладывает сам билет
+
+      #+NAME: define_events
+      #+BEGIN_SRC lisp
+        (define-event get-printed-ticket-successfully (:dialog controller ticket)
+          (reset-watchdog get-ticket-watchdog-timer-over)
+          (send-message (parent-server controller) :get-ticket-watchdog-timer-over ticket))
+      #+END_SRC
+
+      [TODO:pyub] - Необходимо знать, что происходит, когда сервер получает все эти
+      сообщения от контроллера.
+
 **** =Инициация проезда=
 ***** Контроллер получает сигнал от принтера о том, что билет забран из презентера, что является действием, инициирующим процедуру проезда.
 ***** Контроллер  замыкает реле, отвечающее за открытие шлагбаума  за стойкой (реле замкнуто либо до прихода на сенсорный ввод сигнала "открыт", либо по длине импульса из настроек контроллера)
