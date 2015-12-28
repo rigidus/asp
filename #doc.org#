@@ -2194,7 +2194,7 @@ http://habrahabr.ru/post/240047/
    #+NAME: defsystem
    #+BEGIN_SRC lisp :tangle asp.asd :noweb tangle :exports code :padline no :comments link
           ;;;; <<copyright>>
-          ;;;; asp.asd
+         ;;;; asp.asd
 
      (asdf:defsystem #:asp
        :serial t
