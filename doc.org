@@ -4,7 +4,7 @@
 #+TITLE: Der Schlagbaumverk
 #+INFOJS_OPT: view:overview toc:nil
 
-#+TAGS: { pyub rigidus unrimah noa}
+#+TAGS: { pyub rigidus unrimah noa }
 
 #+NAME:css
 #+BEGIN_HTML
@@ -1670,7 +1670,7 @@ http://habrahabr.ru/post/240047/
      | 35 | Арбитраж ввод                   | =detector-arbitrage=  | S4                |                |                          |                                            |
      | 36 | Концевки открытия шлагбаума     | =detector-gate-open=  | S5                | шлагбаум       |                          |                                            |
      | 37 | Концевик закрытия шлагбаума     | =detector-gate-close= | S6                | шлагбаум       |                          |                                            |
-     | 38 | Фотоэлемент безопасности        | =detector-safety= | S7                | шлагбаум       |                          |                                            |
+     | 38 | Фотоэлемент безопасности        | =detector-safety=     | S7                | шлагбаум       |                          |                                            |
      | 39 | Датчик грузового транспорта     | =detector-truck=      | S8                |                |                          |                                            |
 
 *** Вводы с кнопок
