@@ -297,6 +297,58 @@
 
    defenition: [[*Стойка][Стойка]]
 
+   Независимо от используемого комплекта периферийного оборудования контроллера при
+   въезде он может находится в следующих состояниях:
+
+   #+CAPTION: Состояния конечного автомата стойки
+   #+NAME: checkpoint_state
+     | action             | from     | to      |
+     |--------------------+----------+---------|
+     | power-on           | poweroff | poweron |
+     | poweron-to-standby | poweron  | standby |
+     | standby-to-finding | standby  | finding |
+     | finding-to-dialog  | finding  | dialog  |
+     | dialog-to-init     | dialog   | init    |
+     | init-to-goon       | init     | goon    |
+     | goon-to-fin        | goon     | fin     |
+
+   Теперь мы можем полностью описать поведение стойки как конечный автомат:
+
+   #+NAME: checkpoin_state_graph
+   #+BEGIN_SRC emacs-lisp :var table=in_state :results output :exports none
+     (mapcar #'(lambda (x)
+                 (princ (format "%s -> %s [label =\"%s\"];\n"
+                                (second x) (third x) (first x))))
+             table)
+   #+END_SRC
+
+   #+BEGIN_SRC dot :file img/in-state.png :var input=in_state_graph :exports results
+     digraph G {
+       rankdir = LR;
+       $input
+     }
+   #+END_SRC
+
+   #+results:
+   [[file:img/in-state.png]]
+
+*** Состояние выключенной стойки (=poweroff=)
+
+    Стойка может быть выключена, но присутствовать в системе. Выключенная стойка не
+    получает и не реагирует ни на какие внешние воздействия. Управляющий сервер должен
+    иметь возможность отслеживать стойку в этом состоянии и вкючать/выключать ее при
+    необходимости.
+
+    Для целей моделирования мы создаем стойку в изначально выключенном состоянии.
+
+*** Состояние инициализации (=poweron=)
+
+    В это состояние стойка переходит при включении питания. После включения питания и
+    перед началом работы стойка инициализирует все подключенные устройства и заполняет
+    конфигурацию оборудования. Можно диагностировать отказы перед началом работы.
+
+    [TODO:pyub] - Какое оборудование надо опросить для пилотки?
+
 *** DONE Состояние ожидания (=standby=)
 
     Режим работы в котором датчик стойки не видит автомобиля и не идёт никакой другой
@@ -312,7 +364,7 @@
     пользователем: если нет машины - стойка не реагирует на нажатия кнопок на ней, или
     занимается продажей карточек и.т.п.
 
-    [[*%D0%A1%D0%BE%D1%81%D1%82%D0%BE%D1%8F%D0%BD%D0%B8%D0%B5%20%D0%BE%D0%B6%D0%B8%D0%B4%D0%B0%D0%BD%D0%B8%D1%8F%20(%3Dstandby%3D)][Состояние ожидания (=standby=)]] - для сценария вьезда с бумажными билетами
+    [[*Состояние ожидания (простой вьезд по чеку)][Состояние ожидания (простой вьезд по чеку)]] - для сценария вьезда с бумажными билетами
 
 *** DONE Подъезд машины к стойке (=finding=)
 
@@ -817,11 +869,38 @@
     выходе из строя всех периферийных устройств, с помощью которых можно совершить
     проезд. [TODO:pyub] - Не могу перейти по этой ссылке
 
-**** DONE Состояние ожидания (=standby=)
+**** Состояние выключенной стойки (=poweroff=) (простой вьезд по чеку)
+
+     Здесь мы просто создадим модельную стойку в этом состоянии - этот код будет частью
+     теста на модели
+
+     #+NAME: test_make_checkpoint
+     #+BEGIN_SRC lisp
+       (make-checkpoint :name "1" :state ":POWEROFF")
+     #+END_SRC
+
+**** TODO Состояние инициализации (=poweron=)
+
+     Что нужно сделать при инициализации
+     - Сообщить серверу о себе
+     - Включить логгинг
+     - Прочитать конфигурацию
+     - Опросить устройства
+     - ???
+     - PROFIT!!!
+
+
+     #+NAME: checkpoint_trans_functions
+     #+BEGIN_SRC lisp
+       (defun power-on ()
+         "poweroff -> poweron")
+     #+END_SRC
+
+**** DONE Состояние ожидания (простой вьезд по чеку)
 
      [TODO:rigidus] Изменить исполняемую спецификацию в соотвествии с моими изменениями.
 
-     См. [[*%D0%A1%D1%82%D0%BE%D0%B9%D0%BA%D0%B0%20%D0%B2%20%D1%80%D0%B5%D0%B6%D0%B8%D0%BC%D0%B5%20%D0%BE%D0%B6%D0%B8%D0%B4%D0%B0%D0%BD%D0%B8%D1%8F%20(%3Dstandby%3D)][Стойка в режиме ожидания (=standby=)]] [TODO:pyub] - Не могу перейти по этой ссылке
+     См. [[*%D0%A1%D1%82%D0%BE%D0%B9%D0%BA%D0%B0%20%D0%B2%20%D1%80%D0%B5%D0%B6%D0%B8%D0%BC%D0%B5%20%D0%BE%D0%B6%D0%B8%D0%B4%D0%B0%D0%BD%D0%B8%D1%8F%20(%3Dstandby%3D)][Состояние ожидания (=standby=)]]
 
      Когда стойка находится в состоянии ожидания на дисплей выводится следующая
      информация:
@@ -830,11 +909,21 @@
      3 строка: информация клиента
      4 строка: информация клиента
 
+     [TODO:pyub] - По этим строкам мне нужна информация, откуда брать стойку вьезда (1
+     строка) и информацию клиента (3 и 4 строка), будут ли у нас двухстрочные дисплеи,
+     что и как писать в полноцветный (если он будет в пилотке)
+
+     [TODO:ranma] - Мне нужен способ обратиться к драйверу дисплея, чтобы передать ему
+     данные и убедиться что они получены. В простейшем варианте - кусок json-а и место,
+     в конфигурации, откуда я могу взять http-порт, где живет дисплей
+
      В данном состоянии замкнуто реле =Светофор сигнал 1= (=реле R4=) отвечающее за
      зелёный сигнал светофора.
 
+     [TODO:ranma] - как мне замкнуть это реле?
+
      При нажатии на кнопку "Печать билета" (=кнопка B1=) на дисплей выводится информация:
-     1 строка: нет автомобиля
+     1 строка: нет автомобиля.
 
      Т.е. если машины нет на датчике А, то клиент не может сделать никаких действий -
      при нажатии на кнопку печати билета или приложении пластиковой карты стойка
@@ -1428,7 +1517,7 @@
 
 * Этапы, сроки, задачи
 
-  Список теекущих задач. По факту завершения задачи обязательно закрывать её в статус DONE,
+  Список текущих задач. По факту завершения задачи обязательно закрывать её в статус DONE,
   писать сопроводительную записку и переносить весь подраздел задачи с описанием в
   соотвествующий данной задаче раздел документации.
 
@@ -1469,9 +1558,10 @@
 
 *** START Трассировка базовой платы
 *** START Трассировка платы расширения расширения
+*** TODO [unrimah ranma] - Обеспечить возможность дергать ногами GPIO при отправке JSON-а
+*** TODO [unrimah ranma] - Обеспечить возможность управлять дисплеем
 *** TODO [unrimah] RTC needed (battery etc.)
 *** WAIT [unrimah] Макетирование прототипа
-
 ** Задачи software контроллер
 
    Описание конечно-автоматной работы системы и ее верификации.
@@ -2241,6 +2331,16 @@ http://habrahabr.ru/post/240047/
      ним и различные проводить операции со временем или внутренним счетом билета
      (карты)
 
+   У стойки есть:
+   [TODO:pyub] - Здесь надо перечислить все данные, которые мы храним по стойке.
+
+   #+CAPTION: Данные стойки
+   #+NAME: checkpoint_flds
+     | field name | field type | note                   |
+     |------------+------------+------------------------|
+     | id         | serial     | идентификатор          |
+     | name       | varchar    | никнейм стойки (номер) |
+
 ** Периферийные устройства
 
    =Периферийные устройства= - это устройства подключаемые к контроллеру парковки,
@@ -2436,6 +2536,157 @@ http://habrahabr.ru/post/240047/
    root | gThy77gG
 
    [TODO:pyub] Изъять из общего доступа github?
+
+* Сущности
+
+  Соберем все сущности и автоматы в один файл =src/entityes.lisp=
+
+  #+NAME: entity_and_automates
+  #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+    ;;;; <<copyright>>
+
+    <<gen_automat("checkpoint", "стойки", checkpoint_flds, checkpoint_state)>>
+
+    <<checkpoint_trans_functions>>
+  #+END_SRC
+
+** Функции для кодогенерации сущностей
+
+   Эти функции будут кодогенерировать сущности и автоматы из таблиц с наименованием и
+   типами полей внутри этого файла.
+
+   Чтобы емакс не запрашивал подтверждение на каждое исполнение кода, установим эту
+   настройку:
+
+   #+NAME: gen_org_confirm
+   #+BEGIN_SRC emacs-lisp
+     (setq org-confirm-babel-evaluate nil)
+   #+END_SRC
+
+   Начнем с генерации кода из таблицы полей:
+
+   #+NAME: gen_fields
+   #+BEGIN_SRC emacs-lisp
+     (defun gen-fields (rows)
+       (let ((result))
+         (push "\n" result)
+         (push (format "  (%s\n" (butlast (car rows))) result)
+         (mapcar #'(lambda (x)
+                     (push (format "   %s\n" (butlast x)) result))
+                 (butlast (cdr rows)))
+         (push (format "   %s)" (butlast (car (last rows)))) result)
+         (mapconcat 'identity (reverse result) "")))
+   #+END_SRC
+
+   Теперь напишем код, который генерирует код для состояний конечного автомата:
+
+   #+NAME: gen_states
+   #+BEGIN_SRC emacs-lisp
+     (defun gen-states (rows)
+       (let ((result)
+             (hash (make-hash-table :test #'equal))
+             (states))
+         (dolist (elt rows nil)
+           (puthash (cadr elt) nil hash)
+           (puthash (cadr (cdr elt))  nil hash))
+         (maphash (lambda (k v)
+                    (push k states))
+                  hash)
+         (push "\n" result)
+         (push "  (" result)
+         (dolist (elt (butlast states))
+           (push (format ":%s " elt) result))
+         (push (format ":%s)" (car (last states))) result)
+         (mapconcat 'identity (reverse result) "")))
+   #+END_SRC
+
+   И добавим к этом генератор действий - т.е. переходов между состояниями:
+
+   #+NAME: gen_actions
+   #+BEGIN_SRC emacs-lisp
+     (defun gen-actions (rows)
+       (let ((result))
+         (push "\n" result)
+         (let ((x (car rows)))
+           (push (format "  ((:%s :%s :%s)" (cadr x) (cadr (cdr x)) (car x)) result))
+         (if (equal 1 (length rows))
+             (push ")" result)
+           (progn
+             (push "\n" result)
+             (mapcar #'(lambda (x)
+                         (push (format "   (:%s :%s :%s)\n" (cadr x) (cadr (cdr x)) (car x)) result))
+                     (cdr (butlast rows)))
+             (let ((x (car (last rows))))
+               (push (format "   (:%s :%s :%s))" (cadr x) (cadr (cdr x)) (car x)) result))))
+         (mapconcat 'identity (reverse result) "")))
+   #+END_SRC
+
+   Соберем все это в один файл, чтобы загружать перед кодогенерацией проекта:
+
+   #+NAME: generators
+   #+BEGIN_SRC emacs-lisp :tangle generators.el :noweb tangle :exports code :padline no :comments link
+     ;; <<copyright>>
+
+     <<gen_org_confirm>>
+
+     <<gen_fields>>
+
+     <<gen_states>>
+
+     <<gen_actions>>
+   #+END_SRC
+
+   И загрузим его:
+
+   #+NAME: generators
+   #+BEGIN_SRC emacs-lisp
+     (load-file "generators.el")
+   #+END_SRC
+
+   Теперь у нас есть все необходимое, чтобы написать вызываемые при
+   tangle генераторы сущностей и автоматов:
+
+   #+NAME: gen_entity
+   #+BEGIN_SRC emacs-lisp :var name="" docstring="" flds='() :exports none
+     (let ((result))
+       (push (format "(define-entity %s \"Сущность %s\"" name docstring) result)
+       (push (gen-fields flds) result)
+       (push ")\n" result)
+       (push "\n" result)
+       (push (format "(make-%s-table)\n" name) result)
+       (mapconcat 'identity (reverse result) ""))
+   #+END_SRC
+
+   #+NAME: gen_automat
+   #+BEGIN_SRC emacs-lisp :var name="" docstring="" flds='() states='() :exports none
+     (let ((result))
+       (push (format "(define-automat %s \"Автомат %s\"" name docstring) result)
+       (push (gen-fields flds) result)
+       (push (gen-states states) result)
+       (push (gen-actions states) result)
+       (push ")\n" result)
+       (mapconcat 'identity (reverse result) ""))
+   #+END_SRC
+
+* Тесты
+
+  #+NAME: asp_test
+  #+BEGIN_SRC lisp :noweb tangle
+
+    ;; Тестируем asp
+    (defun asp-test ()
+      <<asp_test_contents>>
+      (dbg "passed: asp-test~%"))
+    (asp-test)
+  #+END_SRC
+
+  #+NAME: asp_test_contents
+  #+BEGIN_SRC lisp :noweb tangle
+    <<test_make_checkpoint>>
+
+
+  #+END_SRC
+
 * Сборка
 ** Каркас проекта
 
@@ -2482,7 +2733,7 @@ http://habrahabr.ru/post/240047/
                     #:fare-quasiquote-extras
                     #:fare-quasiquote-optima
                     )
-       :description "site for bikers"
+       :description "asp"
        :author "rigidus"
        :version "0.0.3"
        :license "GNU AGPLv3"
@@ -2658,7 +2909,7 @@ http://habrahabr.ru/post/240047/
 
      (defun main ()
        ;; start
-       (restas:start '#:asp :port 7999)
+       (restas:start '#:asp :port 3999)
        (restas:debug-mode-on)
        ;; (restas:debugg-mode-off)
        (setf hunchentoot:*catch-errors-p* t)
@@ -2669,6 +2920,9 @@ http://habrahabr.ru/post/240047/
                    :ts-create (get-universal-time)))
 
      (main)
+
+     ;; Тесты
+     <<asp_test>>
    #+END_SRC
 ** Copyright
 
@@ -2677,37 +2931,3 @@ http://habrahabr.ru/post/240047/
      Copyright © 2014-2015 Glukhov Mikhail. All rights reserved.
      Licensed under the GNU AGPLv3
    #+END_SRC
-* Временный раздел
-
-   Независимо от используемого комплекта периферийного оборудования контроллера при
-   въезде может находится в следующих состояниях:
-
-   #+CAPTION: Состояния конечного автомата пользователя
-   #+NAME: in_state
-     | action             | from    | to      |
-     |--------------------+---------+---------|
-     | standby-to-finding | standby | finding |
-     | finding-to-dialog  | finding | dialog  |
-     | dialog-to-init     | dialog  | init    |
-     | init-to-goon       | init    | goon    |
-     | goon-to-fin        | goon    | fin     |
-
-   Теперь мы можем полностью описать поведение пользователя как конечный автомат:
-
-   #+NAME: in_state_graph
-   #+BEGIN_SRC emacs-lisp :var table=in_state :results output :exports none
-     (mapcar #'(lambda (x)
-                 (princ (format "%s -> %s [label =\"%s\"];\n"
-                                (second x) (third x) (first x))))
-             table)
-   #+END_SRC
-
-   #+BEGIN_SRC dot :file img/in-state.png :var input=in_state_graph :exports results
-     digraph G {
-       rankdir = LR;
-       $input
-     }
-   #+END_SRC
-
-   #+results:
-   [[file:img/in-state.png]]
