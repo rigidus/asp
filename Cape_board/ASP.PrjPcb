@@ -30,7 +30,7 @@ DItemRevisionGUID=
 ReportSuppressedErrorsInMessages=0
 FSMCodingStyle=eFMSDropDownList_OneProcess
 FSMEncodingStyle=eFMSDropDownList_OneHot
-OutputPath=
+OutputPath=Project Outputs for ASP
 LogFolderPath=
 ManagedProjectGUID=
 
@@ -310,6 +310,23 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=KHQFVXGV
 
+[Document17]
+DocumentPath=E3print2pdf.OutJob
+AnnotationEnabled=1
+AnnotateStartValue=1
+AnnotationIndexControlEnabled=0
+AnnotateSuffix=
+AnnotateScope=All
+AnnotateOrder=-1
+DoLibraryUpdate=1
+DoDatabaseUpdate=1
+ClassGenCCAutoEnabled=1
+ClassGenCCAutoRoomEnabled=1
+ClassGenNCAutoScope=None
+DItemRevisionGUID=
+GenerateClassCluster=0
+DocumentUniqueId=
+
 [SearchPath1]
 Path=C:\Program Files (x86)\Altium\AD16\Altium Unified Components\*.*
 IncludeSubFolders=1
@@ -327,6 +344,9 @@ CurrentRevision=
 Variant=[No Variations]
 GenerateBOM=1
 OutputJobsCount=0
+
+[Generic_EDE]
+OutputDir=Project Outputs for ASP
 
 [OutputGroup1]
 Name=Netlist Outputs
