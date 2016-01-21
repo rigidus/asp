@@ -1,25 +1,35 @@
 ///////////////////////////////////////////////////////////
 //  CTcpServerManager.h
 //  Implementation of the Class CTcpServerManager
-//  Created on:      20-ÿíâ-2016 16:20:20
+//  Created on:      20-ï¿½ï¿½ï¿½-2016 16:20:20
 //  Original author: user-PC
 ///////////////////////////////////////////////////////////
 
 #if !defined(EA_9BAFE2FC_C8D3_45d1_926D_EB0725E750FE__INCLUDED_)
 #define EA_9BAFE2FC_C8D3_45d1_926D_EB0725E750FE__INCLUDED_
 
-public class CTcpServerManager
+#include <string>
+#include <vector>
+
+#include <asio.hpp>
+using namespace boost;
+
+#include "CTcpConnectionListener.h"
+#include "CTcpSocketFactory.h"
+#include "CTcpServer.h"
+
+class CTcpServerManager
 {
 
 public:
 	CTcpServerManager();
 	virtual ~CTcpServerManager();
-	CTcpServerManager(const CTcpServerManager& theCTcpServerManager);
+	CTcpServerManager(const CTcpServerManager& rhs);
 
 	CTcpServerManager(uint32_t port);
-	CTcpServerManager(uint32_t port, std::string bindAddr, listener);
+	CTcpServerManager(uint32_t port, std::string bindAddr, CTcpConnectionListener* listener);
 	void startListening();
-	CConnectionListener* createServer();
+	CTcpConnectionListener* createServer();
 	void stopListening();
 
 private:
@@ -31,7 +41,7 @@ private:
 	uint32_t m_maxConnection;
 	uint32_t m_messageTimeout;
 	uint32_t m_messageFragmentTimeout;
-	boost::asio::io_service m_ioService;
+	asio::io_service m_ioService;
 
 };
 #endif // !defined(EA_9BAFE2FC_C8D3_45d1_926D_EB0725E750FE__INCLUDED_)

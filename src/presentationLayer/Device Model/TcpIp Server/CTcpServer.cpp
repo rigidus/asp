@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////
 //  CTcpServer.cpp
 //  Implementation of the Class CTcpServer
-//  Created on:      20-ÿíâ-2016 16:20:20
+//  Created on:      20-ï¿½ï¿½ï¿½-2016 16:20:20
 //  Original author: user-PC
 ///////////////////////////////////////////////////////////
 
@@ -20,20 +20,17 @@ CTcpServer::~CTcpServer(){
 
 
 
-CTcpServer::CTcpServer(const CTcpServer& theCTcpServer){
+CTcpServer::CTcpServer(const CTcpServer& rhs){
 
 }
 
 
-
-
-
-CTcpServer::CTcpServer(boost:asio::io_service ioService, CTcpConnectionListener* listener, uint32_t localPort, uint32_t maxBufSize, uint32_t msgTimeout, uint32_t msgFragmentTimeout, uint32_t maxConnections){
+CTcpServer::CTcpServer(asio::io_service ioService, CTcpConnectionListener* listener, uint32_t localPort, uint32_t maxBufSize, uint32_t msgTimeout, uint32_t msgFragmentTimeout, uint32_t maxConnections){
 
 }
 
 
-CTcpConnection* CTcpServer::createNewConnection(CTcpSocket* tcpSocket){
+CTcpConnection* CTcpServer::createNewConnection(asio::ip::tcp::socket* tcpSocket) {
 
 	return  NULL;
 }

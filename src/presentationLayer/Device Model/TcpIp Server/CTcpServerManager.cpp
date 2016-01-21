@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////
 //  CTcpServerManager.cpp
 //  Implementation of the Class CTcpServerManager
-//  Created on:      20-ÿíâ-2016 16:20:20
+//  Created on:      20-ï¿½ï¿½ï¿½-2016 16:20:20
 //  Original author: user-PC
 ///////////////////////////////////////////////////////////
 
@@ -13,19 +13,9 @@ CTcpServerManager::CTcpServerManager(){
 }
 
 
-
-CTcpServerManager::~CTcpServerManager(){
-
-}
-
-
-
-CTcpServerManager::CTcpServerManager(const CTcpServerManager& theCTcpServerManager){
+CTcpServerManager::CTcpServerManager(const CTcpServerManager& rhs){
 
 }
-
-
-
 
 
 CTcpServerManager::CTcpServerManager(uint32_t port){
@@ -33,7 +23,7 @@ CTcpServerManager::CTcpServerManager(uint32_t port){
 }
 
 
-CTcpServerManager::CTcpServerManager(uint32_t port, std::string bindAddr, listener){
+CTcpServerManager::CTcpServerManager(uint32_t port, std::string bindAddr, CTcpConnectionListener* listener){
 
 }
 
@@ -43,7 +33,7 @@ void CTcpServerManager::startListening(){
 }
 
 
-CConnectionListener* CTcpServerManager::createServer(){
+CTcpConnectionListener* CTcpServerManager::createServer(){
 
 	return  NULL;
 }
