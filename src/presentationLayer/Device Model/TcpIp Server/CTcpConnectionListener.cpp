@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////
 //  CTcpConnectionListener.cpp
 //  Implementation of the Class CTcpConnectionListener
-//  Created on:      20-ÿíâ-2016 16:20:20
+//  Created on:      20-ï¿½ï¿½ï¿½-2016 16:20:20
 //  Original author: user-PC
 ///////////////////////////////////////////////////////////
 
@@ -22,7 +22,7 @@ CTcpConnectionListener::CTcpConnectionListener(const CTcpConnectionListener& the
 
 
 
-CTcpConnectionListener::CTcpConnectionListener(TFnReceive fnDoReceive, TFnConnect fnDoConnect, TFnDisconnect fnDoDisconnect){
+CTcpConnectionListener::CTcpConnectionListener(TFnDoReceive fnDoReceive, TFnDoConnect fnDoConnect, TFnDoDisconnect fnDoDisconnect){
 
 }
 
@@ -52,6 +52,6 @@ void CTcpConnectionListener::DoDisconnect(uint16_t port){
 }
 
 
-void CTcpConnectionListener::DoConnect(uin16_t port){
+void CTcpConnectionListener::DoConnect(uint16_t port){
 
 }

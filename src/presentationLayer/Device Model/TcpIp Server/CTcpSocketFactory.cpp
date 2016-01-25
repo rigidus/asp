@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////
 //  CTcpSocketFactory.cpp
 //  Implementation of the Class CTcpSocketFactory
-//  Created on:      20-ÿíâ-2016 16:20:20
+//  Created on:      20-ï¿½ï¿½ï¿½-2016 16:20:20
 //  Original author: user-PC
 ///////////////////////////////////////////////////////////
 
@@ -13,38 +13,23 @@ CTcpSocketFactory::CTcpSocketFactory(){
 }
 
 
-
-CTcpSocketFactory::~CTcpSocketFactory(){
-
-}
-
-
-
 CTcpSocketFactory::CTcpSocketFactory(const CTcpSocketFactory& theCTcpSocketFactory){
 
 }
 
 
-
-
-
-CTcpSocketFactory::CSocketFactory(){
+CTcpSocketFactory::CTcpSocketFactory(CTcpSocketFactory& rhs){
 
 }
 
 
-CTcpSocketFactory::CSocketFactory(CSocketFactory& rhs){
+CTcpSocketFactory& CTcpSocketFactory::operator=(CTcpSocketFactory& rhs){
 
+	return  *this;
 }
 
 
-CSocketFactory& CTcpSocketFactory::operator=(CSocketFactory& rhs){
-
-	return  NULL;
-}
-
-
-CSocketFactory CTcpSocketFactory::getSocketFactory(){
+CTcpSocketFactory* CTcpSocketFactory::getSocketFactory(){
 
 	return  NULL;
 }
