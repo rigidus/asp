@@ -22,7 +22,6 @@ class CTcpServerManager
 {
 
 public:
-	CTcpServerManager();
 	virtual ~CTcpServerManager();
 	CTcpServerManager(const CTcpServerManager& rhs);
 

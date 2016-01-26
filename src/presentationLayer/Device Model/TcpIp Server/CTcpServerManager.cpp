@@ -27,6 +27,9 @@ CTcpServerManager::CTcpServerManager(uint32_t port, std::string bindAddr, CTcpCo
 
 }
 
+CTcpServerManager::~CTcpServerManager(){
+
+}
 
 void CTcpServerManager::startListening(){
 

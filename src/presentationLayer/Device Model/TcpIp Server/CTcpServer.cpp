@@ -38,7 +38,7 @@ CTcpConnection* CTcpServer::createNewConnection(asio::ip::tcp::socket* tcpSocket
 
 uint32_t CTcpServer::getMaxConnections(){
 
-	return  NULL;
+	return 0;
 }
 
 
