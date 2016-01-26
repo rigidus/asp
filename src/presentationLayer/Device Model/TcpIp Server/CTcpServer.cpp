@@ -8,24 +8,17 @@
 #include "CTcpServer.h"
 
 
-CTcpServer::CTcpServer(){
-
-}
-
-
-
-CTcpServer::~CTcpServer(){
-
-}
-
-
-
 CTcpServer::CTcpServer(const CTcpServer& rhs){
 
 }
 
 
-CTcpServer::CTcpServer(asio::io_service ioService, CTcpConnectionListener* listener, uint32_t localPort, uint32_t maxBufSize, uint32_t msgTimeout, uint32_t msgFragmentTimeout, uint32_t maxConnections){
+CTcpServer::CTcpServer(asio::io_service& ioService, CTcpConnectionListener* listener, uint32_t localPort, uint32_t maxBufSize, uint32_t msgTimeout, uint32_t msgFragmentTimeout, uint32_t maxConnections){
+
+}
+
+
+CTcpServer::~CTcpServer(){
 
 }
 
@@ -38,7 +31,7 @@ CTcpConnection* CTcpServer::createNewConnection(asio::ip::tcp::socket* tcpSocket
 
 uint32_t CTcpServer::getMaxConnections(){
 
-	return  NULL;
+	return 0;
 }
 
 

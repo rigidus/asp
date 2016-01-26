@@ -22,7 +22,7 @@ public:
 	CTcpConnectionListener();
 	CTcpConnectionListener(const CTcpConnectionListener& listener);
 
-	CTcpConnectionListener(TFnDoReceive fnDoReceive, TFnDoConnect fnDoConnect, TFnDoDisconnect fnDoDisconnect);
+	void setListenerFunctions(TFnDoReceive fnDoReceive, TFnDoConnect fnDoConnect, TFnDoDisconnect fnDoDisconnect);
 	virtual ~CTcpConnectionListener();
 	void startWaitingThread();
 	void stopListenThread();

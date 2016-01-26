@@ -8,26 +8,34 @@
 #include "CTcpConnectionListener.h"
 
 
-CTcpConnectionListener::CTcpConnectionListener(){
+CTcpConnectionListener::CTcpConnectionListener():
+	m_fnDoReceive(nullptr),
+	m_fnDoConnect(nullptr),
+	m_fnDoDisconnect(nullptr)
+{
 
 }
-
 
 
 CTcpConnectionListener::CTcpConnectionListener(const CTcpConnectionListener& theCTcpConnectionListener){
 
-}
-
-
-
-
-
-CTcpConnectionListener::CTcpConnectionListener(TFnDoReceive fnDoReceive, TFnDoConnect fnDoConnect, TFnDoDisconnect fnDoDisconnect){
+	m_fnDoReceive = theCTcpConnectionListener.m_fnDoReceive;
+	m_fnDoConnect = theCTcpConnectionListener.m_fnDoConnect;
+	m_fnDoDisconnect = theCTcpConnectionListener.m_fnDoDisconnect;
 
 }
 
 
 CTcpConnectionListener::~CTcpConnectionListener(){
+
+}
+
+
+void CTcpConnectionListener::setListenerFunctions(TFnDoReceive fnDoReceive, TFnDoConnect fnDoConnect, TFnDoDisconnect fnDoDisconnect){
+
+	m_fnDoReceive = fnDoReceive;
+	m_fnDoConnect = fnDoConnect;
+	m_fnDoDisconnect = fnDoDisconnect;
 
 }
 

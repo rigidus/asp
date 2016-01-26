@@ -10,6 +10,7 @@
 
 #include <string>
 #include <vector>
+#include <stdexcept>
 
 #include <asio.hpp>
 using namespace boost;
@@ -18,11 +19,12 @@ using namespace boost;
 #include "CTcpSocketFactory.h"
 #include "CTcpServer.h"
 
+#include "../include/FileLog.h"
+
 class CTcpServerManager
 {
 
 public:
-	CTcpServerManager();
 	virtual ~CTcpServerManager();
 	CTcpServerManager(const CTcpServerManager& rhs);
 
@@ -35,12 +37,12 @@ public:
 private:
 	uint32_t m_localPort;
 	std::string m_bindAddress;
-	CTcpSocketFactory* m_pServerSocketFactory;
 	CTcpConnectionListener* m_pConnectionListener;
 	std::vector<CTcpServer*> m_pServer;
 	uint32_t m_maxConnection;
-	uint32_t m_messageTimeout;
-	uint32_t m_messageFragmentTimeout;
+	uint32_t m_msgTimeout;
+	uint32_t m_msgFragmentTimeout;
+	uint32_t m_maxBufSize;
 	asio::io_service m_ioService;
 
 };
