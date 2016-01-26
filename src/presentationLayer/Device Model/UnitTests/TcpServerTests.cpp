@@ -97,35 +97,41 @@ void CTestTcpIpMultiServer::CTestSendReceive::runTest() {
 			CTestTcpIpMultiServer::DoConnect,
 			CTestTcpIpMultiServer::DoDisconnect);
 
-	unique_lock<mutex> lockConnect(s_mutex);
-
 	CTcpClient client;
 
-	int32_t res = client.Connect("127.0.0.1", 10050);
+	{
+		unique_lock<mutex> lockConnect(s_mutex);
 
-	timespec tm1 = {0, 1000000};
+		int32_t res = client.Connect("127.0.0.1", 10050);
 
-	s_connect.do_wait_until(lockConnect, tm1);
+		timespec tm = {0, 1000000};
 
-	CPPUNIT_ASSERT_EQUAL_MESSAGE("CTestTcpIpMultiServer::CTestSendReceive connect WRONG", 0, res);
+		s_connect.do_wait_until(lockConnect, tm);
 
-	std::vector<uint8_t> expectedData;
-	for (auto v: s_testData)
-		expectedData.push_back(v);
+		CPPUNIT_ASSERT_EQUAL_MESSAGE("CTestTcpIpMultiServer::CTestSendReceive connect WRONG", 0, res);
 
-	unique_lock<mutex> lockSendRcv(s_mutex);
+	}
 
-	client.SendMessage(expectedData);
+	{
+		std::vector<uint8_t> expectedData;
 
-	timespec tm2 = {0, 1000000};
+		for (auto v: s_testData)
+			expectedData.push_back(v);
 
-	s_read.do_wait_until(lockSendRcv, tm2);
+		unique_lock<mutex> lockSendRcv(s_mutex);
 
-	CPPUNIT_ASSERT_EQUAL_MESSAGE("CTestTcpIpMultiServer::CTestSendReceive expected length != result length",
-			expectedData.size(), CTestTcpIpMultiServer::s_resultData.size());
+		client.SendMessage(expectedData);
 
-	for (uint32_t i = 0; i < expectedData.size(); ++i) {
-		CPPUNIT_ASSERT_EQUAL_MESSAGE("CTestTcpIpMultiServer::CTestSendReceive receive data WRONG",
-			expectedData[i], CTestTcpIpMultiServer::s_resultData[i]);
+		timespec tm = {0, 1000000};
+
+		s_read.do_wait_until(lockSendRcv, tm);
+
+		CPPUNIT_ASSERT_EQUAL_MESSAGE("CTestTcpIpMultiServer::CTestSendReceive expected length != result length",
+				expectedData.size(), CTestTcpIpMultiServer::s_resultData.size());
+
+		for (uint32_t i = 0; i < expectedData.size(); ++i) {
+			CPPUNIT_ASSERT_EQUAL_MESSAGE("CTestTcpIpMultiServer::CTestSendReceive receive data WRONG",
+				expectedData[i], CTestTcpIpMultiServer::s_resultData[i]);
+		}
 	}
 }
