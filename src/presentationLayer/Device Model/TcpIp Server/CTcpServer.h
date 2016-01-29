@@ -16,27 +16,32 @@ using namespace boost;
 
 class CTcpConnectionListener;
 
-class CTcpServer
+class CTcpServer: public noncopyable
 {
 
 public:
-	virtual ~CTcpServer();
-	CTcpServer(const CTcpServer& rhs);
+	CTcpServer(asio::io_service& ioService, CTcpConnectionListener* listener, uint32_t localPort);
 	CTcpServer(asio::io_service& ioService, CTcpConnectionListener* listener, uint32_t localPort, uint32_t maxBufSize, uint32_t msgTimeout, uint32_t msgFragmentTimeout, uint32_t maxConnections);
+	virtual ~CTcpServer();
 
-	CTcpConnection* createNewConnection(asio::ip::tcp::socket* tcpSocket);
 	uint32_t getMaxConnections();
-	void setMaxConnections(uint32_t maxConnections);
 	void startServer();
 	void stopServer();
 
 private:
+
+	asio::ip::tcp::acceptor* m_pAcceptor;
+	asio::io_service& m_ioService;
 	uint32_t m_localPort;
 	uint32_t m_maxBufSize;
 	uint32_t m_messageTimeout;
 	uint32_t m_messageFragmentTimeout;
+	uint32_t m_maxConnection;
 	CTcpConnectionListener* m_pConnectionListener;
 	CTcpSocketFactory* m_pSocketFactory;
+	system::error_code m_lastErrorCode;
+
+	void handle_accept(CTcpConnection::PtrCTcpConnection newConnection, const system::error_code& error);
 
 };
 #endif // !defined(EA_99964F95_BDA0_4486_95D0_C18060E08E90__INCLUDED_)
