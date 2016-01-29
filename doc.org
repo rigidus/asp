@@ -17,6 +17,7 @@
     запущенных процессов: нижний уровень, бизнес-логика, веб-морда, nginx и других,
     если будут.
     [COMMENT:rigidus] - Что там с systemd? Кто-то уже имеет опыт как его гтовить?
+    [COMMENT:unrimah] - я работаю над этим, скоро будет.
   - Каждое наше приложение - это клиент какого-либо сервера или сам сервер и сразу
     после старта оно должно установить клиентские взаимосвязи: на сегодня бизнес-логика
     должна установить соединение с нижним уровнем и веб-морда тоже должна установить
@@ -33,6 +34,8 @@
     клиент.
     [COMMENT:rigidus] - Неверно в части "подключается как клиент". Бизнес-логика просто
     посылает асинхронные сообщения.
+    [COMMENT:unrimah] - ок, ты раскроешь детали технологии и мы всё реализуем. И внесём
+    сюда.
   - Если бизнес-логика подключилась до завершения инициализации устройств, то на любой
     запрос она будет получать сообщение вида: { status:"Power-on" }.
   - После выдачи сообщения о состоянии устройств, нижний уровень перейдет в {
@@ -3278,8 +3281,63 @@
 
 *** WAIT Драйвера периферии                                         :unrimah:
 *** TODO Операционная система                                       :unrimah:
+**** Подготовка к работам
+
+    Во избежание невосстановимого факапа, я скопировал в /root/etc.old /etc целиком.
+    Вмешиваясь в другие каталоги с настройками я предполагаю поступать так же.
+
+**** Инициализация системы
 
     [TODO:unrimah] - systemD supervisor etc
+
+    Мы работаем с Debian 7.4 "wheezy". В качестве демона инициализации используется systemd.
+    Ссылки на толковые страницы:
+    http://vladimir-stupin.blogspot.ru/2013/02/systemd-1.html
+    https://wiki.archlinux.org/index.php/Systemd_(%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B8%D0%B9)
+    http://mybeagleboneblackfindings.blogspot.ru/2013/10/running-script-on-beaglebone-black-boot.html
+    https://habrahabr.ru/company/centosadmin/blog/255845/
+    http://www2.kangran.su/~nnz/pub/s4a/s4a_latest.pdf
+
+    Не смотря на то, что основой инициализации работает systemd, всё равно проходит инициализация
+    в том числе и "по старой схеме", через sysvinit, который работает с привычным нам /etc/init.d.
+    Важно помнить об этом, потому что ненужный нам =apache2= например живет именно там.
+    С ходу сносим /etc/init.d/apache. Из дистрибутива выкорчуем позже.
+    =Cloud9= отключается изящнее:
+    # systemctl disable cloud9.socket
+
+    Установка nginx уже описана выше.
+    Прописываем в автозапуск. Создаем файл /lib/systemd/system/nginx.service, пишем в него:
+
+[Unit]
+Description=The NGINX HTTP and reverse proxy server
+After=syslog.target network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=forking
+PIDFile=/usr/local/nginx/logs/nginx.pid
+ExecStartPre=/usr/local/nginx/sbin/nginx -t
+ExecStart=/usr/local/nginx/sbin/nginx
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s QUIT $MAINPID
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target    
+
+    Сохраняем. Даем команду
+# systemctl enable nginx.service
+
+    При необходимости, можем сразу и запустить:
+
+# systemctl start nginx.service
+
+    В любом случае после перезагрузки nginx стартует и дает полюбоваться на свою success-страничку.
+    /обратите внимание, что настройка автостарта - это не все настройки nginx!!!/
+
+    =Systemd= позволяет следить за состоянием сервисов и может их =автоматически перезапускать=
+    (отслеживается по pid). Информации по работе с зомбями для systemd практически нет.
+
+
 
 *** TODO Протоколы периферии
 *** TODO Резервирование системы                                     :unrimah:
