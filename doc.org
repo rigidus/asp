@@ -3493,6 +3493,44 @@
     Снова запускаем nginx, открываем приветствие nginx по адресу http://10.0.10.114:8081/
     Вуаля.
 
+*** DONE Установка Boost
+    
+    Boost - библиотеки расширения С++, значительно упрощающие работу.
+    
+    По идее, вся установка заключается в запуске команды
+
+     #+BEGIN_SRC sh
+       apt-get install libboost-all-dev
+     #+END_SRC
+
+    ...но при этом может возникнуть ошибка, выражающася в простыне строчек типа
+insserv: Starting led_aging.sh depends on rmnologin and therefore on system facility `$all' which can not be true!
+    с результатом ошибки установки. Чтобы это поправить, мы приводим файл /etc/init.d/led_aging.sh
+    к следующему виду:
+
+     #+BEGIN_SRC conf
+#!/bin/sh
+# tary, 16:46 2013-4-22
+
+### BEGIN INIT INFO
+# Provides:          led_aging script
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start led_agigng daemon at boot time
+# Description:       Enable service provided by led_aging daemon.
+### END INIT INFO
+
+x=$(/bin/ps -ef | /bin/grep "[l]ed_acc")
+if [ ! -n "$x" -a -x /usr/bin/led_acc ]; then
+        /usr/bin/led_acc &
+fi
+     #+END_SRC
+
+    Повторяем "apt-get install libboost-all-dev", Boost установлен в /usr/include/boost/ .
+    Можно пересобирать исходники с использованием Буста прямо на ВВВ.
+
 * TODO Серверная часть                                              :rigidus:
 ** TODO Общие положения
 
