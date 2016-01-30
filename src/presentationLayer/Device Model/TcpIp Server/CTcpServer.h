@@ -8,11 +8,11 @@
 #if !defined(EA_99964F95_BDA0_4486_95D0_C18060E08E90__INCLUDED_)
 #define EA_99964F95_BDA0_4486_95D0_C18060E08E90__INCLUDED_
 
-#include <asio.hpp>
+#include "boost_include.h"
 using namespace boost;
 
 #include "CTcpConnection.h"
-#include "CTcpSocketFactory.h"
+#include "../include/FileLog.h"
 
 class CTcpConnectionListener;
 
@@ -38,7 +38,6 @@ private:
 	uint32_t m_messageFragmentTimeout;
 	uint32_t m_maxConnection;
 	CTcpConnectionListener* m_pConnectionListener;
-	CTcpSocketFactory* m_pSocketFactory;
 	system::error_code m_lastErrorCode;
 
 	void handle_accept(CTcpConnection::PtrCTcpConnection newConnection, const system::error_code& error);

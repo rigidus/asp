@@ -19,6 +19,7 @@ CTcpServerManager::CTcpServerManager(uint32_t port):
 {
 	CFileLog::cfilelog() << "create CTcpServerManager: " << port << std::endl;
 
+	m_ioService.run();
 }
 
 

@@ -12,12 +12,10 @@
 #include <vector>
 #include <stdexcept>
 
-#include <asio.hpp>
-#include <utility.hpp>
+#include "boost_include.h"
 using namespace boost;
 
 #include "CTcpConnectionListener.h"
-#include "CTcpSocketFactory.h"
 #include "CTcpServer.h"
 
 #include "../include/FileLog.h"

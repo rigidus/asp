@@ -21,16 +21,13 @@ class CTcpConnectionListener
 public:
 	CTcpConnectionListener();
 	CTcpConnectionListener(const CTcpConnectionListener& listener);
+	virtual ~CTcpConnectionListener();
 
 	void setListenerFunctions(TFnDoReceive fnDoReceive, TFnDoConnect fnDoConnect, TFnDoDisconnect fnDoDisconnect);
-	virtual ~CTcpConnectionListener();
-	void startWaitingThread();
-	void stopListenThread();
-	void DoReceiving(std::vector<uint8_t>& rcvData);
-	void DoDisconnect(uint16_t port);
-	void DoConnect(uint16_t port);
+	void DoReceiving(asio::ip::tcp::socket& socket,	std::vector<uint8_t> rcvData, std::string& clientName);
+	void DoConnect(asio::ip::tcp::socket& socket, std::string& clientName);
+	void DoDisconnect(std::string& clientName);
 
-private:
 	TFnDoReceive m_fnDoReceive;
 	TFnDoConnect m_fnDoConnect;
 	TFnDoDisconnect m_fnDoDisconnect;

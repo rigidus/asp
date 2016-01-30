@@ -40,26 +40,25 @@ void CTcpConnectionListener::setListenerFunctions(TFnDoReceive fnDoReceive, TFnD
 }
 
 
-void CTcpConnectionListener::startWaitingThread(){
-
+void CTcpConnectionListener::DoReceiving(
+				asio::ip::tcp::socket& socket,
+				std::vector<uint8_t> rcvData,
+				std::string& clientName)
+{
+	if (m_fnDoReceive != nullptr)
+		m_fnDoReceive(socket, rcvData, clientName);
 }
 
 
-void CTcpConnectionListener::stopListenThread(){
-
+void CTcpConnectionListener::DoConnect(asio::ip::tcp::socket& socket, std::string& clientName)
+{
+	if (m_fnDoConnect != nullptr)
+		m_fnDoConnect(socket, clientName);
 }
 
 
-void CTcpConnectionListener::DoReceiving(std::vector<uint8_t>& rcvData){
-
-}
-
-
-void CTcpConnectionListener::DoDisconnect(uint16_t port){
-
-}
-
-
-void CTcpConnectionListener::DoConnect(uint16_t port){
-
+void CTcpConnectionListener::DoDisconnect(std::string& clientName)
+{
+	if (m_fnDoDisconnect != nullptr)
+		m_fnDoDisconnect(clientName);
 }

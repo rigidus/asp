@@ -17,12 +17,9 @@ CTcpServer::CTcpServer(asio::io_service& ioService, CTcpConnectionListener* list
 				m_messageTimeout(msgTimeout),
 				m_messageFragmentTimeout(msgFragmentTimeout),
 				m_maxConnection(maxConnections),
-				m_pConnectionListener(listener),
-				m_lastErrorCode(0)
+				m_pConnectionListener(listener)
 {
 	CFileLog::cfilelog() << "create CTcpServer, port: " << localPort << std::endl;
-
-	m_pSocketFactory = CTcpSocketFactory::getSocketFactory();
 
 	m_pAcceptor = new tcp::acceptor(ioService, tcp::endpoint(tcp::v4(), localPort));
 
@@ -37,12 +34,9 @@ CTcpServer::CTcpServer(asio::io_service& ioService, CTcpConnectionListener* list
 				m_messageTimeout(10000),	// default value
 				m_messageFragmentTimeout(1000), // default value
 				m_maxConnection(1000),		// default maximum connection number
-				m_pConnectionListener(listener),
-				m_lastErrorCode(0)
+				m_pConnectionListener(listener)
 {
 	CFileLog::cfilelog() << "create CTcpServer, port: " << localPort << std::endl;
-
-	m_pSocketFactory = CTcpSocketFactory::getSocketFactory();
 
 	m_pAcceptor = new tcp::acceptor(ioService, tcp::endpoint(tcp::v4(), localPort));
 
@@ -70,17 +64,22 @@ void CTcpServer::startServer(){
 
 	if (m_pAcceptor->is_open() == true) return;
 
-//	m_pAcceptor->listen(m_maxConnection, m_lastErrorCode);
-
-	CTcpConnection::PtrCTcpConnection = CTcpConnection::createNewConnection(
+	CTcpConnection::PtrCTcpConnection pointer = CTcpConnection::createNewConnection(
 			m_ioService,
 			m_pConnectionListener,
 			m_maxBufSize,
 			m_messageTimeout,
 			m_messageFragmentTimeout);
 
-	m_pAcceptor->async_accept()
-
+	m_pAcceptor->async_accept(
+					pointer->socket(),
+		        	bind(
+		        		&CTcpServer::handle_accept,
+						this,
+						pointer,
+						boost::asio::placeholders::error
+					)
+	);
 }
 
 
@@ -98,7 +97,17 @@ void CTcpServer::stopServer(){
 void CTcpServer::handle_accept(CTcpConnection::PtrCTcpConnection newConnection, const system::error_code& error)
 {
 	if (!error)
+	{
 		CFileLog::cfilelog() << "CTcpServer::handle_accept: new connection created" << std::endl;
+		m_pConnectionListener->DoConnect(newConnection->socket(), newConnection->getClientName());
+	}
 	else
+	{
 		CFileLog::cfilelog() << "CTcpServer::handle_accept: new connection didn't create with error: " <<  error << std::endl;
+
+		std::stringstream strError;
+		strError << newConnection->getClientName() << " Connection Accept error: " << error;
+		std::string textError(strError.str());
+		m_pConnectionListener->DoConnect(newConnection->socket(), textError);
+	}
 }

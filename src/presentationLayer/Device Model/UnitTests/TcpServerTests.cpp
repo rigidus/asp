@@ -65,6 +65,8 @@ mutex CTestTcpIpMultiServer::s_mutex;
 
 void CTestTcpIpMultiServer::CTestConnection::runTest() {
 
+
+
 	CTcpServerManager serverMgr(10050);
 
 	CTcpConnectionListener* listener = serverMgr.createServer();
