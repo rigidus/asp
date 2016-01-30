@@ -12,33 +12,32 @@
 #include <vector>
 #include <stdexcept>
 
-#include <asio.hpp>
+#include "boost_include.h"
 using namespace boost;
 
 #include "CTcpConnectionListener.h"
-#include "CTcpSocketFactory.h"
 #include "CTcpServer.h"
 
 #include "../include/FileLog.h"
 
-class CTcpServerManager
+class CTcpServerManager: public noncopyable
 {
 
 public:
 	virtual ~CTcpServerManager();
-	CTcpServerManager(const CTcpServerManager& rhs);
 
 	CTcpServerManager(uint32_t port);
 	CTcpServerManager(uint32_t port, std::string bindAddr, CTcpConnectionListener* listener);
-	void startListening();
+	void startListening(uint32_t index);
 	CTcpConnectionListener* createServer();
-	void stopListening();
+	void deleteServer(uint32_t index);
+	void stopListening(uint32_t index);
 
 private:
 	uint32_t m_localPort;
 	std::string m_bindAddress;
 	CTcpConnectionListener* m_pConnectionListener;
-	std::vector<CTcpServer*> m_pServer;
+	std::vector<CTcpServer*> m_Servers;
 	uint32_t m_maxConnection;
 	uint32_t m_msgTimeout;
 	uint32_t m_msgFragmentTimeout;

@@ -10,11 +10,6 @@
 
 #include <iostream>
 
-#include <asio.hpp>
-#include <thread.hpp>
-#include <thread/mutex.hpp>
-using namespace boost;
-
 #include <CTcpServerManager.h>
 #include <CTcpClient.h>
 

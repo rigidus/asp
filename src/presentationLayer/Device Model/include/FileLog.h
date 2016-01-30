@@ -1,7 +1,8 @@
 #ifndef DEBUG_LOG
 #define DEBUG_LOG
 
-#define DEBUG
+// TODO: delete DEBUG define
+#define DEBUG	// temporary
 #define LOGTOFILE
 
 #include <iostream>
@@ -38,60 +39,60 @@ namespace StreamStdStrings
 #endif
 	}
 
-	template <>
-	void toStream<std::string>(const std::string& p, std::ostream* fLog, boost::mutex& tmut, boost::posix_time::ptime& bgntime, bool& ts)
-	{
-		boost::mutex::scoped_lock lock(tmut);
-
-		if (ts)
-		{
-			ts = false;
-
-			boost::posix_time::ptime t(boost::posix_time::microsec_clock::local_time());
-#ifdef LOGTOFILE
-			*fLog << (t-bgntime) << ": ";
-#else
-			std::cerr << (t-bgntime) << ": ";
-#endif
-		}
-
-		for (uint32_t i = 0; i < p.size(); i++)
-		{
-#ifdef LOGTOFILE
-			*fLog << p.c_str()[i];
-#else
-			std::cerr << p.c_str()[i];
-#endif
-		}
-	}
-
-
-	template <>
-	void toStream<std::wstring>(const std::wstring& p, std::ostream* fLog, boost::mutex& tmut, boost::posix_time::ptime& bgntime, bool& ts)
-	{
-		boost::mutex::scoped_lock lock(tmut);
-
-		if (ts)
-		{
-			ts = false;
-
-			boost::posix_time::ptime t(boost::posix_time::microsec_clock::local_time());
-#ifdef LOGTOFILE
-			*fLog << (t-bgntime) << ": ";
-#else
-			std::cerr << (t-bgntime) << ": ";
-#endif
-		}
-
-		for (uint32_t i = 0; i < p.size(); i++)
-		{
-#ifdef LOGTOFILE
-			*fLog << p.c_str()[i];
-#else
-			std::cerr << p.c_str()[i];
-#endif
-		}
-	}
+//	template <>
+//	void toStream<std::string>(const std::string& p, std::ostream* fLog, boost::mutex& tmut, boost::posix_time::ptime& bgntime, bool& ts)
+//	{
+//		boost::mutex::scoped_lock lock(tmut);
+//
+//		if (ts)
+//		{
+//			ts = false;
+//
+//			boost::posix_time::ptime t(boost::posix_time::microsec_clock::local_time());
+//#ifdef LOGTOFILE
+//			*fLog << (t-bgntime) << ": ";
+//#else
+//			std::cerr << (t-bgntime) << ": ";
+//#endif
+//		}
+//
+//		for (uint32_t i = 0; i < p.size(); i++)
+//		{
+//#ifdef LOGTOFILE
+//			*fLog << p.c_str()[i];
+//#else
+//			std::cerr << p.c_str()[i];
+//#endif
+//		}
+//	}
+//
+//
+//	template <>
+//	void toStream<std::wstring>(const std::wstring& p, std::ostream* fLog, boost::mutex& tmut, boost::posix_time::ptime& bgntime, bool& ts)
+//	{
+//		boost::mutex::scoped_lock lock(tmut);
+//
+//		if (ts)
+//		{
+//			ts = false;
+//
+//			boost::posix_time::ptime t(boost::posix_time::microsec_clock::local_time());
+//#ifdef LOGTOFILE
+//			*fLog << (t-bgntime) << ": ";
+//#else
+//			std::cerr << (t-bgntime) << ": ";
+//#endif
+//		}
+//
+//		for (uint32_t i = 0; i < p.size(); i++)
+//		{
+//#ifdef LOGTOFILE
+//			*fLog << p.c_str()[i];
+//#else
+//			std::cerr << p.c_str()[i];
+//#endif
+//		}
+//	}
 
 }
 

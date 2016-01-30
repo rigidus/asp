@@ -7,44 +7,107 @@
 
 #include "CTcpServer.h"
 
+using namespace boost::asio::ip;
 
-CTcpServer::CTcpServer(const CTcpServer& rhs){
 
+CTcpServer::CTcpServer(asio::io_service& ioService, CTcpConnectionListener* listener, uint32_t localPort, uint32_t maxBufSize, uint32_t msgTimeout, uint32_t msgFragmentTimeout, uint32_t maxConnections):
+				m_ioService(ioService),
+				m_localPort(localPort),
+				m_maxBufSize(maxBufSize),
+				m_messageTimeout(msgTimeout),
+				m_messageFragmentTimeout(msgFragmentTimeout),
+				m_maxConnection(maxConnections),
+				m_pConnectionListener(listener)
+{
+	CFileLog::cfilelog() << "create CTcpServer, port: " << localPort << std::endl;
+
+	m_pAcceptor = new tcp::acceptor(ioService, tcp::endpoint(tcp::v4(), localPort));
+
+	CFileLog::cfilelog() << "CTcpServer, port: " << localPort << ", created" << std::endl;
 }
 
 
-CTcpServer::CTcpServer(asio::io_service& ioService, CTcpConnectionListener* listener, uint32_t localPort, uint32_t maxBufSize, uint32_t msgTimeout, uint32_t msgFragmentTimeout, uint32_t maxConnections){
+CTcpServer::CTcpServer(asio::io_service& ioService, CTcpConnectionListener* listener, uint32_t localPort):
+				m_ioService(ioService),
+				m_localPort(localPort),
+				m_maxBufSize(32768),	// default buffer size
+				m_messageTimeout(10000),	// default value
+				m_messageFragmentTimeout(1000), // default value
+				m_maxConnection(1000),		// default maximum connection number
+				m_pConnectionListener(listener)
+{
+	CFileLog::cfilelog() << "create CTcpServer, port: " << localPort << std::endl;
 
+	m_pAcceptor = new tcp::acceptor(ioService, tcp::endpoint(tcp::v4(), localPort));
+
+	CFileLog::cfilelog() << "CTcpServer, port: " << localPort << ", created" << std::endl;
 }
 
-
-CTcpServer::~CTcpServer(){
-
-}
-
-
-CTcpConnection* CTcpServer::createNewConnection(asio::ip::tcp::socket* tcpSocket) {
-
-	return  NULL;
+CTcpServer::~CTcpServer()
+{
+	CFileLog::cfilelog() << "CTcpServer, port: " << m_localPort << ", deleted" << std::endl;
 }
 
 
 uint32_t CTcpServer::getMaxConnections(){
 
-	return 0;
-}
+	CFileLog::cfilelog() << "CTcpServer::getMaxConnections" << std::endl;
 
-
-void CTcpServer::setMaxConnections(uint32_t maxConnections){
+	return m_maxConnection;
 
 }
 
 
 void CTcpServer::startServer(){
 
+	CFileLog::cfilelog() << "CTcpServer::startServer" << std::endl;
+
+	if (m_pAcceptor->is_open() == true) return;
+
+	CTcpConnection::PtrCTcpConnection pointer = CTcpConnection::createNewConnection(
+			m_ioService,
+			m_pConnectionListener,
+			m_maxBufSize,
+			m_messageTimeout,
+			m_messageFragmentTimeout);
+
+	m_pAcceptor->async_accept(
+					pointer->socket(),
+		        	bind(
+		        		&CTcpServer::handle_accept,
+						this,
+						pointer,
+						boost::asio::placeholders::error
+					)
+	);
 }
 
 
 void CTcpServer::stopServer(){
 
+	CFileLog::cfilelog() << "CTcpServer::stopServer" << std::endl;
+
+	m_pAcceptor->cancel();
+
+	if (m_pAcceptor->is_open() == true)
+		m_pAcceptor->close();
+
+}
+
+void CTcpServer::handle_accept(CTcpConnection::PtrCTcpConnection newConnection, const system::error_code& error)
+{
+	if (!error)
+	{
+		CFileLog::cfilelog() << "CTcpServer::handle_accept: new connection created" << std::endl;
+		m_pConnectionListener->DoConnect(newConnection->socket(), newConnection->getClientName());
+	}
+	else
+	{
+		CFileLog::cfilelog() << "CTcpServer::handle_accept: new connection didn't create with error: " <<  error << std::endl;
+
+		std::stringstream strError;
+		strError << newConnection->getClientName() << " Connection Accept error: " << error;
+		std::string textError(strError.str());
+		m_pConnectionListener->DoConnect(newConnection->socket(), textError);
+	}
 }
