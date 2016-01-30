@@ -3283,61 +3283,67 @@
 *** TODO Операционная система                                       :unrimah:
 **** Подготовка к работам
 
-    Во избежание невосстановимого факапа, я скопировал в /root/etc.old /etc целиком.
-    Вмешиваясь в другие каталоги с настройками я предполагаю поступать так же.
+     Во избежание невосстановимого факапа, я скопировал в /root/etc.old /etc целиком.
+     Вмешиваясь в другие каталоги с настройками я предполагаю поступать так же.
 
-**** Инициализация системы
+**** DONE Инициализация системы                                     :unrimah:
 
-    [TODO:unrimah] - systemD supervisor etc
+     Мы работаем с Debian 7.4 "wheezy". В качестве демона инициализации используется systemd.
+     Ссылки на толковые страницы:
+     http://vladimir-stupin.blogspot.ru/2013/02/systemd-1.html
+     https://wiki.archlinux.org/index.php/Systemd_(%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B8%D0%B9)
+     http://mybeagleboneblackfindings.blogspot.ru/2013/10/running-script-on-beaglebone-black-boot.html
+     https://habrahabr.ru/company/centosadmin/blog/255845/
+     http://www2.kangran.su/~nnz/pub/s4a/s4a_latest.pdf
 
-    Мы работаем с Debian 7.4 "wheezy". В качестве демона инициализации используется systemd.
-    Ссылки на толковые страницы:
-    http://vladimir-stupin.blogspot.ru/2013/02/systemd-1.html
-    https://wiki.archlinux.org/index.php/Systemd_(%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B8%D0%B9)
-    http://mybeagleboneblackfindings.blogspot.ru/2013/10/running-script-on-beaglebone-black-boot.html
-    https://habrahabr.ru/company/centosadmin/blog/255845/
-    http://www2.kangran.su/~nnz/pub/s4a/s4a_latest.pdf
+     Не смотря на то, что основой инициализации работает systemd, всё равно проходит инициализация
+     в том числе и "по старой схеме", через sysvinit, который работает с привычным нам /etc/init.d.
+     Важно помнить об этом, потому что ненужный нам =apache2= например живет именно там.
+     С ходу сносим /etc/init.d/apache. Из дистрибутива выкорчуем позже.
+     =Cloud9= отключается изящнее:
 
-    Не смотря на то, что основой инициализации работает systemd, всё равно проходит инициализация
-    в том числе и "по старой схеме", через sysvinit, который работает с привычным нам /etc/init.d.
-    Важно помнить об этом, потому что ненужный нам =apache2= например живет именно там.
-    С ходу сносим /etc/init.d/apache. Из дистрибутива выкорчуем позже.
-    =Cloud9= отключается изящнее:
-    # systemctl disable cloud9.socket
+     #+BEGIN_SRC sh
+       systemctl disable cloud9.socket
+     #+END_SRC
 
-    Установка nginx уже описана выше.
-    Прописываем в автозапуск. Создаем файл /lib/systemd/system/nginx.service, пишем в него:
+     Установка nginx уже описана выше.
+     Прописываем в автозапуск. Создаем файл /lib/systemd/system/nginx.service, пишем в него:
 
-[Unit]
-Description=The NGINX HTTP and reverse proxy server
-After=syslog.target network.target remote-fs.target nss-lookup.target
+     #+BEGIN_SRC conf
+       [Unit]
+       Description=The NGINX HTTP and reverse proxy server
+       After=syslog.target network.target remote-fs.target nss-lookup.target
 
-[Service]
-Type=forking
-PIDFile=/usr/local/nginx/logs/nginx.pid
-ExecStartPre=/usr/local/nginx/sbin/nginx -t
-ExecStart=/usr/local/nginx/sbin/nginx
-ExecReload=/bin/kill -s HUP $MAINPID
-ExecStop=/bin/kill -s QUIT $MAINPID
-PrivateTmp=true
+       [Service]
+       Type=forking
+       PIDFile=/usr/local/nginx/logs/nginx.pid
+       ExecStartPre=/usr/local/nginx/sbin/nginx -t
+       ExecStart=/usr/local/nginx/sbin/nginx
+       ExecReload=/bin/kill -s HUP $MAINPID
+       ExecStop=/bin/kill -s QUIT $MAINPID
+       PrivateTmp=true
 
-[Install]
-WantedBy=multi-user.target    
+       [Install]
+       WantedBy=multi-user.target
+     #+END_SRC
 
-    Сохраняем. Даем команду
-# systemctl enable nginx.service
+     Сохраняем. Даем команду
 
-    При необходимости, можем сразу и запустить:
+     #+BEGIN_SRC sh
+       systemctl enable nginx.service
+     #+END_SRC
 
-# systemctl start nginx.service
+     При необходимости, можем сразу и запустить:
 
-    В любом случае после перезагрузки nginx стартует и дает полюбоваться на свою success-страничку.
-    /обратите внимание, что настройка автостарта - это не все настройки nginx!!!/
+     #+BEGIN_SRC sh
+       systemctl start nginx.service
+     #+END_SRC
 
-    =Systemd= позволяет следить за состоянием сервисов и может их =автоматически перезапускать=
-    (отслеживается по pid). Информации по работе с зомбями для systemd практически нет.
+     В любом случае после перезагрузки nginx стартует и дает полюбоваться на свою success-страничку.
+     /обратите внимание, что настройка автостарта - это не все настройки nginx!!!/
 
-
+     =Systemd= позволяет следить за состоянием сервисов и может их =автоматически перезапускать=
+     (отслеживается по pid). Информации по работе с зомбями для systemd практически нет.
 
 *** TODO Протоколы периферии
 *** TODO Резервирование системы                                     :unrimah:
