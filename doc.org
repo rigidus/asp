@@ -3548,6 +3548,11 @@
     На порту 3000 (http://10.0.10.114:3000) развернута IDE Cloud9 с массой интересных
     возможностей, есть с чем поиграться.
 
+*** DONE Бэкап при подготовке к работам
+
+     Во избежание невосстановимого факапа, я скопировал в /root/etc.old /etc целиком.
+     Вмешиваясь в другие каталоги с настройками я предполагаю поступать так же.
+
 *** DONE Компиляция и запуск HelloWorld на BBB
 
     Простые сишные файлы компилируются по "gcc example.c -o example" и запускаются
@@ -3561,27 +3566,41 @@
     поискать следующую стабильную версию.
 
     Скачиваем http://hg.nginx.org/nginx/archive/stable-1.8.tar.gz, загружаем на ВВВ
-    через scp scp stable-1.8.tar.gz root@10.0.10.114:/root/build ^^^!!! это запускается
-    на нашей машине в консоли, в папке где лежит архив!!!  (если папки /root/build нет,
-    её можно создать "mkdir /root/build" из консоли ВВВ)
+    через scp (на нашей машине в консоли, в папке где лежит архив):
+
+    #+BEGIN_SRC sh
+      scp stable-1.8.tar.gz root@10.0.10.114:/root/build 
+    #+END_SRC
+
+    (если папки /root/build нет, её можно создать "mkdir /root/build" из консоли ВВВ)
 
     Дальше распаковываем архив:
-    tar -xzf stable-1.8.tar.gz
+    #+BEGIN_SRC sh
+      tar -xzf stable-1.8.tar.gz
+    #+END_SRC
 
     Переходим в папку nginx:
-    cd nginx-stable-1.8
+    #+BEGIN_SRC sh
+      cd nginx-stable-1.8
+    #+END_SRC
 
     Файл конфигурации лежит не там, где нужно. Перетаскиваем, запускаем:
-    cp auto/configure .
-    ./configure
+    #+BEGIN_SRC sh
+      cp auto/configure .
+      ./configure
+    #+END_SRC
 
     Сконфигурировалось, собираем командой "make", устанавливаем "make install"
     Nginx не прописывает себя в системные пути, вручную его можно запустить
-    /usr/local/nginx/sbin/nginx
+    #+BEGIN_SRC sh
+      /usr/local/nginx/sbin/nginx
+    #+END_SRC
 
     ...но пока крутится apache2, мы с конфигурацией по умолчанию этого не сделаем.
-    vi /usr/local/nginx/conf/nginx.conf
-    в строке 37 выставляем "listen 8081"
+    #+BEGIN_SRC sh
+      vi /usr/local/nginx/conf/nginx.conf
+    #+END_SRC
+    в строке 37 выставляем "listen 8081". Когда "загасим" apache2 это значение можно вернуть в исходное.
 
     Снова запускаем nginx, открываем приветствие nginx по адресу http://10.0.10.114:8081/
     Вуаля.
@@ -3597,7 +3616,9 @@
      #+END_SRC
 
     ...но при этом может возникнуть ошибка, выражающася в простыне строчек типа
-insserv: Starting led_aging.sh depends on rmnologin and therefore on system facility `$all' which can not be true!
+    #+BEGIN_SRC 
+      insserv: Starting led_aging.sh depends on rmnologin and therefore on system facility `$all' which can not be true!    
+    #+END_SRC
     с результатом ошибки установки. Чтобы это поправить, мы приводим файл /etc/init.d/led_aging.sh
     к следующему виду:
 
@@ -3621,15 +3642,16 @@ if [ ! -n "$x" -a -x /usr/bin/led_acc ]; then
 fi
      #+END_SRC
 
-    Повторяем "apt-get install libboost-all-dev", Boost установлен в /usr/include/boost/ .
+    Повторяем:
+
+     #+BEGIN_SRC sh
+       apt-get install libboost-all-dev
+     #+END_SRC
+
+    Boost установлен в /usr/include/boost/ .
     Можно пересобирать исходники с использованием Буста прямо на ВВВ.
 
-*** DONE Разврётывание и подготовка среды на BBB
-*** DONE Бэкап при подготовке к работам
-
-     Во избежание невосстановимого факапа, я скопировал в /root/etc.old /etc целиком.
-     Вмешиваясь в другие каталоги с настройками я предполагаю поступать так же.
-
+*** DONE Развёртывание и подготовка среды на BBB
 *** DONE Инициализация операционной системы                         :unrimah:
 
      Мы работаем с Debian 7.4 "wheezy". В качестве демона инициализации используется systemd.
@@ -3688,6 +3710,8 @@ fi
 
      =Systemd= позволяет следить за состоянием сервисов и может их =автоматически перезапускать=
      (отслеживается по pid). Информации по работе с зомбями для systemd практически нет.
+
+     
 
 * TODO Серверная часть                                              :rigidus:
 ** TODO Общие положения
