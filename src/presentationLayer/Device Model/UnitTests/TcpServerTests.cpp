@@ -65,8 +65,6 @@ mutex CTestTcpIpMultiServer::s_mutex;
 
 void CTestTcpIpMultiServer::CTestConnection::runTest() {
 
-
-
 	CTcpServerManager serverMgr(10050);
 
 	CTcpConnectionListener* listener = serverMgr.createServer();
@@ -87,6 +85,7 @@ void CTestTcpIpMultiServer::CTestConnection::runTest() {
 
 	CPPUNIT_ASSERT_EQUAL_MESSAGE("CTestTcpIpMultiServer::CTestConnection WRONG", 0, res);
 
+	client.Disconnect();
 }
 
 void CTestTcpIpMultiServer::CTestSendReceive::runTest() {
@@ -136,4 +135,6 @@ void CTestTcpIpMultiServer::CTestSendReceive::runTest() {
 				expectedData[i], CTestTcpIpMultiServer::s_resultData[i]);
 		}
 	}
+
+	client.Disconnect();
 }

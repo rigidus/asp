@@ -6,9 +6,12 @@ int main()
 
 	CTestTcpIpMultiServer testTcpIpMultiServer;
 
+	testTcpIpMultiServer.testConnection = new CTestTcpIpMultiServer::CTestConnection("class: CTcpIpMultiServer, test: CtestConnection");
+	testTcpIpMultiServer.testSendReceive = new CTestTcpIpMultiServer::CTestSendReceive("class: CTcpIpMultiServer, test: CtestSendReceive");
+
 	CppUnit::TextTestRunner runner;
-	runner.addTest(&testTcpIpMultiServer.testConnection);
-	runner.addTest(&testTcpIpMultiServer.testSendReceive);
+	runner.addTest(testTcpIpMultiServer.testConnection);
+	runner.addTest(testTcpIpMultiServer.testSendReceive);
 
 	runner.run();
 

@@ -41,6 +41,7 @@ void CTcpClient::Disconnect()
     m_socket.close();
     m_deadline.cancel();
     m_heartbeatTimer.cancel();
+    m_ioService.stop();
 }
 
 

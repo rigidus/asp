@@ -60,9 +60,11 @@ public:
 	class CTestConnection: public CppUnit::TestCase
 	{
 	public:
-		CTestConnection():
-			TestCase("class: CTcpIpMultiServer, test: CtestConnection")
+		CTestConnection(std::string str):
+			TestCase(str)
 		{}
+
+		virtual ~CTestConnection() {}
 
 		virtual void runTest();
 	};
@@ -70,15 +72,17 @@ public:
 	class CTestSendReceive: public CppUnit::TestCase
 	{
 	public:
-		CTestSendReceive():
-			TestCase("class: CTcpIpMultiServer, test: CtestSendReceive")
+		CTestSendReceive(std::string str):
+			TestCase(str)
 		{}
+
+		virtual ~CTestSendReceive() {}
 
 		virtual void runTest();
 	};
 
-	CTestConnection testConnection;
-	CTestSendReceive testSendReceive;
+	CTestConnection* testConnection;
+	CTestSendReceive* testSendReceive;
 
 };
 
