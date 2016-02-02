@@ -7,9 +7,13 @@
 
 #include "CTcpClient.h"
 
-CTcpClient::CTcpClient()
+CTcpClient::CTcpClient():
+	m_socket(m_ioService),
+	m_stopped(true),
+    m_deadline(m_ioService),
+    m_heartbeatTimer(m_ioService)
 {
-	m_ioService.run();
+
 }
 
 
@@ -17,7 +21,15 @@ int32_t CTcpClient::Connect(std::string host, int16_t port)
 {
 
 	if (m_socket.is_open() == false)
-		m_socket.startConnect();
+	{
+		tcp::resolver r(m_ioService);
+
+		std::string sPort(std::to_string(port));
+
+		startConnect(r.resolve(tcp::resolver::query(host, sPort)));
+
+		if (m_ioService.stopped() == true) m_ioService.run();
+	}
 
 	return 0;
 }
@@ -191,7 +203,7 @@ void CTcpClient::check_deadline()
 	// Check whether the deadline has passed. We compare the deadline against
 	// the current time since a new asynchronous operation may have moved the
 	// deadline before this actor had a chance to run.
-	if (m_deadline.expires_at() <= deadline_timer::traits_type::now())
+	if (m_deadline.expires_at() <= boost::asio::deadline_timer::traits_type::now())
 	{
 	  // The deadline has passed. The socket is closed so that any outstanding
 	  // asynchronous operations are cancelled.

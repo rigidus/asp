@@ -8,6 +8,7 @@
 #ifndef CTCPCLIENT_H_
 #define CTCPCLIENT_H_
 
+#include <string>
 #include <vector>
 #include <iostream>
 
