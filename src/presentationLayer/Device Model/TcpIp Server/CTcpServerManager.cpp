@@ -19,7 +19,8 @@ CTcpServerManager::CTcpServerManager(uint32_t port):
 {
 	CFileLog::cfilelog() << "create CTcpServerManager: " << port << std::endl;
 
-	m_ioService.run();
+	if (m_ioService.stopped() == true)
+		m_ioService.run();
 }
 
 
