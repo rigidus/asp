@@ -42,11 +42,12 @@ void CTcpConnectionListener::setListenerFunctions(TFnDoReceive fnDoReceive, TFnD
 
 void CTcpConnectionListener::DoReceiving(
 				asio::ip::tcp::socket& socket,
-				std::vector<uint8_t> rcvData,
+				uint8_t* rcvData,
+				std::size_t rcvSize,
 				std::string& clientName)
 {
 	if (m_fnDoReceive != nullptr)
-		m_fnDoReceive(socket, rcvData, clientName);
+		m_fnDoReceive(socket, rcvData, rcvSize, clientName);
 }
 
 

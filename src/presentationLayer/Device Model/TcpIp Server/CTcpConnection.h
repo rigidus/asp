@@ -20,6 +20,7 @@ using namespace boost;
 using namespace boost::asio::ip;
 
 #include "CTcpConnectionListener.h"
+#include "../include/FileLog.h"
 
 /**
  * Class encapsulate boost::asio::ip::tcp::socket and additional features: - send one
@@ -33,8 +34,8 @@ public:
 	typedef boost::shared_ptr<CTcpConnection> PtrCTcpConnection;
 
 	static PtrCTcpConnection createNewConnection(
-			boost::asio::io_service& ioService,
-			CTcpConnectionListener* listener,
+			asio::io_service& ioService,
+			CTcpConnectionListener& listener,
 			uint32_t maxBufSize,
 			uint32_t messageTimeout,
 			uint32_t messageFragmentTimeout);
@@ -44,6 +45,7 @@ public:
 	uint32_t send(std::list<std::vector<uint8_t> >& sendData);
 
 	void start();
+	void stop();
 	uint32_t getMessageTimeout();
 	void setMessageTimeout(uint32_t messageTimeout);
 	void setMessageFragmentTimeout(uint32_t messageFragmentTimeout);
@@ -51,7 +53,7 @@ public:
 	std::string& getClientName();
 
 private:
-	CTcpConnection(boost::asio::io_service& ioService, CTcpConnectionListener* listener, uint32_t maxBufSize, uint32_t messageTimeout, uint32_t messageFragmentTimeout);
+	CTcpConnection(boost::asio::io_service& ioService, CTcpConnectionListener& listener, uint32_t maxBufSize, uint32_t messageTimeout, uint32_t messageFragmentTimeout);
 
 	void handle_write();
 	void handle_read(const boost::system::error_code& error, std::size_t bytes_transferred);
@@ -61,9 +63,10 @@ private:
 	std::vector<uint8_t> m_tselRemote;
 	std::vector<uint8_t> m_tselLocal;
 	asio::ip::tcp::socket m_socket;
-	CTcpConnectionListener* m_listener;
+	CTcpConnectionListener& m_listener;
 	uint32_t m_messageTimeout;
 	uint32_t m_messageFragmentTimeout;
 	std::string m_clientName;
+	bool m_isStoped;
 };
 #endif // !defined(EA_6A05EB90_FC49_43f0_9433_51FEBF903706__INCLUDED_)
