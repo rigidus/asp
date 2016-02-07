@@ -4010,148 +4010,44 @@
     развернуть у себя
 
     #+BEGIN_EXAMPLE
-      [14:58:54] rigidus: need help
+      root@bbb# apt-get install postgresql postgresql-common postgresql-client
 
-      Я поставил постгрес 9.1 из пакетов на ббб, он установился, все ок, но:
+      [19:25:56] rigidus: Потом заходишь cd /usr/share/postgresql/9.1
+      [19:26:52] rigidus: Там есть конфиги *.samle - их надо скопировать в такие же но без
+      ".sample", после чего отредактировать:
+      uncomment in /etc/postgresql/<version>/mainpostgresql.conf (/usr/share/postgresql/<version>/main/postgresql.conf):
 
-      Конфигурация почему-то лежит не в /etc/postgresql/9.1 как в убунте а в
-      /usr/share/postgresql/9.1
+      # listen_addresses = 'localhost'
 
-      Я сконфигурировал как на убунте, и на всякий случай скопировал в /etc
+      опционально выставить минимальные параметры по памяти, но может это не надо
 
-      При попытке запустить, запуск проходит успешно, но в ps aux | grep postgres я не вижу
-      ни одного процесса
+      /etc/postgresql/<version>/main/pg_hba.conf (/usr/share/postgresql/<version>/main/pg_hba.conf):
+      local   all         postgres                          md5
 
-      В логах в /var/log/postgresql - пустая папка
+      Потом попытаться запустить /usr/lib/postgresql/9.1/bin/postgresql
+      Если не сработает - в этой же папке лежит initdb - его надо
+      натравить на домашний каталог постргесса (я говорил, что все это надо делать под
+      постгрессом?)
 
-      Есть идеи?
-      [15:41:59] Vladimir Bogdanov: Список действий набросай? apt-get postgres, что там
-      дальше?
-      [15:42:36] rigidus: правка postgresql.conf чтобы коннектиться к юникс-сокету
-      [15:43:01] rigidus: правка pg_hba чтобы в методе авторизации доверять локальным
-      пользователям
-      [15:43:14] rigidus: потом планировался запуск и последующее создание юзеров и баз
-      [15:43:20] rigidus: но с запуском не срослось
-      [15:43:30] Vladimir Bogdanov: Давай по порядку, с apt-get начиная, я буду повторять.
-      [15:43:54] rigidus: apt-get install postgresql postgresql-common postgresql-client
-      [15:45:53] rigidus: дальше нужно будет открыть  /etc/postgresql/<version>/main (по
-      крайней мере так в нормальных системах)
-      [15:46:03] rigidus: расскомментить listen_addresses = 'localhost'
-      [15:46:28] rigidus: в  /etc/postgresql/<version>/main/pg_hba.conf
-      [15:46:35] rigidus: local   all         postgres                          md5
-      [15:46:53] rigidus: потом рестартовать. вот тут и проблема
-      [15:47:17] rigidus: я еще попытался в тех же конфиг файлах логи настроить но они все
-      равно не пишутся
-      [15:57:44] Vladimir Bogdanov: "root" execution of the PostgreSQL server is not
-      permitted.
+      root@bbb# /etc/init.d/postgresql restart
 
+      error: "root" execution of the PostgreSQL server is not permitted.
       The server must be started under an unprivileged user ID to prevent
-
       possible system security compromise.  See the documentation for
-
       more information on how to properly start the server.
 
-
-
-      Погуглишь подробнее, расскажешь, в чем дело?
-      [15:58:28] rigidus: Хм, это откуда? Обычно я из под рута стартовал
-      [15:59:38] rigidus: su postgres
+      root@bbb su postgres
 
       postgres@beaglebone:/usr/share/postgresql$ /etc/init.d/postgresql start
 
-      Starting postgresql (via systemctl): postgresql.serviceFailed to issue method call:
-      Access denied
-
-       failed!
-      [15:59:58] rigidus: postgres@beaglebone:/usr/share/postgresql$ exit
-
-      root@beaglebone:/usr/share/postgresql# /etc/init.d/postgresql start
-
-      Starting postgresql (via systemctl): postgresql.service.
-
-      root@beaglebone:/usr/share/postgresql#
-      [16:00:09] rigidus: т.е. все же из под рута
-      [16:00:38] Vladimir Bogdanov:  /usr/lib/postgresql/9.1/bin/postgres дал мне этот вывод.
-      [16:00:53] rigidus: в ответ на что?
-      [16:01:14] rigidus: а понял
-      [16:01:16] Vladimir Bogdanov: На ручной запуск из консоли.
-      [16:01:49] Vladimir Bogdanov: До этого смотрел сюда:
-
-      root@beaglebone:~# service postgresql start
-
-      [ ok ] Starting postgresql (via systemctl): postgresql.service.
-
-      root@beaglebone:~# ps ax | grep post*
-
-       5349 pts/0    S+     0:00 grep post*
-
-      root@beaglebone:~# systemctl | grep post*
-
-      postgresql.service        loaded active exited        LSB: PostgreSQL RDBMS server
-
-      root@beaglebone:~# systemd-journalctl | grep post*
-
-      Feb 04 12:45:39 beaglebone groupadd[4476]: new group: name=postgres, GID=117
-
-      Feb 04 12:45:39 beaglebone useradd[4480]: new user: name=postgres, UID=110, ...h
-
-      Feb 04 12:45:39 beaglebone usermod[4485]: change user 'postgres' password
-
-      Feb 04 12:45:39 beaglebone chage[4490]: changed password expiry for postgres
-
-      Feb 04 12:45:40 beaglebone chfn[4493]: changed user 'postgres' information
-
-      Feb 04 12:45:40 beaglebone gpasswd[4509]: user postgres added by root to gro...t
-      [16:02:31] rigidus: ну я примерно так же. он просто выходит
-      [16:03:05] Vladimir Bogdanov: [15:57:44] unrimah: See the documentation for
-
-      more information on how to properly start the server
-
-
-
-      <<< надо загуглить.
-      [16:04:25] rigidus: useradd -m -s /bin/bash -p user user
-      [16:04:29] rigidus: сделал так
-      [16:04:39] rigidus: теперь ошибка чуть иная, но просвет есть
-      [16:05:29] rigidus: user@beaglebone:/usr/share/postgresql$
-      /usr/lib/postgresql/9.1/bin/postgres -D /usr/share/postgresql/9.1/
-
-      FATAL:  data directory "/usr/share/postgresql/9.1" has wrong ownership
-
-      HINT:  The server must be started by the user that owns the data directory.
-      [16:08:58] rigidus: Попробую создать группу и заовнить ей конфиг
-      [16:09:33] Vladimir Bogdanov: Держи в курсе.
-      [18:00:17] Vladimir Bogdanov: Как оно? Взлетело?
-      [18:01:48] rigidus: Короче на текущий момент я обнаружил, что в отличии от убунты при
-      установке нет во-первых конфигов (есть только семплы) во вторых нет части файлов
-      данных. Я это все слил с домашней машины, на которой стоит та же версия, но оно не
-      взлетело, т.к. там здоровенная база, постгресс говорит на ббб не хватает памяти.
-      [18:02:05] rigidus: Я только что сделал вакуум, сейчас попробую залить уменьшенную базу
-      [18:04:32] rigidus: еще все пути отличаются
-      [19:24:52] rigidus: Давай попробуй сначала:
-
-      apt-get install postgresql
-      [19:25:46] Vladimir Bogdanov: Описывай, я завтра прогоню, сейчас домой пора - тёщу от
-      её внука спасать.
-      [19:25:56] rigidus: Потом заходишь cd /usr/share/postgresql/9.1
-      [19:26:52] rigidus: Там есть конфиги *.samle - их надо скопировать в такие же но без
-      ".sample", после чего отредактировать, как я уже говорил
-      [19:27:10] rigidus: Потом опционально выставить минимальные параметры по памяти, но
-      может это не надо
+      [19:27:10] rigidus: Потом
       [19:27:15] rigidus: Это в них же
-      [19:28:21] rigidus: Потом попытаться запустить /usr/lib/postgresql/9.1/bin/postgresql
-      [19:29:03] rigidus: Если не сработает - в этой же папке лежит initdb - его надо
-      натравить на домашний каталог постргесса (я говорил, что все это надо делать под
-      постгрессом?)
+      [19:28:21] rigidus:
       [19:29:45] rigidus: После чего финально /usr/lib/postgresql/9.1/bin/postgresql -D
       /var/lib/postgresql/9.1/work или как ты там назвал папку
       [19:29:55] rigidus: Если все это сработает - мы в шоколаде и можно писать док
       [19:36:24] rigidus: Если не прокатило - то можно создать пользователя с группой,
       заовнить на него конфиги
-      [19:36:40] rigidus: Если база не запустилась на минимальных настройках - можно
-      попробовать сделать вакуум
-      [19:37:08] rigidus: Ну и там еще было несколько хитрых изьебств, найденных на
-      стек-оверфлоу, но надеюсь не пригодится
     #+END_EXAMPLE
 
 *** DONE Установка и запуск Boost                                      :bvl:
