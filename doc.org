@@ -3401,6 +3401,96 @@
        - size-t
        - off-t.
 
+**** Вызов lisp-функций из ECL
+
+     Коллбэки в си должны быть специфицированы для ECL, с использованием функций,
+     которе оборачивают =cl_object=’ в си-типы, и обратно. Все коллбэки должны быть
+     формой =cl_object function([cl_object ...])=. Они регистрируются внутри ECL с
+     помощью =cl_def_c_function=, которой нужно передать несколько аргументов. В
+     примере кода это завернуто в макрос.
+
+     If packages are to be used the lisp call to export the functions would be best
+     added to the macro.
+
+     Этот пример включает в себя маленький REPL, чтобы это опробовать. В настоящее
+     время ошибки не сообщаются.
+
+     Также можно подсмотреть в этом проекте:
+     https://github.com/rjmacready/pico-gmengine
+
+     Но я бы все же предпочел поставить вместо стандартно поставляемого на ббб ECL
+     более совершенный и документированный SBCL из исходников. Последняя доступная
+     версия ставится из исходников, полученных на оффсайте:
+     http://sbcl.org/platform-table.html
+
+     #+BEGIN_SRC c
+       /*
+           Example of a C program embedding ECL with callbacks to C functions.
+           Compiled via: gcc ecldemo.c -lecl
+       ,*/
+       #include <stdio.h>
+       #include <stdlib.h>
+       #include "ecl/ecl.h"
+
+       #define DEFUN(name,fun,args) \
+           cl_def_c_function(c_string_to_object(name), \
+               (cl_objectfn_fixed)fun, \
+                             args)
+
+       cl_object foo() {
+           return ecl_make_integer(42);
+       }
+
+       cl_object bar(cl_object a, cl_object b) {
+           int aval = fix(a);
+           int bval = fix(b);
+           return ecl_make_integer(aval + bval);
+       }
+
+       /*
+           Assumes the string is a valid call.
+       ,*/
+       cl_object ecl_call(char *call) {
+           return cl_safe_eval(c_string_to_object(call), Cnil, Cnil);
+       }
+
+       void init() {
+           cl_boot(1, (char **)&"");
+
+           atexit(cl_shutdown);
+
+       /*
+           Uncomment these lines to place your code into a separate package,
+           They may then be called like (my-code:foo)
+       ,*/
+       //  ecl_call("(make-package :my-code)");
+       //  ecl_call("(in-package my-code)");
+
+           DEFUN("foo", foo, 0);
+           DEFUN("bar", bar, 2);
+
+       //  ecl_call("(export foo)");
+       //  ecl_call("(export bar)");
+       //  ecl_call("(in-package common-lisp-user)");
+       }
+
+       int main() {
+           init();
+           cl_object exit_obj = c_string_to_object(":EXIT");
+           cl_object result = Cnil;
+
+           while (cl_equal(exit_obj, result) == Cnil) {
+               printf("\n> ");
+               cl_object form = ecl_call("(read)");
+               result = cl_safe_eval(form, Cnil, Cnil);
+               cl_print(1, result);
+           }
+           putchar('\n');
+
+           return 0;
+       }
+     #+END_SRC
+
 *** Архитектура бизнес-логики
 
     Бизнес-логика с точки зрения реализации представляет собой по сути большой
