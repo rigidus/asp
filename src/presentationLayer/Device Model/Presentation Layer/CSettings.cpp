@@ -13,6 +13,7 @@ namespace database {
 
 #include "device_config.h"
 #include "proto_config.h"
+#include "devcomm_config.h"
 
 CSettings::CSettings() {
 	// TODO Auto-generated constructor stub
