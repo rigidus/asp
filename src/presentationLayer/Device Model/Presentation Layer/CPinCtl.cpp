@@ -1,12 +1,25 @@
 ///////////////////////////////////////////////////////////
 //  CPinCtl.cpp
 //  Implementation of the Class CPinCtl
-//  Created on:      19-ÿíâ-2016 19:58:08
+//  Created on:      19-ï¿½ï¿½ï¿½-2016 19:58:08
 //  Original author: user-PC
 ///////////////////////////////////////////////////////////
 
 #include "CPinCtl.h"
 
+CBaseCommCtl* CPinCtl::getPintCtl(uint32_t pinNum)
+{
+	static CPinCtl* ptr = nullptr;
+
+	if (ptr == nullptr)
+	{
+		// try open files for pin
+			// OK! open all files
+			// create CPinCtl for num
+	}
+
+	return ptr;
+}
 
 CPinCtl::CPinCtl(){
 
@@ -25,9 +38,6 @@ CPinCtl::CPinCtl(const CPinCtl& theCPinCtl){
 }
 
 
-
-
-
 bool CPinCtl::receive(int rcvData){
 
 	return false;
@@ -36,11 +46,11 @@ bool CPinCtl::receive(int rcvData){
 
 uint32_t CPinCtl::send(std::list<std::vector<uint8_t> > sendData){
 
-	return  NULL;
+	return  0;
 }
 
 
-int CPinCtl::setSettings(std::strring deviceName){
+int CPinCtl::setSettings(std::string deviceName){
 
 	return 0;
 }

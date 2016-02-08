@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////
 //  CPinCodec.cpp
 //  Implementation of the Class CPinCodec
-//  Created on:      19-ÿíâ-2016 19:58:08
+//  Created on:      19-ï¿½ï¿½ï¿½-2016 19:58:08
 //  Original author: user-PC
 ///////////////////////////////////////////////////////////
 
@@ -30,11 +30,18 @@ CPinCodec::CPinCodec(const CPinCodec& theCPinCodec){
 
 std::vector<uint8_t> CPinCodec::decode(uint8_t* rcvDataBuf, uint32_t size){
 
-	return  NULL;
+	std::vector<uint8_t> data;
+
+	return  data;
 }
 
 
 std::list<std::vector<uint8_t> > CPinCodec::encode(uint8_t* dataBuf, uint32_t size){
 
-	return  NULL;
+	std::list<std::vector<uint8_t> > datalist;
+	std::vector<uint8_t>* data = new std::vector<uint8_t>;
+
+	datalist.push_back(std::move(*data));
+
+	return  datalist;
 }

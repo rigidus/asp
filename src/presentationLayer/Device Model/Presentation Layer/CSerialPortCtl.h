@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////
 //  CSerialPortCtl.h
 //  Implementation of the Class CSerialPortCtl
-//  Created on:      19-ÿíâ-2016 19:58:08
+//  Created on:      19-ï¿½ï¿½ï¿½-2016 19:58:08
 //  Original author: user-PC
 ///////////////////////////////////////////////////////////
 
@@ -10,17 +10,21 @@
 
 #include "CBaseCommCtl.h"
 
-public class CSerialPortCtl : private CBaseCommCtl
+#include <boost/asio/serial_port.hpp>
+
+using namespace boost;
+
+class CSerialPortCtl : public CBaseCommCtl, public noncopyable
 {
 
 public:
-	CSerialPortCtl();
+	CSerialPortCtl(asio::io_service& ioService);
 	virtual ~CSerialPortCtl();
 	CSerialPortCtl(const CSerialPortCtl& theCSerialPortCtl);
 
 	bool receive(int rcvData);
 	uint32_t send(std::list<std::vector<uint8_t> > sendData);
-	int setSettings(std::strring deviceName);
+	int setSettings(std::string deviceName);
 
 private:
 	asio::io_service m_ioService;

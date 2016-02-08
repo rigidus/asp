@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////
 //  CBaseDevice.cpp
 //  Implementation of the Class CBaseDevice
-//  Created on:      19-ÿíâ-2016 19:58:07
+//  Created on:      19-ï¿½ï¿½ï¿½-2016 19:58:07
 //  Original author: user-PC
 ///////////////////////////////////////////////////////////
 
@@ -28,25 +28,25 @@ CBaseDevice::CBaseDevice(const CBaseDevice& theCBaseDevice){
 
 
 
-CBaseCodec CBaseDevice::GetCBaseCodec(){
+CBaseCodec& CBaseDevice::GetCBaseCodec(){
 
-	return m_CBaseCodec;
+	return *m_CBaseCodec;
 }
 
 
-void CBaseDevice::SetCBaseCodec(CBaseCodec newVal){
+void CBaseDevice::SetCBaseCodec(CBaseCodec* newVal){
 
 	m_CBaseCodec = newVal;
 }
 
 
-CBaseCommCtl CBaseDevice::GetCBaseCommCtl(){
+CBaseCommCtl& CBaseDevice::GetCBaseCommCtl(){
 
-	return m_CBaseCommCtl;
+	return *m_CBaseCommCtl;
 }
 
 
-void CBaseDevice::SetCBaseCommCtl(CBaseCommCtl newVal){
+void CBaseDevice::SetCBaseCommCtl(CBaseCommCtl* newVal){
 
 	m_CBaseCommCtl = newVal;
 }

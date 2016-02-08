@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////
 //  CBaseCommCtl.cpp
 //  Implementation of the Class CBaseCommCtl
-//  Created on:      19-ÿíâ-2016 19:58:07
+//  Created on:      19-ï¿½ï¿½ï¿½-2016 19:58:07
 //  Original author: user-PC
 ///////////////////////////////////////////////////////////
 
@@ -36,11 +36,11 @@ bool CBaseCommCtl::receive(int rcvData){
 
 uint32_t CBaseCommCtl::send(std::list<std::vector<uint8_t> > sendData){
 
-	return  NULL;
+	return  0;
 }
 
 
-int CBaseCommCtl::setSettings(std::strring deviceName){
+int CBaseCommCtl::setSettings(std::string deviceName){
 
 	return 0;
 }

@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////
 //  CPinCodec.h
 //  Implementation of the Class CPinCodec
-//  Created on:      19-ÿíâ-2016 19:58:08
+//  Created on:      19-ï¿½ï¿½ï¿½-2016 19:58:08
 //  Original author: user-PC
 ///////////////////////////////////////////////////////////
 
@@ -10,7 +10,10 @@
 
 #include "CBaseCodec.h"
 
-public class CPinCodec : private CBaseCodec
+#include <vector>
+#include <list>
+
+class CPinCodec : private CBaseCodec
 {
 
 public:

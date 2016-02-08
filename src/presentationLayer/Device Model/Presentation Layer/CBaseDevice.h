@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////
 //  CBaseDevice.h
 //  Implementation of the Class CBaseDevice
-//  Created on:      19-ÿíâ-2016 19:58:07
+//  Created on:      19-ï¿½ï¿½ï¿½-2016 19:58:07
 //  Original author: user-PC
 ///////////////////////////////////////////////////////////
 
@@ -11,7 +11,7 @@
 #include "CBaseCodec.h"
 #include "CBaseCommCtl.h"
 
-public class CBaseDevice
+class CBaseDevice
 {
 
 public:
@@ -19,14 +19,14 @@ public:
 	virtual ~CBaseDevice();
 	CBaseDevice(const CBaseDevice& theCBaseDevice);
 
-	__property CBaseCodec GetCBaseCodec();
-	__property void SetCBaseCodec(CBaseCodec newVal);
-	__property CBaseCommCtl GetCBaseCommCtl();
-	__property void SetCBaseCommCtl(CBaseCommCtl newVal);
+	CBaseCodec& GetCBaseCodec();
+	void SetCBaseCodec(CBaseCodec* newVal);
+	CBaseCommCtl& GetCBaseCommCtl();
+	void SetCBaseCommCtl(CBaseCommCtl* newVal);
 
 private:
 	CBaseCodec m_codec;
-	CBaseCommCtl m_commCtl;
+	CBaseCommCtl* m_commCtl;
 	CBaseCodec *m_CBaseCodec;
 	CBaseCommCtl *m_CBaseCommCtl;
 
