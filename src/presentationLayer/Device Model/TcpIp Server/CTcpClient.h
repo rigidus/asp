@@ -23,35 +23,58 @@
 using namespace boost;
 using namespace boost::asio::ip;
 
+#include "../include/FileLog.h"
+
 class CTcpClient
 {
 public:
 
-	CTcpClient();
+	CTcpClient(std::string remoteHost, uint32_t remotePort);
 
-	int32_t Connect(std::string host, int16_t port);
-	void Disconnect();
-	void SendMessage(std::vector<uint8_t>& data);
-	int32_t RcvMessage(std::vector<uint8_t>& rcvData);
-	int32_t Select(int32_t tout_sec);
+	~CTcpClient();
+
+	// Called by the user of the client class to initiate the connection process.
+	// The endpoint iterator will have been obtained using a tcp::resolver.
+	void start(tcp::resolver::iterator endpoint_iter);
+
+	// This function terminates all the actors to shut down the connection. It
+	// may be called by the user of the client class, or by the class itself in
+	// response to graceful termination or an unrecoverable error.
+	void stop();
+
+	void send_message(std::vector<uint8_t>& data);
+
+	bool is_connected();
 
 private:
-
-	asio::io_service m_ioService;
-	asio::ip::tcp::socket m_socket;
-	bool m_stopped;
-	asio::streambuf m_inputBuffer;
-	asio::deadline_timer m_deadline;
-	asio::deadline_timer m_heartbeatTimer;
-
-	void startConnect(tcp::resolver::iterator endpointIter);
+	void start_connect(tcp::resolver::iterator endpoint_iter);
 	void handle_connect(const boost::system::error_code& ec,
-	  tcp::resolver::iterator endpointIter);
+	  tcp::resolver::iterator endpoint_iter);
 	void start_read();
 	void handle_read(const boost::system::error_code& ec);
 	void start_write();
 	void handle_write(const boost::system::error_code& ec);
-	void check_deadline();
+	void check_deadline(const boost::system::error_code& ec);
+
+private:
+
+	void handle_stop();
+
+	boost::asio::io_service io_service;
+	bool stopped_;
+	tcp::socket socket_;
+	boost::asio::streambuf input_buffer_;
+	boost::asio::deadline_timer deadline_;
+	boost::asio::deadline_timer heartbeat_timer_;
+	std::string host;
+	uint32_t port;
+	bool was_read;
+	bool was_write;
+
+public:
+
+    static CTcpClient* clientFactory( std::string host, uint32_t port);
+    static void startClient(CTcpClient* client);
 };
 
 #endif /* CTCPCLIENT_H_ */

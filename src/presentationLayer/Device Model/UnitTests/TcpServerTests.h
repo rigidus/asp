@@ -21,6 +21,7 @@ private:
 	static char s_testData[];
 	static condition_variable s_connect, s_read;
 	static mutex s_mutex;
+	static mutex s_mutex2;
 	static std::vector<uint8_t> s_resultData;
 
 public: // callbacks
@@ -35,7 +36,7 @@ public: // callbacks
 	 * @param clientName
 	 * 			Name of the client
 	 */
-	static void DoReceive(asio::ip::tcp::socket&, std::vector<uint8_t>, std::string&);
+	static void DoReceive(asio::ip::tcp::socket&, uint8_t*, std::size_t, std::string&);
 
 	/**
 	 * Callback from CTcpConnectionListener when client connected

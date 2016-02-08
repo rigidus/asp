@@ -1,6 +1,18 @@
 #include "TcpServerTests.h"
 
-void CTestTcpIpMultiServer::DoReceive(asio::ip::tcp::socket& socket, std::vector<uint8_t> data, std::string& clientName) {
+void CTestTcpIpMultiServer::DoReceive(
+		asio::ip::tcp::socket& socket,
+		uint8_t* data,
+		std::size_t rcvSize,
+		std::string& clientName)
+{
+
+	CFileLog::cfilelog() << "CTestTcpIpMultiServer::DoReceive size=" << rcvSize << std::endl;
+
+	s_resultData.clear();
+	s_resultData.reserve(rcvSize);
+	for (std::size_t i = 0; i < rcvSize; ++i)
+		s_resultData.push_back(data[i]);
 
 	s_read.notify_one();
 
@@ -9,6 +21,8 @@ void CTestTcpIpMultiServer::DoReceive(asio::ip::tcp::socket& socket, std::vector
 
 void CTestTcpIpMultiServer::DoConnect(asio::ip::tcp::socket& socket, std::string& clientName) {
 
+	CFileLog::cfilelog() << "CTestTcpIpMultiServer::DoConnect" << std::endl;
+
 	s_connect.notify_one();
 
 }
@@ -16,6 +30,18 @@ void CTestTcpIpMultiServer::DoConnect(asio::ip::tcp::socket& socket, std::string
 
 void CTestTcpIpMultiServer::DoDisconnect(std::string& clientName) {
 
+	CFileLog::cfilelog() << "CTestTcpIpMultiServer::DoDisconnect" << std::endl;
+
+}
+
+static void send_message(CTcpClient* client, std::vector<uint8_t>& data)
+{
+	CFileLog::cfilelog() << "static send_message" << std::endl;
+
+	// delay to enter condition_variable control: for sync test
+	this_thread::sleep(posix_time::milliseconds(2));
+
+	client->send_message(data);
 }
 
 char CTestTcpIpMultiServer::s_testData[] = {
@@ -62,55 +88,77 @@ std::vector<uint8_t> CTestTcpIpMultiServer::s_resultData;
 condition_variable CTestTcpIpMultiServer::s_connect;
 condition_variable CTestTcpIpMultiServer::s_read;
 mutex CTestTcpIpMultiServer::s_mutex;
+mutex CTestTcpIpMultiServer::s_mutex2;
 
 void CTestTcpIpMultiServer::CTestConnection::runTest() {
 
-	CTcpServerManager serverMgr(10050);
+	CFileLog::cfilelog() << "---" << std::endl;
+	CFileLog::cfilelog() << "CTestTcpIpMultiServer::CTestConnection started" << std::endl;
 
-	CTcpConnectionListener* listener = serverMgr.createServer();
-	listener->setListenerFunctions(
-			CTestTcpIpMultiServer::DoReceive,
-			CTestTcpIpMultiServer::DoConnect,
-			CTestTcpIpMultiServer::DoDisconnect);
+	CTcpServerManager serverMgr;
+
+	CTcpConnectionListener listener;
+	listener.setListenerFunctions(
+		CTestTcpIpMultiServer::DoReceive,
+		CTestTcpIpMultiServer::DoConnect,
+		CTestTcpIpMultiServer::DoDisconnect);
+
+	serverMgr.createServer("127.0.0.1", 20500, listener);
 
 	unique_lock<mutex> lock(s_mutex);
 
-	CTcpClient client;
+	CTcpClient* client = CTcpClient::clientFactory("127.0.0.1", 20500);
 
-	int32_t res = client.Connect("127.0.0.1", 10050);
+	boost::thread clientThr(&CTcpClient::startClient, client);
 
-	timespec tm = {0, 1000000};
+	if (s_connect.do_wait_for(lock, {10,0}) == true)
+	{
+		CPPUNIT_ASSERT_EQUAL_MESSAGE("CTestTcpIpMultiServer::CTestConnection WRONG", true, client->is_connected());
 
-	s_connect.do_wait_until(lock, tm);
+		this_thread::sleep(posix_time::microseconds(500));
+	}
+	else
+	{
+		CPPUNIT_ASSERT_EQUAL_MESSAGE("CTestTcpIpMultiServer::CTestConnection timed out", 0, 1);
+	}
 
-	CPPUNIT_ASSERT_EQUAL_MESSAGE("CTestTcpIpMultiServer::CTestConnection WRONG", 0, res);
+	client->stop();
+	clientThr.join();
+	delete client;
 
 	client.Disconnect();
 }
 
 void CTestTcpIpMultiServer::CTestSendReceive::runTest() {
 
-	CTcpServerManager serverMgr(10050);
+	CFileLog::cfilelog() << "---" << std::endl;
+	CFileLog::cfilelog() << "CTestTcpIpMultiServer::CTestSendReceive started " << std::endl;
 
-	CTcpConnectionListener* listener = serverMgr.createServer();
-	listener->setListenerFunctions(
-			CTestTcpIpMultiServer::DoReceive,
-			CTestTcpIpMultiServer::DoConnect,
-			CTestTcpIpMultiServer::DoDisconnect);
+	CTcpServerManager serverMgr;
 
-	CTcpClient client;
+	CTcpConnectionListener listener;
+	listener.setListenerFunctions(
+		CTestTcpIpMultiServer::DoReceive,
+		CTestTcpIpMultiServer::DoConnect,
+		CTestTcpIpMultiServer::DoDisconnect);
 
+	CTcpServer* server = serverMgr.createServer("127.0.0.1", 20500, listener);
+
+	unique_lock<mutex> lock(s_mutex);
+
+	CTcpClient* client = CTcpClient::clientFactory("127.0.0.1", 20500);
+
+	boost::thread clientThr(&CTcpClient::startClient, client);
+
+	if (s_connect.do_wait_for(lock, {5,0}) == true)
 	{
-		unique_lock<mutex> lockConnect(s_mutex);
+		CPPUNIT_ASSERT_EQUAL_MESSAGE("CTestTcpIpMultiServer::CTestConnection WRONG", true, client->is_connected());
 
-		int32_t res = client.Connect("127.0.0.1", 10050);
-
-		timespec tm = {0, 1000000};
-
-		s_connect.do_wait_until(lockConnect, tm);
-
-		CPPUNIT_ASSERT_EQUAL_MESSAGE("CTestTcpIpMultiServer::CTestSendReceive connect WRONG", 0, res);
-
+		this_thread::sleep(posix_time::microseconds(500));
+	}
+	else
+	{
+		CPPUNIT_ASSERT_EQUAL_MESSAGE("CTestTcpIpMultiServer::CTestConnection timed out", 0, 1);
 	}
 
 	{
@@ -119,22 +167,33 @@ void CTestTcpIpMultiServer::CTestSendReceive::runTest() {
 		for (auto v: s_testData)
 			expectedData.push_back(v);
 
-		unique_lock<mutex> lockSendRcv(s_mutex);
+		unique_lock<mutex> lockSendRcv(s_mutex2);
 
-		client.SendMessage(expectedData);
+		boost::thread sendthr(send_message, client, expectedData);
 
-		timespec tm = {0, 1000000};
+		if (s_read.do_wait_for(lockSendRcv, {10,0} ) == false)
+		{
+			CPPUNIT_ASSERT_EQUAL_MESSAGE("CTestTcpIpMultiServer::CTestSendReceive wait data timed out", 0, 1);
+		}
 
-		s_read.do_wait_until(lockSendRcv, tm);
+		sendthr.join();
 
 		CPPUNIT_ASSERT_EQUAL_MESSAGE("CTestTcpIpMultiServer::CTestSendReceive expected length != result length",
 				expectedData.size(), CTestTcpIpMultiServer::s_resultData.size());
 
-		for (uint32_t i = 0; i < expectedData.size(); ++i) {
+		uint32_t size = expectedData.size();
+		for (uint32_t i = 0; i < size; ++i) {
 			CPPUNIT_ASSERT_EQUAL_MESSAGE("CTestTcpIpMultiServer::CTestSendReceive receive data WRONG",
 				expectedData[i], CTestTcpIpMultiServer::s_resultData[i]);
 		}
+
+		std::list<std::vector<uint8_t> > sendData;
+		sendData.push_back(s_resultData);
+		server->send(0, sendData);
+
 	}
 
-	client.Disconnect();
+	client->stop();
+	clientThr.join();
+	delete client;
 }

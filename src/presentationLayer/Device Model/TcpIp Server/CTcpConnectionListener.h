@@ -11,7 +11,7 @@
 #include <asio.hpp>
 using namespace boost;
 
-typedef void(*TFnDoReceive)(asio::ip::tcp::socket&, std::vector<uint8_t>, std::string&);
+typedef void(*TFnDoReceive)(asio::ip::tcp::socket&, uint8_t*, std::size_t, std::string&);
 typedef void(*TFnDoConnect)(asio::ip::tcp::socket&, std::string&);
 typedef void(*TFnDoDisconnect)(std::string&);
 
@@ -24,7 +24,7 @@ public:
 	virtual ~CTcpConnectionListener();
 
 	void setListenerFunctions(TFnDoReceive fnDoReceive, TFnDoConnect fnDoConnect, TFnDoDisconnect fnDoDisconnect);
-	void DoReceiving(asio::ip::tcp::socket& socket,	std::vector<uint8_t> rcvData, std::string& clientName);
+	void DoReceiving(asio::ip::tcp::socket& socket, uint8_t* rcvData, std::size_t rcvSize, std::string& clientName);
 	void DoConnect(asio::ip::tcp::socket& socket, std::string& clientName);
 	void DoDisconnect(std::string& clientName);
 

@@ -1,0 +1,14 @@
+Component;Current, mA;Voltage, V;Comments
+BBB itself;500;5;
+BBB with capes;2000;5;powering BBB and capes via BBB DC-DC
+SC16IS752IBS;3;3.3;
+TRS3232ECPW;60;3.3;Short-circuit output
+ADM2587E;140;3.3;500kbps, 85C, RL = 54Ohm
+TCA8418RTWR;5;3.3;Without IO-pin current
+TCA9539PWR;5;3.3;Without IO-pin current
+MIC5365;depends on load;;
+TLV320AIC3100 D-class;400;5;
+TLV320AIC3100 Digital;10;3.3;
+PCF8563;1;;
+TRB1-12VDC-CD coil;30;12;
+TRB1-12VDC-CD contacts;3000;;

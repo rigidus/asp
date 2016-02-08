@@ -9,14 +9,15 @@
 
 CTcpConnection::CTcpConnection(
 				boost::asio::io_service& ioService,
-				CTcpConnectionListener* listener,
+				CTcpConnectionListener& listener,
 				uint32_t maxBufSize,
 				uint32_t messageTimeout,
 				uint32_t messageFragmentTimeout):
 				m_socket(ioService),
 				m_listener(listener),
 				m_messageTimeout(messageTimeout),
-				m_messageFragmentTimeout(messageFragmentTimeout)
+				m_messageFragmentTimeout(messageFragmentTimeout),
+				m_isStoped(true)
 {
 	m_tselLocal.resize(maxBufSize);
 }
@@ -24,15 +25,18 @@ CTcpConnection::CTcpConnection(
 
 CTcpConnection::~CTcpConnection(){
 
+	CFileLog::cfilelog() << "CTcpConnection deleted" << std::endl;
+
 }
 
 CTcpConnection::PtrCTcpConnection CTcpConnection::createNewConnection(
 		boost::asio::io_service& ioService,
-		CTcpConnectionListener* listener,
+		CTcpConnectionListener& listener,
 		uint32_t maxBufSize,
 		uint32_t messageTimeout,
 		uint32_t messageFragmentTimeout)
 {
+	CFileLog::cfilelog() << "CTcpConnection::createNewConnection with maxBufSize=" << maxBufSize << std::endl;
 
 	return PtrCTcpConnection(new CTcpConnection(ioService, listener, maxBufSize, messageTimeout, messageFragmentTimeout));
 }
@@ -43,6 +47,13 @@ tcp::socket& CTcpConnection::socket(){
 }
 
 void CTcpConnection::start(){
+
+	CFileLog::cfilelog() << "CTcpConnection::start" << std::endl;
+
+	if (m_isStoped == false)
+		return;
+
+	m_isStoped = false;
 
 	uint8_t* data = const_cast<uint8_t*>(&m_tselLocal[0]);
 	m_socket.async_read_some(boost::asio::buffer(data, m_tselLocal.size()),
@@ -55,7 +66,23 @@ void CTcpConnection::start(){
 
 }
 
-uint32_t CTcpConnection::send(std::list<std::vector<uint8_t> >& sendData){
+void CTcpConnection::stop()
+{
+	CFileLog::cfilelog() << "CTcpConnection::stop" << std::endl;
+
+	if (m_isStoped == true)
+		return;
+
+	m_isStoped = true;
+
+	m_socket.cancel();
+	m_socket.close();
+}
+
+uint32_t CTcpConnection::send(std::list<std::vector<uint8_t> >& sendData)
+{
+
+	CFileLog::cfilelog() << "CTcpConnection::send" << std::endl;
 
 	uint32_t len = 0;
 
@@ -77,30 +104,43 @@ uint32_t CTcpConnection::send(std::list<std::vector<uint8_t> >& sendData){
 	return  len;
 }
 
-void CTcpConnection::handle_write()
-{
+void CTcpConnection::handle_write(){
+
+	CFileLog::cfilelog() << "CTcpConnection::handle_write" << std::endl;
 
 }
 
 void CTcpConnection::handle_read(const boost::system::error_code& err, std::size_t bt_transferred) {
 
+	CFileLog::cfilelog() << "CTcpConnection::handle_read: error_code=" << err.message()
+			<< ", size=" << bt_transferred << std::endl;
+
+	if (m_isStoped == true)
+		return;
+
 	uint8_t* data = const_cast<uint8_t*>(&m_tselLocal[0]);
-	m_socket.async_read_some(boost::asio::buffer(data, m_tselLocal.size()),
-	        boost::bind(
+
+	if (err)
+	{
+		CFileLog::cfilelog() << "CTcpConnection::handle_read: error code detected. Error code = " << err << std::endl;
+
+		m_listener.m_fnDoDisconnect(m_clientName);
+
+		stop();
+	}else{
+		uint8_t* pData = &m_tselLocal[0];
+		m_listener.m_fnDoReceive(m_socket, pData, bt_transferred, m_clientName);
+
+		m_socket.async_read_some(
+				asio::buffer(data, m_tselLocal.size()),
+				bind(
 	        		&CTcpConnection::handle_read,
 					shared_from_this(),
 					boost::asio::placeholders::error,
-					boost::asio::placeholders::bytes_transferred)
-	);
-
-	if (boost::system::errc::connection_aborted == err ||
-		boost::system::errc::connection_reset == err ||
-		boost::system::errc::connection_refused == err
-		)
-		m_listener->m_fnDoDisconnect(m_clientName);
-	else
-		m_listener->m_fnDoReceive(m_socket, m_tselLocal, m_clientName);
-
+					boost::asio::placeholders::bytes_transferred
+			)
+		);
+	}
 }
 
 uint32_t CTcpConnection::getMessageTimeout(){

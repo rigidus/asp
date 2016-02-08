@@ -13,7 +13,10 @@ int main()
 	runner.addTest(testTcpIpMultiServer.testConnection);
 	runner.addTest(testTcpIpMultiServer.testSendReceive);
 
-	runner.run();
+	for (uint32_t i = 0; i < 5000; ++i)
+	{
+		runner.run();
+	}
 
 	std::ofstream outFile("testResult.xml");
 	CppUnit::XmlOutputter outputer(&runner.result(), outFile);
