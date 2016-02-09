@@ -22,8 +22,18 @@ class CSettings {
 
 public:
 
+	struct AllDeviceConf
+	{
+		std::string conName;
+		std::string abstractName;
+		std::string proto;
+		std::vector<std::string> comm;
+		bool enable;
+	};
+
 	struct DeviceConfig
 	{
+		std::string concreteName;
 		std::string abstractName;
 		std::string proto;
 		std::vector<std::string> comm;
@@ -80,6 +90,6 @@ public:
 
 };
 
-} /* namespace presentation */
+} /* namespace database */
 
 #endif /* CSETTINGS_H_ */

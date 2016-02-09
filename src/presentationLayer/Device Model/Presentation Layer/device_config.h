@@ -16,6 +16,7 @@ namespace device_config {
 
 	CSettings::DeviceConfig shlagbaum1 =
 	{
+			"palka_mode",
 			"shlagbaum_in",
 			"",
 			{ "gpio12", "gpio18", "gpio8", "gpio2" },
@@ -24,6 +25,7 @@ namespace device_config {
 
 	CSettings::DeviceConfig shlagbaum2 =
 	{
+			"palka_mode",
 			"shlagbaum_out",
 			"",
 			{ "gpio13", "gpio19", "gpio9", "gpio3" },
@@ -32,6 +34,7 @@ namespace device_config {
 
 	CSettings::DeviceConfig printer =
 	{
+			"pechatalka_ru",
 			"printer",
 			"printer_proto",
 			{"uart4"},
@@ -40,6 +43,7 @@ namespace device_config {
 
 	CSettings::DeviceConfig presentSensor =
 	{
+			"i_am_here",
 			"present sensor",
 			"",
 			{ "gpio5", "gpio6" },
@@ -48,6 +52,7 @@ namespace device_config {
 
 	CSettings::DeviceConfig passSensor =
 	{
+			"get_out_from",
 			"pass sensor",
 			"",
 			{ "gpio7", "gpio1" },
@@ -56,7 +61,8 @@ namespace device_config {
 
 	CSettings::DeviceConfig display =
 	{
-			"display16x2",
+			"winstar16x2",
+			"textdisplay16x2",
 			"winstar",
 			{ "gpio20", "gpio21", "gpio22", "gpio23", "gpio24", "gpio25", "gpio26" },
 			true
@@ -64,6 +70,7 @@ namespace device_config {
 
 	CSettings::DeviceConfig cardReader =
 	{
+			"sd-card",
 			"card reader",
 			"mass_storage",
 			{ "sda", "sdb", "sdc" },
@@ -72,6 +79,7 @@ namespace device_config {
 
 	CSettings::DeviceConfig kkm =
 	{
+			"poluchalka",
 			"kkm",
 			"proto_kkm",
 			{ "uart1" },
