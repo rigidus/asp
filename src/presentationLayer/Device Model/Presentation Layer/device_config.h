@@ -16,7 +16,7 @@ namespace device_config {
 
 	CSettings::DeviceConfig shlagbaum1 =
 	{
-			"palka_mode",
+			"shlagbaum palka",
 			"shlagbaum_in",
 			"",
 			{ "gpio12", "gpio18", "gpio8", "gpio2" },
@@ -25,7 +25,7 @@ namespace device_config {
 
 	CSettings::DeviceConfig shlagbaum2 =
 	{
-			"palka_mode",
+			"shlagbaum palka",
 			"shlagbaum_out",
 			"",
 			{ "gpio13", "gpio19", "gpio9", "gpio3" },
