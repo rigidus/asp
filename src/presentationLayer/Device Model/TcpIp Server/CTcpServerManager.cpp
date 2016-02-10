@@ -8,106 +8,111 @@
 #include "CTcpServerManager.h"
 
 
-CTcpServerManager::CTcpServerManager(uint32_t port):
-		m_localPort(port),
-		m_bindAddress("127.0.0.1"),
-		m_pConnectionListener(nullptr),
+CTcpServerManager::CTcpServerManager():
 		m_maxConnection(100),
 		m_msgTimeout(10000),
 		m_msgFragmentTimeout(5000),
 		m_maxBufSize(8192)
 {
-	CFileLog::cfilelog() << "create CTcpServerManager: " << port << std::endl;
-
-	if (m_ioService.stopped() == true)
-		m_ioService.run();
-}
-
-
-CTcpServerManager::CTcpServerManager(uint32_t port, std::string bindAddr, CTcpConnectionListener* listener):
-		m_localPort(port),
-		m_bindAddress(bindAddr),
-		m_pConnectionListener(listener),
-		m_maxConnection(100),
-		m_msgTimeout(10000),
-		m_msgFragmentTimeout(5000),
-		m_maxBufSize(8192)
-{
-	CFileLog::cfilelog() << "create CTcpServerManager: " << port << "; " << bindAddr << std::endl;
+	CFileLog::cfilelog() << "create CTcpServerManager: " << std::endl;
 
 }
+
 
 CTcpServerManager::~CTcpServerManager(){
 
 	CFileLog::cfilelog() << "delete CTcpServerManager: " << std::endl;
 
-	for (auto v: m_Servers){
-		v->stopServer();
-		delete v;
-	}
-
-	CFileLog::cfilelog() << "delete CTcpServerManager: deleted" << std::endl;
+	deleteAllServers();
 }
 
-void CTcpServerManager::startListening(uint32_t index){
+void CTcpServerManager::startListening(CTcpServer* server){
 
-	CFileLog::cfilelog() << "CTcpServerManager::startListening: " << index << std::endl;
+	CFileLog::cfilelog() << "CTcpServerManager::startListening: "  << std::endl;
 
-	if (m_Servers.size() <= index) return;
+	server->startServer();
 
-	m_Servers[index]->startServer();
+	server->ioService().run();
 
-	CFileLog::cfilelog() << "CTcpServerManager::startListening: server " << index << " started " << std::endl;
+	CFileLog::cfilelog() << "CTcpServerManager::io_service cancelled" << std::endl;
+
 }
 
 
-CTcpConnectionListener* CTcpServerManager::createServer(){
+CTcpServer* CTcpServerManager::createServer(std::string host, uint32_t port, CTcpConnectionListener& listener){
 
 	CFileLog::cfilelog() << "CTcpServerManager::createServer" << std::endl;
 
-	CTcpConnectionListener* listener = m_pConnectionListener;
-
 	try {
-		if (m_pConnectionListener == nullptr) m_pConnectionListener = new CTcpConnectionListener;
-		listener = m_pConnectionListener;
 
-		CTcpServer* server = new CTcpServer(m_ioService, listener, m_localPort, m_maxBufSize, m_msgTimeout, m_msgFragmentTimeout, m_maxConnection);
+		CTcpServer* server = new CTcpServer(listener, port, m_maxBufSize, m_msgTimeout, m_msgFragmentTimeout, m_maxConnection);
 
-		m_Servers.push_back(server);
+		boost::thread* thread = new boost::thread(&CTcpServerManager::startListening, server);
+
+		ServerPars pars;
+		pars.pServer = server;
+		pars.pThr = thread;
+		pars.host = host;
+		pars.port = port;
+
+		m_Servers.push_back(pars);
 	}
 
-	catch(std::bad_alloc& ex)
+	catch(std::exception& ex)
 	{
+		CFileLog::cfilelog() << "CTcpServerManager::createServer: server wasn't created: " <<
+				ex.what() << std::endl;
 
 		return nullptr;
 	}
 
 	CFileLog::cfilelog() << "CTcpServerManager::createServer: server " << m_Servers.size()-1 << " created" << std::endl;
 
-	return  listener;
+	return  m_Servers.back().pServer;
 }
 
-void CTcpServerManager::deleteServer(uint32_t index){
+void CTcpServerManager::deleteAllServers()
+{
+	CFileLog::cfilelog() << "CTcpServerManager::deleteAllServers starts" << std::endl;
 
-	CFileLog::cfilelog() << "CTcpServerManager::deleteServer: " << index << std::endl;
+	for (auto v: m_Servers)	{
+		v.pServer->stopServer();
 
-	if (m_Servers.size() <= index) return;
+		v.pThr->join();
 
-	m_Servers[index]->stopServer();
-	delete m_Servers[index];
+		delete v.pThr;
+		delete v.pServer;
+	}
 
-	m_Servers.erase(m_Servers.begin() + index);
-
-	CFileLog::cfilelog() << "CTcpServerManager::deleteServer: server deleted: " << index << std::endl;
+	CFileLog::cfilelog() << "CTcpServerManager::deleteAllServers successfully" << std::endl;
 }
 
-void CTcpServerManager::stopListening(uint32_t index){
+void CTcpServerManager::deleteServer(std::string host, uint32_t port){
 
-	CFileLog::cfilelog() << "CTcpServerManager::stopListening: " << index << std::endl;
+	CFileLog::cfilelog() << "CTcpServerManager::deleteServer: " << host.c_str() << ":" << port << std::endl;
 
-	if (m_Servers.size() <= index) return;
+	ServerPars pars = {nullptr, nullptr, 0, 0};
 
-	m_Servers[index]->stopServer();
+	int32_t i = 0, num = -1;
+	for (auto v: m_Servers)	{
+		if (v.host == host && v.port == port) {
+			pars = v;
+			num = i;
+			break;
+		}
+		++i;
+	}
 
-	CFileLog::cfilelog() << "CTcpServerManager::stopListening: server stop: " << index << std::endl;
+	if (num > -1)
+	{
+		pars.pServer->stopServer();
+
+		pars.pThr->join();
+		delete pars.pThr;
+		delete pars.pServer;
+		m_Servers.erase(m_Servers.begin() + i);
+	}
+
+	CFileLog::cfilelog() << "CTcpServerManager::deleteServer: server deleted: " << num << std::endl;
 }
+

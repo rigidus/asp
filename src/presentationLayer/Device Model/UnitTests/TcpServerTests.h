@@ -21,6 +21,7 @@ private:
 	static char s_testData[];
 	static condition_variable s_connect, s_read;
 	static mutex s_mutex;
+	static mutex s_mutex2;
 	static std::vector<uint8_t> s_resultData;
 
 public: // callbacks
@@ -35,7 +36,7 @@ public: // callbacks
 	 * @param clientName
 	 * 			Name of the client
 	 */
-	static void DoReceive(asio::ip::tcp::socket&, std::vector<uint8_t>, std::string&);
+	static void DoReceive(asio::ip::tcp::socket&, uint8_t*, std::size_t, std::string&);
 
 	/**
 	 * Callback from CTcpConnectionListener when client connected
@@ -60,9 +61,11 @@ public:
 	class CTestConnection: public CppUnit::TestCase
 	{
 	public:
-		CTestConnection():
-			TestCase("class: CTcpIpMultiServer, test: CtestConnection")
+		CTestConnection(std::string str):
+			TestCase(str)
 		{}
+
+		virtual ~CTestConnection() {}
 
 		virtual void runTest();
 	};
@@ -70,15 +73,17 @@ public:
 	class CTestSendReceive: public CppUnit::TestCase
 	{
 	public:
-		CTestSendReceive():
-			TestCase("class: CTcpIpMultiServer, test: CtestSendReceive")
+		CTestSendReceive(std::string str):
+			TestCase(str)
 		{}
+
+		virtual ~CTestSendReceive() {}
 
 		virtual void runTest();
 	};
 
-	CTestConnection testConnection;
-	CTestSendReceive testSendReceive;
+	CTestConnection* testConnection;
+	CTestSendReceive* testSendReceive;
 
 };
 

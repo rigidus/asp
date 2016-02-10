@@ -7,201 +7,298 @@
 
 #include "CTcpClient.h"
 
-CTcpClient::CTcpClient()
+CTcpClient::CTcpClient(std::string remoteHost, uint32_t remotePort)
+: io_service(),
+  stopped_(false),
+  socket_(io_service),
+  deadline_(io_service),
+  heartbeat_timer_(io_service),
+  host(remoteHost),
+  port(remotePort),
+  was_read(true),
+  was_write(true)
 {
-	m_ioService.run();
+
+	CFileLog::cfilelog() << "CTcpClient created" << std::endl;
 }
 
-
-int32_t CTcpClient::Connect(std::string host, int16_t port)
+CTcpClient::~CTcpClient()
 {
-
-	if (m_socket.is_open() == false)
-		m_socket.startConnect();
-
-	return 0;
+	CFileLog::cfilelog() << "CTcpClient deleted" << std::endl;
 }
 
-
-void CTcpClient::Disconnect()
+void CTcpClient::start(tcp::resolver::iterator endpoint_iter)
 {
-    m_stopped = true;
-    m_socket.close();
-    m_deadline.cancel();
-    m_heartbeatTimer.cancel();
+	CFileLog::cfilelog() << "CTcpClient::start" << std::endl;
+
+	// Start the connect actor.
+	start_connect(endpoint_iter);
+
+	// Start the deadline actor. You will note that we're not setting any
+	// particular deadline here. Instead, the connect and input actors will
+	// update the deadline prior to each asynchronous operation.
+	deadline_.expires_from_now(boost::posix_time::seconds(10));
+	deadline_.async_wait(boost::bind(&CTcpClient::check_deadline, this, _1));
 }
 
-
-void CTcpClient::SendMessage(std::vector<uint8_t>& data)
+void CTcpClient::stop()
 {
+	CFileLog::cfilelog() << "CTcpClient::stop" << std::endl;
 
+	stopped_ = true;
+	deadline_.cancel();
 }
 
-
-int32_t CTcpClient::RcvMessage(std::vector<uint8_t>& rcvData)
+void CTcpClient::handle_stop()
 {
-	int32_t len = 0;
+	CFileLog::cfilelog() << "CTcpClient::handle_stop" << std::endl;
 
-	return len;
+	stopped_ = true;
+	socket_.close();
+	deadline_.expires_from_now(boost::posix_time::seconds(0));
+	//heartbeat_timer_.cancel();
 }
 
-
-int32_t CTcpClient::Select(int32_t tout_sec)
+bool CTcpClient::is_connected()
 {
-
-	return 0;
+	return socket_.is_open();
 }
 
-
-void CTcpClient::startConnect(tcp::resolver::iterator endpointIter)
+void CTcpClient::start_connect(tcp::resolver::iterator endpoint_iter)
 {
-	if (endpointIter != tcp::resolver::iterator())
+	CFileLog::cfilelog() << "CTcpClient::start_connect" << std::endl;
+
+	if (endpoint_iter != tcp::resolver::iterator())
 	{
-	  std::cout << "Trying " << endpointIter->endpoint() << "...\n";
+		std::cout << "Trying " << endpoint_iter->endpoint() << "...\n";
 
-	  // Set a deadline for the connect operation.
-	  m_deadline.expires_from_now(boost::posix_time::seconds(60));
-
-	  // Start the asynchronous connect operation.
-	  m_socket.async_connect(endpointIter->endpoint(),
+		// Start the asynchronous connect operation.
+		socket_.async_connect(endpoint_iter->endpoint(),
 		  boost::bind(&CTcpClient::handle_connect,
-			this, _1, endpointIter));
+			this, _1, endpoint_iter));
+
 	}
 	else
 	{
-	  // There are no more endpoints to try. Shut down the client.
-	  Disconnect();
+		// There are no more endpoints to try. Shut down the client.
+		stop();
 	}
 }
 
 void CTcpClient::handle_connect(const boost::system::error_code& ec,
-  tcp::resolver::iterator endpointIter)
+		tcp::resolver::iterator endpoint_iter)
 {
-	if (m_stopped) return;
+	CFileLog::cfilelog() << "CTcpClient::handle_connect with error_code=" << ec.message() << std::endl;
+
+	if (stopped_)
+	{
+		handle_stop();
+		return;
+	}
 
 	// The async_connect() function automatically opens the socket at the start
 	// of the asynchronous operation. If the socket is closed at this time then
 	// the timeout handler must have run first.
-	if (!m_socket.is_open())
+	if (!socket_.is_open())
 	{
-	  std::cout << "Connect timed out\n";
+		CFileLog::cfilelog() << "Connect timed out\n" << std::endl;
 
-	  // Try the next available endpoint.
-	  startConnect(++endpointIter);
+		// Try the next available endpoint.
+		start_connect(++endpoint_iter);
 	}
 
 	// Check if the connect operation failed before the deadline expired.
 	else if (ec)
 	{
-	  std::cout << "Connect error: " << ec.message() << "\n";
+		CFileLog::cfilelog() << "Connect error: " << ec.message() << std::endl;
 
-	  // We need to close the socket used in the previous connection attempt
-	  // before starting a new one.
-	  m_socket.close();
-
-	  // Try the next available endpoint.
-	  startConnect(++endpointIter);
+		// We need to close the socket used in the previous connection attempt
+		// before starting a new one.
+		handle_stop();
 	}
+
 	// Otherwise we have successfully established a connection.
 	else
 	{
-	  std::cout << "Connected to " << endpointIter->endpoint() << "\n";
+		CFileLog::cfilelog() << "Connected to " << endpoint_iter->endpoint() << std::endl;
 
-	  // Start the input actor.
-	  start_read();
+		// Start the input actor.
+		start_read();
 
-	  // Start the heartbeat actor.
-	  start_write();
+		// For another applications with the heartbeat
+		// Start the heartbeat actor.
+//		start_write();
 	}
 }
 
-
 void CTcpClient::start_read()
 {
-	// Set a deadline for the read operation.
-	m_deadline.expires_from_now(boost::posix_time::seconds(30));
+	CFileLog::cfilelog() << "CTcpClient::start_read" << std::endl;
 
 	// Start an asynchronous operation to read a newline-delimited message.
-	boost::asio::async_read_until(m_socket, m_inputBuffer, '\n',
-		boost::bind(&CTcpClient::handle_read, this, _1));
+	boost::asio::async_read_until(socket_, input_buffer_, '\n',
+			boost::bind(&CTcpClient::handle_read, this, _1));
+
 }
 
 void CTcpClient::handle_read(const boost::system::error_code& ec)
 {
-	if (m_stopped)
-	  return;
+	CFileLog::cfilelog() << "CTcpClient::handle_read: error_code=" << ec.message() << std::endl;
+
+	if (stopped_)
+	{
+		handle_stop();
+		return;
+	}
 
 	if (!ec)
 	{
-	  // Extract the newline-delimited message from the buffer.
-	  std::string line;
-	  std::istream is(&m_inputBuffer);
-	  std::getline(is, line);
+		was_read = true;
 
-	  // Empty messages are heartbeats and so ignored.
-	  if (!line.empty())
-	  {
-		std::cout << "Received: " << line << "\n";
-	  }
+		// Extract the newline-delimited message from the buffer.
+		std::istream is(&input_buffer_);
 
-	  start_read();
+		// TODO: call callback to client software
+
+		start_read();
 	}
 	else
 	{
-	  std::cout << "Error on receive: " << ec.message() << "\n";
+		std::cout << "Error on receive: " << ec.message() << "\n";
 
-	  Disconnect();
+		handle_stop();
 	}
 }
 
-
 void CTcpClient::start_write()
 {
-	if (m_stopped) return;
+	CFileLog::cfilelog() << "CTcpClient::start_write" << std::endl;
+
+	if (stopped_)
+	{
+		handle_stop();
+		return;
+	}
 
 	// Start an asynchronous operation to send a heartbeat message.
-	boost::asio::async_write(m_socket, boost::asio::buffer("\n", 1),
-		boost::bind(&CTcpClient::handle_write, this, _1));
+	boost::asio::async_write(socket_, boost::asio::buffer("\n", 1),
+			boost::bind(&CTcpClient::handle_write, this, _1));
+}
+
+void CTcpClient::send_message(std::vector<uint8_t>& data)
+{
+	CFileLog::cfilelog() << "CTcpClient::send_message" << std::endl;
+
+	if (stopped_)
+	{
+		handle_stop();
+		return;
+	}
+
+	// Start an asynchronous operation to send a data message.
+	boost::asio::async_write(socket_, boost::asio::buffer(&data[0], data.size()),
+			boost::bind(&CTcpClient::handle_write, this, _1));
 }
 
 void CTcpClient::handle_write(const boost::system::error_code& ec)
 {
-	if (m_stopped)
-	  return;
+	CFileLog::cfilelog() << "CTcpClient::handle_write with error_code=" << ec << std::endl;
+
+	if (stopped_)
+	{
+		handle_stop();
+		return;
+	}
 
 	if (!ec)
 	{
-	  // Wait 10 seconds before sending the next heartbeat.
-	  m_heartbeatTimer.expires_from_now(boost::posix_time::seconds(10));
-	  m_heartbeatTimer.async_wait(boost::bind(&CTcpClient::start_write, this));
+		was_write = true;
+		// Heartbeat off here client
+		// Wait 10 seconds before sending the next heartbeat.
+//		heartbeat_timer_.expires_from_now(boost::posix_time::seconds(10));
+
+		// It's the heartbeat frame
+//		heartbeat_timer_.async_wait(boost::bind(&CTcpClient::start_write, this));
 	}
 	else
 	{
-	  std::cout << "Error on heartbeat: " << ec.message() << "\n";
+		CFileLog::cfilelog() << "Error on heartbeat: " << ec.message() << std::endl;
 
-	  Disconnect();
+		handle_stop();
 	}
 }
 
-
-void CTcpClient::check_deadline()
+void CTcpClient::check_deadline(const boost::system::error_code& ec)
 {
-	if (m_stopped) return;
+	CFileLog::cfilelog() << "CTcpClient::check_deadline: " << ec.message() << std::endl;
 
+<<<<<<< HEAD
 	// Check whether the deadline has passed. We compare the deadline against
 	// the current time since a new asynchronous operation may have moved the
 	// deadline before this actor had a chance to run.
-	if (m_deadline.expires_at() <= deadline_timer::traits_type::now())
+	if (m_deadline.expires_at() <= boost::asio::deadline_timer::traits_type::now())
+=======
+	if (stopped_)
+>>>>>>> cd3106afab09186c21cb48559d9d8fd6892931cd
 	{
-	  // The deadline has passed. The socket is closed so that any outstanding
-	  // asynchronous operations are cancelled.
-	  m_socket.close();
-
-	  // There is no longer an active deadline. The expiry is set to positive
-	  // infinity so that the actor takes no action until a new deadline is set.
-	  m_deadline.expires_at(boost::posix_time::pos_infin);
+		handle_stop();
+		return;
 	}
 
+	if (ec)
+		return;
+
+	if ((was_read == false) && (was_write == false))
+	{
+		handle_stop();
+		deadline_.expires_from_now(boost::posix_time::milliseconds(100));
+		deadline_.async_wait(boost::bind(&CTcpClient::check_deadline, this, _1));
+		return;
+	}
+
+	was_read = false;
+	was_write = false;
+
 	// Put the actor back to sleep.
-	m_deadline.async_wait(boost::bind(&CTcpClient::check_deadline, this));
+	deadline_.expires_from_now(boost::posix_time::seconds(10));
+	deadline_.async_wait(boost::bind(&CTcpClient::check_deadline, this, _1));
+}
+
+CTcpClient* CTcpClient::clientFactory(std::string host, uint32_t port)
+{
+	CFileLog::cfilelog() << "CTcpClient::clientFactory: " << host << ":" << port  << std::endl;
+
+	CTcpClient* client = nullptr;
+	try
+	{
+		client = new CTcpClient(host, port);
+	}
+
+	catch (std::exception& e)
+	{
+		std::cerr << "Exception: " << e.what() << "\n";
+	}
+
+	return client;
+}
+
+void CTcpClient::startClient(CTcpClient* client)
+{
+	CFileLog::cfilelog() << "CTcpClient::startClient" << std::endl;
+
+	try
+	{
+		tcp::resolver r(client->io_service);
+
+		std::string strport(std::to_string(client->port));
+		client->start(r.resolve(tcp::resolver::query(client->host, strport)));
+
+		client->io_service.run();
+
+		CFileLog::cfilelog() << "CTcpClient::io_service cancelled" << std::endl;
+	}
+	catch (std::exception& e)
+	{
+		std::cerr << "Exception: " << e.what() << "\n";
+	}
 }

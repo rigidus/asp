@@ -26,23 +26,28 @@ class CTcpServerManager: public noncopyable
 public:
 	virtual ~CTcpServerManager();
 
-	CTcpServerManager(uint32_t port);
-	CTcpServerManager(uint32_t port, std::string bindAddr, CTcpConnectionListener* listener);
-	void startListening(uint32_t index);
-	CTcpConnectionListener* createServer();
-	void deleteServer(uint32_t index);
-	void stopListening(uint32_t index);
+	CTcpServerManager();
+	CTcpServer* createServer(std::string host, uint32_t port, CTcpConnectionListener& listener);
+	void deleteServer(std::string host, uint32_t port);
+	void deleteAllServers();
 
 private:
-	uint32_t m_localPort;
-	std::string m_bindAddress;
-	CTcpConnectionListener* m_pConnectionListener;
-	std::vector<CTcpServer*> m_Servers;
+
+	static void startListening(CTcpServer* server);
+
+	struct ServerPars{
+		CTcpServer* pServer;
+		boost::thread* pThr;
+		std::string host;
+		uint32_t port;
+	};
+
+	std::vector<ServerPars> m_Servers;
 	uint32_t m_maxConnection;
 	uint32_t m_msgTimeout;
 	uint32_t m_msgFragmentTimeout;
 	uint32_t m_maxBufSize;
-	asio::io_service m_ioService;
 
 };
-#endif // !defined(EA_9BAFE2FC_C8D3_45d1_926D_EB0725E750FE__INCLUDED_)
+
+#endif //!defined(EA_9BAFE2FC_C8D3_45d1_926D_EB0725E750FE__INCLUDED_)

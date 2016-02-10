@@ -6,11 +6,17 @@ int main()
 
 	CTestTcpIpMultiServer testTcpIpMultiServer;
 
-	CppUnit::TextTestRunner runner;
-	runner.addTest(&testTcpIpMultiServer.testConnection);
-	runner.addTest(&testTcpIpMultiServer.testSendReceive);
+	testTcpIpMultiServer.testConnection = new CTestTcpIpMultiServer::CTestConnection("class: CTcpIpMultiServer, test: CtestConnection");
+	testTcpIpMultiServer.testSendReceive = new CTestTcpIpMultiServer::CTestSendReceive("class: CTcpIpMultiServer, test: CtestSendReceive");
 
-	runner.run();
+	CppUnit::TextTestRunner runner;
+	runner.addTest(testTcpIpMultiServer.testConnection);
+	runner.addTest(testTcpIpMultiServer.testSendReceive);
+
+	for (uint32_t i = 0; i < 5000; ++i)
+	{
+		runner.run();
+	}
 
 	std::ofstream outFile("testResult.xml");
 	CppUnit::XmlOutputter outputer(&runner.result(), outFile);

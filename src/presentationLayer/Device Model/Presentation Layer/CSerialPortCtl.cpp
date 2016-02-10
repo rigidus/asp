@@ -1,14 +1,16 @@
 ///////////////////////////////////////////////////////////
 //  CSerialPortCtl.cpp
 //  Implementation of the Class CSerialPortCtl
-//  Created on:      19-ÿíâ-2016 19:58:08
+//  Created on:      19-ï¿½ï¿½ï¿½-2016 19:58:08
 //  Original author: user-PC
 ///////////////////////////////////////////////////////////
 
 #include "CSerialPortCtl.h"
 
 
-CSerialPortCtl::CSerialPortCtl(){
+CSerialPortCtl::CSerialPortCtl(asio::io_service& ioService):
+	m_serialPort(ioService)
+{
 
 }
 
@@ -19,15 +21,6 @@ CSerialPortCtl::~CSerialPortCtl(){
 }
 
 
-
-CSerialPortCtl::CSerialPortCtl(const CSerialPortCtl& theCSerialPortCtl){
-
-}
-
-
-
-
-
 bool CSerialPortCtl::receive(int rcvData){
 
 	return false;
@@ -36,11 +29,11 @@ bool CSerialPortCtl::receive(int rcvData){
 
 uint32_t CSerialPortCtl::send(std::list<std::vector<uint8_t> > sendData){
 
-	return  NULL;
+	return  0;
 }
 
 
-int CSerialPortCtl::setSettings(std::strring deviceName){
+int CSerialPortCtl::setSettings(std::string deviceName){
 
 	return 0;
 }
