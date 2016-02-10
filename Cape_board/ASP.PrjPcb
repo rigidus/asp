@@ -395,90 +395,6 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=
 
-[GeneratedDocument1]
-DocumentPath=Project Outputs for ASP\ASP-0-RoundHoles.TXT
-DItemRevisionGUID=
-
-[GeneratedDocument2]
-DocumentPath=Project Outputs for ASP\ASP-0-SlotHoles.TXT
-DItemRevisionGUID=
-
-[GeneratedDocument3]
-DocumentPath=Project Outputs for ASP\ASP-0.DRR
-DItemRevisionGUID=
-
-[GeneratedDocument4]
-DocumentPath=Project Outputs for ASP\ASP-0.EXTREP
-DItemRevisionGUID=
-
-[GeneratedDocument5]
-DocumentPath=Project Outputs for ASP\ASP-0.GBL
-DItemRevisionGUID=
-
-[GeneratedDocument6]
-DocumentPath=Project Outputs for ASP\ASP-0.GBS
-DItemRevisionGUID=
-
-[GeneratedDocument7]
-DocumentPath=Project Outputs for ASP\ASP-0.GD1
-DItemRevisionGUID=
-
-[GeneratedDocument8]
-DocumentPath=Project Outputs for ASP\ASP-0.GG1
-DItemRevisionGUID=
-
-[GeneratedDocument9]
-DocumentPath=Project Outputs for ASP\ASP-0.GKO
-DItemRevisionGUID=
-
-[GeneratedDocument10]
-DocumentPath=Project Outputs for ASP\ASP-0.GM1
-DItemRevisionGUID=
-
-[GeneratedDocument11]
-DocumentPath=Project Outputs for ASP\ASP-0.GM13
-DItemRevisionGUID=
-
-[GeneratedDocument12]
-DocumentPath=Project Outputs for ASP\ASP-0.GPB
-DItemRevisionGUID=
-
-[GeneratedDocument13]
-DocumentPath=Project Outputs for ASP\ASP-0.GPT
-DItemRevisionGUID=
-
-[GeneratedDocument14]
-DocumentPath=Project Outputs for ASP\ASP-0.GTL
-DItemRevisionGUID=
-
-[GeneratedDocument15]
-DocumentPath=Project Outputs for ASP\ASP-0.GTO
-DItemRevisionGUID=
-
-[GeneratedDocument16]
-DocumentPath=Project Outputs for ASP\ASP-0.GTP
-DItemRevisionGUID=
-
-[GeneratedDocument17]
-DocumentPath=Project Outputs for ASP\ASP-0.GTS
-DItemRevisionGUID=
-
-[GeneratedDocument18]
-DocumentPath=Project Outputs for ASP\ASP-0.LDP
-DItemRevisionGUID=
-
-[GeneratedDocument19]
-DocumentPath=Project Outputs for ASP\ASP-0.REP
-DItemRevisionGUID=
-
-[GeneratedDocument20]
-DocumentPath=Project Outputs for ASP\ASP-0.RUL
-DItemRevisionGUID=
-
-[GeneratedDocument21]
-DocumentPath=Project Outputs for ASP\Design Rule Check - ASP-0.html
-DItemRevisionGUID=
-
 [SearchPath1]
 Path=C:\Program Files (x86)\Altium\AD16\Altium Unified Components\*.*
 IncludeSubFolders=1
@@ -706,7 +622,7 @@ OutputDefault3=0
 [OutputGroup5]
 Name=Fabrication Outputs
 Description=
-TargetPrinter=doPDF 8
+TargetPrinter=Microsoft XPS Document Writer
 PrinterOptions=Record=PrinterOptions|Copies=1|Duplex=1|TrueTypeOptions=3|Collate=1|PrintJobKind=1|PrintWhat=1
 OutputType1=CompositeDrill
 OutputName1=Composite Drill Drawing
