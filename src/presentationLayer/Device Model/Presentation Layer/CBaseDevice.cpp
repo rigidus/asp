@@ -8,7 +8,11 @@
 #include "CBaseDevice.h"
 
 
-CBaseDevice::CBaseDevice(){
+CBaseDevice::CBaseDevice(const std::string& str):
+	c_name(str),
+	m_codec(nullptr),
+	m_commCtl(nullptr)
+{
 
 }
 
@@ -19,34 +23,13 @@ CBaseDevice::~CBaseDevice(){
 }
 
 
+CBaseCodec& CBaseDevice::getCodec(){
 
-CBaseDevice::CBaseDevice(const CBaseDevice& theCBaseDevice){
-
+	return *m_codec;
 }
 
 
+CBaseCommCtl& CBaseDevice::getCommCtl(){
 
-
-
-CBaseCodec& CBaseDevice::GetCBaseCodec(){
-
-	return *m_CBaseCodec;
-}
-
-
-void CBaseDevice::SetCBaseCodec(CBaseCodec* newVal){
-
-	m_CBaseCodec = newVal;
-}
-
-
-CBaseCommCtl& CBaseDevice::GetCBaseCommCtl(){
-
-	return *m_CBaseCommCtl;
-}
-
-
-void CBaseDevice::SetCBaseCommCtl(CBaseCommCtl* newVal){
-
-	m_CBaseCommCtl = newVal;
+	return *m_commCtl;
 }

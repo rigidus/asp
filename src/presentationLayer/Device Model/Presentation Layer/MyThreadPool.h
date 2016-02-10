@@ -107,8 +107,6 @@ class CWorker
 
 	friend CThreadPool;
 
-	u32 id;
-
 	bool IsRunning;
 	bool IsEnd;
 	bool IsFinished;
@@ -117,6 +115,8 @@ class CWorker
 
 	boost::mutex mut;
 	boost::thread *thr;
+
+	uint32_t id;
 
 	static void WorkerFn(CWorker* mystate)
 	{

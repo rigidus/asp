@@ -19,6 +19,7 @@
 #include "MyThreadPool.h"
 #include "CDeviceManager.h"
 #include "TestDevices.h"
+#include "CBaseDeviceFactory.h"
 
 using namespace mythreadpool;
 using namespace rapidjson;
@@ -48,35 +49,35 @@ static void sendCommand(IAbstractDevice* iDev, std::string command, std::string 
 
 void cb_commandFromBL(std::string jsonDoc)
 {
-	Document workDoc;
-	workDoc.Parse(jsonDoc.c_str());
+//	Document workDoc;
+//	workDoc.Parse(jsonDoc.c_str());
+//
+//	CDeviceManager* pdm = CDeviceManager::getDeviceManager();
+//	IAbstractDevice* pAbstractDev = nullptr;
+//
+//	if (workDoc.HasMember("txid") == false) sendError2BL("txid not found");
+//
+//	if (workDoc.HasMember("device") == false) sendError2BL("device not found");
+//	else pAbstractDev = pdm->getAbstractDevice(workDoc["device"]);
+//
+//	if (workDoc.HasMember("command") == false) sendError2BL("command not found");
+//
+//	std::string pars("");
+//	if (workDoc.HasMember("parameters") == true) pars = workDoc["parameters"];
+//
+//	std::string strDevice(workDoc["device"]);
+//	std::string strCommand(workDoc["command"]);
+//	if ( (strDevice == shlagbaum1) || (strDevice == shlagbaum2) )
+//		g_thrPool.AddTask(0, boost::bind(sendCommand<AbstractShlagbaum>, pAbstractDev, strCommand, pars));
 
-	CDeviceManager* pdm = CDeviceManager::getDeviceManager();
-	IAbstractDevice* pAbstractDev = nullptr;
-
-	if (workDoc.HasMember("txid") == false) sendError2BL("txid not found");
-
-	if (workDoc.HasMember("device") == false) sendError2BL("device not found");
-	else pAbstractDev = pdm->getAbstractDevice(workDoc["device"]);
-
-	if (workDoc.HasMember("command") == false) sendError2BL("command not found");
-
-	std::string pars("");
-	if (workDoc.HasMember("parameters") == true) pars = workDoc["parameters"];
-
-	std::string strDevice(workDoc["device"]);
-	std::string strCommand(workDoc["command"]);
-	if ( (strDevice == shlagbaum1) || (strDevice == shlagbaum2) )
-		g_thrPool.AddTask(0, boost::bind(sendCommand<AbstractShlagbaum>, pAbstractDev, strCommand, pars));
-
-	if ( (strDevice == printer1) )
-		g_thrPool.AddTask(0, boost::bind(sendCommand<AbstractPrinter>, pAbstractDev, strCommand, pars));
-
-	if ( (strDevice == photosensor1) )
-		g_thrPool.AddTask(0, boost::bind(sendCommand<AbstractPassSensor>, pAbstractDev, strCommand, pars));
-
-	if ( (strDevice == photosensor2) )
-		g_thrPool.AddTask(0, boost::bind(sendCommand<AbstractPresentSensor>, pAbstractDev, strCommand, pars));
+//	if ( (strDevice == printer1) )
+//		g_thrPool.AddTask(0, boost::bind(sendCommand<AbstractPrinter>, pAbstractDev, strCommand, pars));
+//
+//	if ( (strDevice == photosensor1) )
+//		g_thrPool.AddTask(0, boost::bind(sendCommand<AbstractPassSensor>, pAbstractDev, strCommand, pars));
+//
+//	if ( (strDevice == photosensor2) )
+//		g_thrPool.AddTask(0, boost::bind(sendCommand<AbstractPresentSensor>, pAbstractDev, strCommand, pars));
 
 	// TODO: Add tasks for other abstract devices
 
@@ -100,40 +101,28 @@ void printdev<database::CSettings::DeviceConfig>(database::CSettings::DeviceConf
 		std::cout << "  " << comm << std::endl;
 }
 
-template<>
-void printdev<database::CSettings::AllDeviceConf>(database::CSettings::AllDeviceConf v)
-{
-	std::cout << "real AllDeviceConf" << std::endl;
-	std::cout << v.conName << std::endl;
-	std::cout << v.abstractName << std::endl;
-
-	if (v.proto.size() != 0) std::cout << " " << v.proto << std::endl;
-
-	for (auto comm: v.comm)
-		std::cout << "  " << comm << std::endl;
-}
-
 int main()
 {
 
-	struct DeviceCtl: public noncopyable
+	struct DeviceCtl
 	{
-		CBaseDevice* devInstance;
+		boost::shared_ptr<IAbstractDevice> devInstance;
 
-		struct DeviceTasks
+		struct Task
 		{
 			uint32_t txId;
 			mythreadpool::TTaskFunc taskFn;
 		};
 
-		std::queue<DeviceTasks> taskQue;
+		std::queue<Task> taskQue;
 	};
 
-	std::vector<DeviceCtl*> devices;
+	std::vector<DeviceCtl> devices;
 
 	database::CSettings sets;
-
 	std::vector<database::CSettings::DeviceConfig> devList = sets.getDeviceConfig();
+
+	CBaseDeviceFactory&	factory = CBaseDeviceFactory::getFactory();
 
 	for (auto v: devList)
 	{
@@ -147,23 +136,21 @@ int main()
 		for (auto comm: v.comm)
 			std::cout << "  " << comm << std::endl;
 
-		DeviceCtl dev;
-		dev.devInstance = new CBaseDeviceFactory(v.abstractName, v.concreteName);
+		DeviceCtl devCtl;
+		boost::shared_ptr<IAbstractDevice> sPtr( factory.deviceFactory(v.abstractName, v.concreteName) );
+		devCtl.devInstance = sPtr;
 
+		devices.push_back(devCtl);
 	}
 
-	union UDev
-	{
-		database::CSettings::DeviceConfig* a;
-		database::CSettings::AllDeviceConf* b;
-	};
+	std::string cmd("command_from_json");
+	std::string pars("pars_from_json");
 
-	UDev vvv;
+	std::cout << "Set task for device0 to thread pool" << std::endl;
 
-	vvv.a = &devList[0];
+	g_thrPool.AddTask(0, boost::bind(sendCommand<AbstractShlagbaum>, devices[0].devInstance.get(), cmd, pars));
 
-	printdev( *vvv.a );
-	printdev( *vvv.b );
+	boost::this_thread::sleep( boost::posix_time::milliseconds(100) );
 
 	return 0;
 }
