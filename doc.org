@@ -112,6 +112,64 @@
       понимаем - аргументируем и разбираем в разделах, касающихся реализации.
     #+END_COMMENT
 
+** Подсветка inline todo elements
+
+   Для того чтобы удобно работать с подсветкой инлайновых (вне заголовков) TODO и VRFY
+   добавьте в ваш ~/.emacs.d/init.el следующие строчки:
+
+   #+BEGIN_SRC elisp
+     ;; ORG-MODE TODO|VRFY font-lock-faces
+     (font-lock-add-keywords 'org-mode
+                             '(("\\(\\[TODO:[a-z]\\{3,\\}\\]\\)" . 'font-lock-warning-face)
+                               ("\\(\\[COMMENT:[a-z]\\{3,\\}\\]\\)" . 'font-lock-keyword-face)
+                               ("\\(\\[VRFY:[a-z]\\{3,\\}\\]\\)" . 'font-lock-function-name-face)
+                               ))
+   #+END_SRC
+
+** Водки найду
+
+   Когда необходимо получить сводную информацию по своим TODO и VRFY элементам, можно
+   воспользоваться функцией =what-can-i-do=, изменив (при необходимости) идентификатор
+   в =pattern= и добавив ее в свой =init.el=.
+
+   В этом коде (последняя строчка) эта функция биндится на комбинацию клавишь =C-c
+   m=. Вы можете повесить ее на другую комбинацию клавишь.
+
+   #+BEGIN_SRC elisp
+       (defun what-can-i-do ()
+         (interactive)
+         (let ((pattern "\\(\\[\\(TODO\\|VRFY\\):pyub\\]\\)") ;; "\\(\\[TODO:.\\{3,\\}\\]\\)"
+               (curbuff (current-buffer))
+               (newbuff (generate-new-buffer "*what-can-i-do*")))
+           (save-excursion
+             (goto-char (point-min))
+             (let ((cnt 0))
+               (with-output-to-temp-buffer newbuff
+                 (while (re-search-forward pattern nil t)
+                   (incf cnt)
+                   (let ((buff  curbuff)
+                         (point (point))
+                         (line  (line-number-at-pos))
+                         (contents (thing-at-point 'line)))
+                     (with-current-buffer newbuff
+                       (insert-text-button (format "%d:" line)
+                                           'buff buff
+                                           'point point
+                                           'action (lambda (x)
+                                                     (let* ((pos   (posn-point (event-end x)))
+                                                            (buff  (get-text-property pos 'buff))
+                                                            (point (get-text-property pos 'point)))
+                                                       (with-current-buffer buff
+                                                         (goto-char point))
+                                                       (switch-to-buffer buff))))
+                       (princ contents))))
+                 (goto-char (point-max))
+                 (princ (format "\nDone. %s finded." cnt))
+                 )))))
+
+       (global-set-key (kbd "C-c m") 'what-can-i-do)
+   #+END_SRC
+
 * Назначение и цель создания системы
 
   Целью проводимых работ является создание спецификации, разработка, отладка и
