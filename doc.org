@@ -136,38 +136,38 @@
    m=. Вы можете повесить ее на другую комбинацию клавишь.
 
    #+BEGIN_SRC elisp
-       (defun what-can-i-do ()
-         (interactive)
-         (let ((pattern "\\(\\[\\(TODO\\|VRFY\\):pyub\\]\\)") ;; "\\(\\[TODO:.\\{3,\\}\\]\\)"
-               (curbuff (current-buffer))
-               (newbuff (generate-new-buffer "*what-can-i-do*")))
-           (save-excursion
-             (goto-char (point-min))
-             (let ((cnt 0))
-               (with-output-to-temp-buffer newbuff
-                 (while (re-search-forward pattern nil t)
-                   (incf cnt)
-                   (let ((buff  curbuff)
-                         (point (point))
-                         (line  (line-number-at-pos))
-                         (contents (thing-at-point 'line)))
-                     (with-current-buffer newbuff
-                       (insert-text-button (format "%d:" line)
-                                           'buff buff
-                                           'point point
-                                           'action (lambda (x)
-                                                     (let* ((pos   (posn-point (event-end x)))
-                                                            (buff  (get-text-property pos 'buff))
-                                                            (point (get-text-property pos 'point)))
-                                                       (with-current-buffer buff
-                                                         (goto-char point))
-                                                       (switch-to-buffer buff))))
-                       (princ contents))))
-                 (goto-char (point-max))
-                 (princ (format "\nDone. %s finded." cnt))
-                 )))))
+     (defun what-can-i-do (arg)
+       (interactive "sName: ")
+       (let ((pattern (format "\\(\\[\\(TODO\\|VRFY\\):%s\\]\\)" arg)) ;; "\\(\\[TODO:.\\{3,\\}\\]\\)"
+             (curbuff (current-buffer))
+             (newbuff (generate-new-buffer "*what-can-i-do*")))
+         (save-excursion
+           (goto-char (point-min))
+           (let ((cnt 0))
+             (with-output-to-temp-buffer newbuff
+               (while (re-search-forward pattern nil t)
+                 (incf cnt)
+                 (let ((buff  curbuff)
+                       (point (point))
+                       (line  (line-number-at-pos))
+                       (contents (thing-at-point 'line)))
+                   (with-current-buffer newbuff
+                     (insert-text-button (format "%d:" line)
+                                         'buff buff
+                                         'point point
+                                         'action (lambda (x)
+                                                   (let* ((pos   (posn-point (event-end x)))
+                                                          (buff  (get-text-property pos 'buff))
+                                                          (point (get-text-property pos 'point)))
+                                                     (with-current-buffer buff
+                                                       (goto-char point))
+                                                     (switch-to-buffer buff))))
+                     (princ contents))))
+               (goto-char (point-max))
+               (princ (format "\nDone. %s finded." cnt))
+               )))))
 
-       (global-set-key (kbd "C-c m") 'what-can-i-do)
+     (global-set-key (kbd "C-c m") 'what-can-i-do)
    #+END_SRC
 
 * Назначение и цель создания системы
@@ -3711,12 +3711,12 @@
          txid | eventid - номер транзакции инициированной бизнес-логикой или нижним уровнем соответственно
 
          device - имя абстрактного устройства, отражающее его функционал в системе. Это имя уникально в рамках
-     одного въезда/выезда. Список этих имен должен быть зафиксирован для всего комплекса. 
+     одного въезда/выезда. Список этих имен должен быть зафиксирован для всего комплекса.
 
-     Имя абстрактного устройства состоит из двух частей: 
+     Имя абстрактного устройства состоит из двух частей:
      1) абстрактное название устройства, которое фиксировано для всех устройств одного назначения,
      например любой шлагбаум = "shlagbaum" или любой датчик = "sensor" или любой дисплей = "display".
-     2) описании функции, которое делает устройство уникальным среди остальных таких же устройств 
+     2) описании функции, которое делает устройство уникальным среди остальных таких же устройств
 
 	Примеры:
 	GOOD shlagbaum_in - шлагбаум на въезд
@@ -3725,7 +3725,7 @@
 	GOOD printer - тоже самое
 	GOOD shlagbaum - шлагбаум может быть всего один
 	BAD  sensor - датчиков, у нас всегда больше одного, поэтому так делать не надо.
-     
+
 *** FFI
 
     Из-за акцента лиспа на динамическом выделении памяти и "сборке мусора" реализации
