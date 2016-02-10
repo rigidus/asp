@@ -8,8 +8,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <thread.hpp>
-#include <thread/mutex.hpp>
+#include <boost/thread.hpp>
+#include <boost/thread/mutex.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 class CFileLog;
