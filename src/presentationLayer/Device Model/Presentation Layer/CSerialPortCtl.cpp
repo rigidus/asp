@@ -8,8 +8,9 @@
 #include "CSerialPortCtl.h"
 
 
-CSerialPortCtl::CSerialPortCtl(asio::io_service& ioService):
-	m_serialPort(ioService)
+CSerialPortCtl::CSerialPortCtl(CBaseDevice* device, std::string& gpioName):
+	CBaseCommCtl(device),
+	m_serialPort(m_ioService)
 {
 
 }

@@ -20,6 +20,7 @@
 #include "CDeviceManager.h"
 #include "TestDevices.h"
 #include "CBaseDeviceFactory.h"
+#include "GlobalThreadPool.h"
 
 using namespace mythreadpool;
 using namespace rapidjson;
@@ -33,8 +34,6 @@ const std::string photosensor2("present_photosensor");
 const std::string display1("display");
 const std::string massstorage1("sd_card");
 const std::string kkm1("kkm");
-
-CThreadPool g_thrPool(4, 100, 100);
 
 void sendError2BL(std::string)
 {
@@ -148,9 +147,11 @@ int main()
 
 	std::cout << "Set task for device0 to thread pool" << std::endl;
 
-	g_thrPool.AddTask(0, boost::bind(sendCommand<AbstractShlagbaum>, devices[0].devInstance.get(), cmd, pars));
+	GlobalThreadPool::get().AddTask(0, boost::bind(sendCommand<AbstractShlagbaum>, devices[0].devInstance.get(), cmd, pars));
 
-	boost::this_thread::sleep( boost::posix_time::milliseconds(100) );
+	boost::this_thread::sleep(boost::posix_time::microseconds(1000));
+
+	GlobalThreadPool::stop();
 
 	return 0;
 }

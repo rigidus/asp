@@ -6,26 +6,17 @@
 ///////////////////////////////////////////////////////////
 
 #include "CBaseCommCtl.h"
+#include "CBaseDevice.h"
 
-
-CBaseCommCtl::CBaseCommCtl(){
-
+CBaseCommCtl::CBaseCommCtl(CBaseDevice* device): m_device(device)
+{
+	m_deviceName = m_device->c_name;
 }
-
 
 
 CBaseCommCtl::~CBaseCommCtl(){
 
 }
-
-
-
-CBaseCommCtl::CBaseCommCtl(const CBaseCommCtl& theCBaseCommCtl){
-
-}
-
-
-
 
 
 bool CBaseCommCtl::receive(int rcvData){

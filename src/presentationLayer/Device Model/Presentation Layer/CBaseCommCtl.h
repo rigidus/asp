@@ -12,22 +12,27 @@
 #include <vector>
 #include <string>
 
+#include <boost/noncopyable.hpp>
 #include <boost/cstdint.hpp>
 
-class CBaseCommCtl
+class CBaseDevice;
+
+using namespace boost;
+
+class CBaseCommCtl: private noncopyable
 {
 
 public:
-	CBaseCommCtl();
+	CBaseCommCtl(CBaseDevice* device);
 	virtual ~CBaseCommCtl();
-	CBaseCommCtl(const CBaseCommCtl& theCBaseCommCtl);
 
 	virtual bool receive(int rcvData) = 0;
 	virtual uint32_t send(std::list<std::vector<uint8_t> > sendData) = 0;
 	virtual int setSettings(std::string deviceName) = 0;
 
-private:
+protected:
 	std::string m_deviceName;
+	CBaseDevice* m_device;
 
 };
 #endif // !defined(EA_96F2CEBA_CC67_4b9a_B21B_8FBBD7D55F20__INCLUDED_)

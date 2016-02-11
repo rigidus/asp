@@ -95,6 +95,7 @@ class CTaskQueue
 
 class CWorker
 {
+private:
 
 	CWorker():
 		IsRunning(false),
@@ -193,7 +194,13 @@ public:
 		delete thr;
 	}
 
-	CWorker(CTaskQueue* tq, u32 n): id(n), IsRunning(true), IsEnd(false), IsFinished(false), taskqueue(tq), thr(NULL)
+	CWorker(CTaskQueue* tq, u32 n):
+		IsRunning(true),
+		IsEnd(false),
+		IsFinished(false),
+		taskqueue(tq),
+		thr(nullptr),
+		id(n)
 	{
 
 		CFileLog::cfilelog() << "Create Thread: " << id << std::endl;
@@ -235,14 +242,14 @@ protected:
 	{
 		try
 		{
-			std::auto_ptr<CWorker> vec[n];
+			std::unique_ptr<CWorker> vec[n];
 
 			u32 cnt = vWorks.size() ? vWorks.back()->id : 0;
 
 			for (u32 i=0; i<n; ++i, cnt++)
 			{
-				std::auto_ptr<CWorker> w(new CWorker(&qTasks, cnt));
-				swap(w, vec[i]);
+				std::unique_ptr<CWorker> w(new CWorker(&qTasks, cnt));
+				std::swap(w, vec[i]);
 			}
 
 			for (u32 i=0; i<n; ++i)

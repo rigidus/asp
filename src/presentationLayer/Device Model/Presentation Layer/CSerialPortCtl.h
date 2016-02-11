@@ -14,13 +14,12 @@
 
 using namespace boost;
 
-class CSerialPortCtl : public CBaseCommCtl, public noncopyable
+class CSerialPortCtl : public CBaseCommCtl
 {
 
 public:
-	CSerialPortCtl(asio::io_service& ioService);
+	CSerialPortCtl(CBaseDevice* device, std::string& gpioName);
 	virtual ~CSerialPortCtl();
-	CSerialPortCtl(const CSerialPortCtl& theCSerialPortCtl);
 
 	bool receive(int rcvData);
 	uint32_t send(std::list<std::vector<uint8_t> > sendData);

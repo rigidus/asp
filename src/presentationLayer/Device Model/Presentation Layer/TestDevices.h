@@ -9,21 +9,58 @@
 #define TESTDEVICES_H_
 
 #include "CBaseDevice.h"
+#include "GlobalThreadPool.h"
+#include "CPinCtl.h"
 
 // concrete classes
 
 class ShlagbaumPalka: public CBaseDevice
 {
+
+// CodecType protoCodec;
+
 public:
 
 	ShlagbaumPalka(): CBaseDevice(s_concreteName) {}
 
 	static const std::string s_concreteName;
 
+	std::vector<uint8_t> rcvData;
+
 	virtual void sendCommand(const std::string command, const std::string pars)
 	{
 		std::cout << "ShlagbaumPalka performs command: " << command << "[" << pars << "]" << std::endl;
+
+		rcvData.clear();
+		rcvData.push_back('A');
+		rcvData.push_back('C');
+		rcvData.push_back('K');
+		std::list<std::vector<uint8_t>> data;
+		data.push_back(rcvData);
+
+		if (m_commCtl)
+			m_commCtl->send(data);
+
 	}
+
+	virtual bool connectToCommCtl(const std::string& deviceName, const std::string& commName)
+	{
+
+		CBaseCommCtl* commCtl = CPinCtl::getPinCtl(this, commName);
+
+		m_commCtl = commCtl;
+
+		// TODO: Pin takes parameters from DB by the deviceName
+//		if (commCtl)
+//		{
+//			commCtl->getParameters(deviceName);
+//		}
+
+		std::cout << "connectToCommCtl: " << commName << " connected to " << deviceName << std::endl;
+
+		return commCtl != nullptr;
+	}
+
 };
 
 const std::string ShlagbaumPalka::s_concreteName = "shlagbaum palka";
@@ -101,8 +138,16 @@ public:
 
 		if ( ShlagbaumPalka::s_concreteName == devName)
 		{
-			CBaseDevice* cDev = new ShlagbaumPalka;
-			return new AbstractShlagbaum(cDev, abstractName);
+			CBaseDevice* cDev = reinterpret_cast<CBaseDevice*> (new ShlagbaumPalka());
+
+			// TODO: get commutation name by device name from DB
+			// TODO: commutations devices can be several
+			std::string commName("gpio16");
+
+			if (cDev->connectToCommCtl(devName, commName) == false)
+				return nullptr;
+			else
+				return new AbstractShlagbaum(cDev, abstractName);
 		}
 
 		return nullptr;

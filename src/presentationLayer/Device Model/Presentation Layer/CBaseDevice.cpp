@@ -10,7 +10,6 @@
 
 CBaseDevice::CBaseDevice(const std::string& str):
 	c_name(str),
-	m_codec(nullptr),
 	m_commCtl(nullptr)
 {
 
@@ -23,13 +22,7 @@ CBaseDevice::~CBaseDevice(){
 }
 
 
-CBaseCodec& CBaseDevice::getCodec(){
+CBaseCommCtl* CBaseDevice::getCommCtl(){
 
-	return *m_codec;
-}
-
-
-CBaseCommCtl& CBaseDevice::getCommCtl(){
-
-	return *m_commCtl;
+	return m_commCtl;
 }

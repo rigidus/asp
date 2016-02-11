@@ -9,32 +9,40 @@
 #define EA_F6FA3185_3A4D_4043_A499_06D6A2FDBFCF__INCLUDED_
 
 #include "CBaseCommCtl.h"
+#include "CBaseDevice.h"
+#include "GlobalThreadPool.h"
 
 #include <iostream>
-#include <boost/filesystem/fstream.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/iostreams/device/file.hpp>
+#include <boost/iostreams/stream.hpp>
 
-using namespace boost;
+namespace io = boost::iostreams;
 
 class CPinCtl : private CBaseCommCtl
 {
 
 public:
 
-	static CBaseCommCtl* getPintCtl(uint32_t pinNum);
+	static bool fileIsExist(const std::string& fileName);
+	static CBaseCommCtl* getPinCtl(CBaseDevice* device, const std::string& gpioName);
 
 	virtual ~CPinCtl();
-	CPinCtl(const CPinCtl& theCPinCtl);
 
 	bool receive(int rcvData);
 	uint32_t send(std::list<std::vector<uint8_t> > sendData);
 	int setSettings(std::string deviceName);
 
 private:
-	CPinCtl();
-	filesystem::fstream m_direction;
-	filesystem::fstream m_pullup;
-	filesystem::fstream m_value;
+	CPinCtl(CBaseDevice* device, const std::string& gpioName);
+
+	static const std::string gpioPath;
+
+	std::filebuf fBuf;
+	std::fstream fLog;
+
 	uint32_t m_timeout;
 
 };
+
 #endif // !defined(EA_F6FA3185_3A4D_4043_A499_06D6A2FDBFCF__INCLUDED_)

@@ -29,13 +29,19 @@ public:
 	CBaseDevice(const CBaseDevice& theCBaseDevice);
 
 	virtual void sendCommand(const std::string command, const std::string pars)=0;
+	virtual bool connectToCommCtl(const std::string& deviceName, const std::string& commName)=0;
 
-	CBaseCodec& getCodec();
-	CBaseCommCtl& getCommCtl();
+	CBaseCommCtl* getCommCtl();
 
-private:
+	static void performEvent(CBaseDevice* device, std::vector<uint8_t>& rcvData)
+	{
+		std::cout << "CBaseDevice Perform Event From Device: " << device->c_name << ": ";
+		for (auto v: rcvData) std::cout << v << " ";
+		std::cout << std::endl;
+	}
 
-	CBaseCodec *m_codec;
+protected:
+
 	CBaseCommCtl* m_commCtl;
 
 };
