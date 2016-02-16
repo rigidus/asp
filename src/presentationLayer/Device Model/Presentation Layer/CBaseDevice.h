@@ -17,6 +17,10 @@ using namespace boost;
 
 #include "CBaseCodec.h"
 #include "CBaseCommCtl.h"
+#include "CSettings.h"
+#include "CPinCtl.h"
+#include "CSerialPortCtl.h"
+
 
 class CBaseDevice: private noncopyable
 {
@@ -30,9 +34,8 @@ public:
 
 	virtual void sendCommand(const std::string command, const std::string pars)=0;
 	virtual bool connectToCommCtl()=0;
-	virtual void disconnectFromCommCtl()=0;
 
-	const std::vector<CBaseCommCtl*>& getCommCtl();
+	const std::vector< shared_ptr<CBaseCommCtl> >& getCommCtl();
 
 	static void performEvent(CBaseDevice* device, std::vector<uint8_t>& rcvData)
 	{
@@ -43,8 +46,25 @@ public:
 
 protected:
 
-	std::vector<CBaseCommCtl*> m_commCtl;
+	std::vector< shared_ptr<CBaseCommCtl> > m_commCtl;
 
+	template<class T>
+	shared_ptr<CBaseCommCtl> takeCommDevice(const std::string& commName)
+	{
+
+		if ( commName.find(T::s_name) != std::string::npos)
+		{
+			std::cout << "Take communication device: " << commName << std::endl;
+
+			return T::takeCommCtl(this, commName);
+		}
+
+		return nullptr;
+	}
+
+	void addCommDevice(shared_ptr<CBaseCommCtl> commCtl);
+
+	virtual void disconnectFromCommCtl();
 };
 
 

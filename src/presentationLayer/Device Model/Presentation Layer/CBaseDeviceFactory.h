@@ -32,30 +32,45 @@ public:
 
 	IAbstractDevice* deviceFactory(const std::string& abstractName, const std::string& devName)
 	{
+		std::vector<IAbstractDevice*> devs;
+
 		IAbstractDevice* dev = nullptr;
 
-		if ( (dev = createAbstractDevice<AbstractShlagbaum>(abstractName, devName)) != nullptr )
-			return dev;
+		dev = createAbstractDevice<AbstractShlagbaum>(abstractName, devName);
+		if (dev) devs.push_back(dev);
 
-//		if ( (dev = createAbstractDevice<AbstractPrinter>(abstractName, devName)) != nullptr )
-//			return dev;
-//
-//		if ( (dev = createAbstractDevice<AbstractPassSensor>(abstractName, devName)) != nullptr )
-//			return dev;
-//
-//		if ( (dev = createAbstractDevice<AbstractPresentSensor>(abstractName, devName)) != nullptr )
-//			return dev;
-//
-//		if ( (dev = createAbstractDevice<AbstractDisplay>(abstractName, devName)) != nullptr )
-//			return dev;
-//
-//		if ( (dev = createAbstractDevice<AbstractMassStorage>(abstractName, devName)) != nullptr )
-//			return dev;
-//
-//		if ( (dev = createAbstractDevice<AbstractKKM>(abstractName, devName)) != nullptr )
-//			return dev;
+//		dev = createAbstractDevice<AbstractPrinter>(abstractName, devName);
+//		if (dev) devs.push_back(dev);
+//		dev = createAbstractDevice<AbstractPassSensor>(abstractName, devName);
+//		if (dev) devs.push_back(dev);
+//		dev = createAbstractDevice<AbstractPresentSensor>(abstractName, devName);
+//		if (dev) devs.push_back(dev);
+//		dev = createAbstractDevice<AbstractDisplay>(abstractName, devName);
+//		if (dev) devs.push_back(dev);
+//		dev = createAbstractDevice<AbstractMassStorage>(abstractName, devName);
+//		if (dev) devs.push_back(dev);
+//		dev = createAbstractDevice<AbstractKKM>(abstractName, devName);
+//		if (dev) devs.push_back(dev);
 
-		// TODO: log error, devicename not found
+		if (devs.size() > 1)
+		{
+			std::cout << "deviceFactory detected device configuration error: more than 1 abstract-concrete device created" << std::endl;
+
+			for (IAbstractDevice* d: devs)
+				delete d;
+
+			return nullptr;
+		}
+
+		if (devs.size() == 0)
+		{
+			std::cout << "deviceFactory detected device configuration error: no device created" << std::endl;
+
+			return nullptr;
+		}
+
+		std::cout << "deviceFactory created device" << abstractName << std::endl;
+
 		return dev;
 	}
 
@@ -71,10 +86,10 @@ private:
 	{
 		IAbstractDevice* dev = nullptr;
 
-		std::cout << "Create abstract device: " << abstractName << std::endl;
-
 		if ( devName.find(T::s_abstractName) != std::string::npos)
 		{
+			std::cout << "Create abstract device: " << abstractName << std::endl;
+
 			dev = T::createDevice(abstractName, devName);
 		}
 

@@ -160,10 +160,16 @@ void testAndDestroy()
 	GlobalThreadPool::stop();
 }
 
+
 int main()
 {
 
-	testAndDestroy();
+	for (int i=0; i<10; ++i)	// for test of create and destroy
+	{
+		std::cout << "------------- start new instance ---------------- " <<  i << std::endl;
+
+		testAndDestroy();
+	}
 
 	return 0;
 }

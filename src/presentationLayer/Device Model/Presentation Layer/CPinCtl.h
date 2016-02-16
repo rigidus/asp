@@ -13,22 +13,35 @@
 #include "GlobalThreadPool.h"
 
 #include <iostream>
+#include <map>
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/device/file.hpp>
 #include <boost/iostreams/stream.hpp>
 
 namespace io = boost::iostreams;
 
+/*
+ * Multitone class controls GPIO interface for interacting with concrete device
+ */
 class CPinCtl : private CBaseCommCtl
 {
 
 public:
 
-	static bool fileIsExist(const std::string& fileName);
-	static CBaseCommCtl* takePinCtl(CBaseDevice* device, const std::string& gpioName);
-	static void freePinCtl(CBaseDevice* device, const std::string& gpioName);
+	/*
+	 * Function takes GPIO resourse for concrete device
+	 * @param device - pointer to concrete device use for call callback for inform about event from device
+	 * @param gpioName - name of the GPIO resourse for taking
+	 * @return - pointer to busied resource or nullptr when resourse is busy or not existing
+	 */
+	static shared_ptr<CBaseCommCtl> takeCommCtl(CBaseDevice* device, const std::string& gpioName);
 
-	void freePinCtl(const std::string& gpioName);
+	/*
+	 * Function frees GPIO resource for it can be taking by another device in the future
+	 * @param device - pointer to concrete device for control. Device-taker can free GPIO resourse only
+	 * @param gpioName - name of the GPIO resourse for free
+	 */
+	static void freeCommCtl(CBaseDevice* device, const std::string& gpioName);
 
 	virtual ~CPinCtl();
 
@@ -36,10 +49,16 @@ public:
 	uint32_t send(std::list<std::vector<uint8_t> > sendData);
 	int setSettings(std::string deviceName);
 
+	static const std::string s_name;
+
 private:
 	CPinCtl(CBaseDevice* device, const std::string& gpioName);
 
-	static std::map<std::string, CPinCtl*> busyPins;
+	// check existing file on the filesystem
+	// It use here for check interface gpio files only
+	static bool fileIsExist(const std::string& fileName);
+
+	static std::map<std::string, shared_ptr<CBaseCommCtl> > busyPins;
 
 	static const std::string gpioPath;
 

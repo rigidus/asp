@@ -30,11 +30,11 @@ public:
 	virtual int setSettings(std::string deviceName) = 0;
 
 	std::string m_commName;
+	std::string m_deviceName;
 
 protected:
 	CBaseCommCtl(CBaseDevice* device, const std::string& commName);
 
-	std::string m_deviceName;
 	CBaseDevice* m_device;
 
 };

@@ -7,14 +7,19 @@
 
 #include "CSerialPortCtl.h"
 
+namespace boostio = boost::iostreams;
+namespace boostfs = boost::filesystem;
 
-CSerialPortCtl::CSerialPortCtl(CBaseDevice* device, std::string& gpioName):
+const std::string CSerialPortCtl::s_name = "uart";
+const std::string CSerialPortCtl::gpioPath = "/sys/class/gpio/";
+std::map<std::string, shared_ptr<CBaseCommCtl> > CSerialPortCtl::busyUarts;
+
+CSerialPortCtl::CSerialPortCtl(CBaseDevice* device, const std::string& gpioName):
 	CBaseCommCtl(device, gpioName),
 	m_serialPort(m_ioService)
 {
 
 }
-
 
 
 CSerialPortCtl::~CSerialPortCtl(){
@@ -37,4 +42,79 @@ uint32_t CSerialPortCtl::send(std::list<std::vector<uint8_t> > sendData){
 int CSerialPortCtl::setSettings(std::string deviceName){
 
 	return 0;
+}
+
+
+shared_ptr<CBaseCommCtl> CSerialPortCtl::takeCommCtl(CBaseDevice* device, const std::string& uartName)
+{
+	// TODO: realize function
+	std::cout << "CSerialPortCtl::takeCommCtl try to take " << uartName << std::endl;
+
+	try{
+		// check busy pin
+		if (busyUarts.find(uartName) != busyUarts.end())
+		{
+			std::cout << "CSerialPortCtl::takeCommCtl getting " << uartName << " failed: gpio is busy or not existing" << std::endl;
+			return nullptr;
+		}
+		// OK! pin is free
+
+		// create CPinCtl for pinNum
+		shared_ptr<CBaseCommCtl> uartCtl((CBaseCommCtl*) new CSerialPortCtl(device, uartName));
+		busyUarts.emplace(std::make_pair(uartName, uartCtl));
+		// OK! pin is made as busied and stored
+
+		std::cout << "CSerialPortCtl::takeCommCtl take " << uartName << " successfully" << std::endl;
+
+		return uartCtl;
+	}
+
+	catch(boost::exception& ex)
+	{
+		std::cout << "CSerialPortCtl::takeCommCtl exception: " << boost::diagnostic_information(ex) << std::endl;
+		return nullptr;
+	}
+
+	catch(std::exception& ex)
+	{
+		std::cout << "CSerialPortCtl::takeCommCtl exception: " << ex.what() << std::endl;
+		return nullptr;
+	}
+
+	catch(...)
+	{
+		std::cout << "CSerialPortCtl::takeCommCtl unknown exception: " << std::endl;
+		return nullptr;
+	}
+
+	return nullptr;
+}
+
+void CSerialPortCtl::freeCommCtl(CBaseDevice* device, const std::string& uartName)
+{
+	if (device == nullptr) return;
+
+	std::cout << "freeUartCtl try to free " << uartName << std::endl;
+
+	// check busy pin
+
+	auto it = busyUarts.find(uartName);
+
+	if ( it == busyUarts.end())
+	{
+		return;
+	}
+	// OK! uart is busy
+
+	shared_ptr<CBaseCommCtl> uartCtl(it->second);
+	if ( uartCtl->m_deviceName != device->c_name)
+	{
+		return;
+	}
+
+	// free uart
+	std::cout << "getUartCtl " << uartName << " is free" << std::endl;
+
+	busyUarts.erase(it);
+
 }

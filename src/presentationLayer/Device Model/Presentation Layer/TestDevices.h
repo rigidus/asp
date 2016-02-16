@@ -26,6 +26,11 @@ public:
 
 	ShlagbaumPalka(): CBaseDevice(s_concreteName) {}
 
+	~ShlagbaumPalka()
+	{
+		CBaseDevice::disconnectFromCommCtl();
+	}
+
 	static const std::string s_concreteName;
 
 	std::vector<uint8_t> rcvData;
@@ -49,36 +54,7 @@ public:
 
 	virtual bool connectToCommCtl()
 	{
-
-		database::CSettings sets;
-		std::vector<std::string> commNames = sets.getGPIONamesByDevice(s_concreteName);
-
-		if (commNames.size() == 0)
-			return false;
-
-		for (auto comm: commNames)
-		{
-			std::cout << "  " << comm << std::endl;
-
-			CBaseCommCtl* commCtl = CPinCtl::takePinCtl(this, comm);
-
-			if (commCtl != nullptr)
-			{
-				m_commCtl.push_back(commCtl);
-				std::cout << "connectToCommCtl: " << comm << " connected to " << s_concreteName << std::endl;
-			}
-		}
-
-		return m_commCtl.size() == commNames.size();
-	}
-
-	virtual void disconnectFromCommCtl()
-	{
-
-		for (auto comm: m_commCtl)
-		{
-			CPinCtl::freePinCtl(this, comm->m_commName);
-		}
+		return CBaseDevice::connectToCommCtl();
 	}
 
 };
@@ -133,17 +109,17 @@ public:
 
 	virtual ~IAbstractDevice()
 	{
-		const std::vector<CBaseCommCtl*>& commCtls = concreteDevice->getCommCtl();
-
-		for (CBaseCommCtl* comm: commCtls)
-		{
-			CPinCtl::freePinCtl(concreteDevice, comm->m_commName);
-		}
+		delete concreteDevice;
 	}
 
-	CBaseDevice* device() { return concreteDevice; }
-	const std::string& deviceAbstractName() { return c_abstractName; }
-	const std::string& deviceConcreteName() { return concreteDevice->c_name; }
+	CBaseDevice* device()
+	{ return concreteDevice; }
+
+	const std::string& deviceAbstractName()
+	{ return c_abstractName; }
+
+	const std::string& deviceConcreteName()
+	{ return concreteDevice->c_name; }
 
 	virtual void sendCommand(const std::string& command, const std::string& pars)=0;
 
