@@ -11,6 +11,9 @@
 #include "CBaseDevice.h"
 #include "GlobalThreadPool.h"
 #include "CPinCtl.h"
+#include "CSettings.h"
+#include "device_config.h"
+#include "devcomm_config.h"
 
 // concrete classes
 
@@ -38,27 +41,44 @@ public:
 		std::list<std::vector<uint8_t>> data;
 		data.push_back(rcvData);
 
-		if (m_commCtl)
-			m_commCtl->send(data);
+		// command "up"
+		if (m_commCtl[0])
+			m_commCtl[0]->send(data);
 
 	}
 
-	virtual bool connectToCommCtl(const std::string& deviceName, const std::string& commName)
+	virtual bool connectToCommCtl()
 	{
 
-		CBaseCommCtl* commCtl = CPinCtl::getPinCtl(this, commName);
+		database::CSettings sets;
+		std::vector<std::string> commNames = sets.getGPIONamesByDevice(s_concreteName);
 
-		m_commCtl = commCtl;
+		if (commNames.size() == 0)
+			return false;
 
-		// TODO: Pin takes parameters from DB by the deviceName
-//		if (commCtl)
-//		{
-//			commCtl->getParameters(deviceName);
-//		}
+		for (auto comm: commNames)
+		{
+			std::cout << "  " << comm << std::endl;
 
-		std::cout << "connectToCommCtl: " << commName << " connected to " << deviceName << std::endl;
+			CBaseCommCtl* commCtl = CPinCtl::takePinCtl(this, comm);
 
-		return commCtl != nullptr;
+			if (commCtl != nullptr)
+			{
+				m_commCtl.push_back(commCtl);
+				std::cout << "connectToCommCtl: " << comm << " connected to " << s_concreteName << std::endl;
+			}
+		}
+
+		return m_commCtl.size() == commNames.size();
+	}
+
+	virtual void disconnectFromCommCtl()
+	{
+
+		for (auto comm: m_commCtl)
+		{
+			CPinCtl::freePinCtl(this, comm->m_commName);
+		}
 	}
 
 };
@@ -78,7 +98,7 @@ const std::string ShlagbaumPalka::s_concreteName = "shlagbaum palka";
 //class PassSensorIamgetout: public CBaseDevice
 //{
 //
-//};
+//};	for (auto devCtl: devices)
 //
 //class DisplayText16x2: public CBaseDevice
 //{
@@ -111,7 +131,15 @@ public:
 		std::cout << "Abstract Device: " << abstractName << " created." << std::endl;
 	}
 
-	virtual ~IAbstractDevice() {}
+	virtual ~IAbstractDevice()
+	{
+		const std::vector<CBaseCommCtl*>& commCtls = concreteDevice->getCommCtl();
+
+		for (CBaseCommCtl* comm: commCtls)
+		{
+			CPinCtl::freePinCtl(concreteDevice, comm->m_commName);
+		}
+	}
 
 	CBaseDevice* device() { return concreteDevice; }
 	const std::string& deviceAbstractName() { return c_abstractName; }
@@ -136,18 +164,19 @@ public:
 	static IAbstractDevice* createDevice(const std::string& abstractName, const std::string& devName)
 	{
 
+		std::cout << "Create concrete device " << devName << std::endl;
+
+		CBaseDevice* cDev = nullptr;
+
 		if ( ShlagbaumPalka::s_concreteName == devName)
 		{
-			CBaseDevice* cDev = reinterpret_cast<CBaseDevice*> (new ShlagbaumPalka());
+			cDev = reinterpret_cast<CBaseDevice*> (new ShlagbaumPalka());
+		}
 
-			// TODO: get commutation name by device name from DB
-			// TODO: commutations devices can be several
-			std::string commName("gpio16");
-
-			if (cDev->connectToCommCtl(devName, commName) == false)
-				return nullptr;
-			else
-				return new AbstractShlagbaum(cDev, abstractName);
+		// Connect concrete device to communication devices
+		if (cDev != nullptr && cDev->connectToCommCtl())
+		{
+			return new AbstractShlagbaum(cDev, abstractName);
 		}
 
 		return nullptr;

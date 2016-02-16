@@ -12,7 +12,6 @@
 namespace database {
 
 #include "device_config.h"
-#include "proto_config.h"
 #include "devcomm_config.h"
 
 CSettings::CSettings() {
@@ -36,52 +35,64 @@ const std::vector<CSettings::DeviceConfig> CSettings::getDeviceConfig()
 	return baseList;
 }
 
-const CSettings::PrinterPilotProtoConfig CSettings::getPrinterPilotProtoByName(std::string deviceName, std::string protoName)
-{
-	// TODO: make config and return it
-	CSettings::PrinterPilotProtoConfig devnull;
 
-	return devnull;
+const std::vector<std::string> CSettings::getGPIONamesByDevice(const std::string& deviceName)
+{
+	std::vector<std::string> names;
+
+	for (DeviceConfig* v: device_config::deviceList)
+	{
+		if (v->concreteName == deviceName)
+		{
+			for (std::string commName: v->comm)
+			{
+				names.push_back(commName);
+			}
+			break;
+		}
+	}
+
+	return names;
 }
 
-const CSettings::WinStarProtoConfig CSettings::getWinstarProtoByName(std::string deviceName, std::string protoName)
+
+const std::vector<CSettings::CommGPIOConfig> CSettings::getGPIOByDevice(const std::string deviceName, const std::string gpioName)
 {
 	// TODO: make config and return it
-	CSettings::WinStarProtoConfig devnull;
+	std::vector<CSettings::CommGPIOConfig> devs;
 
-	return devnull;
+	for (CSettings::DeviceConfig* v: device_config::deviceList)
+	{
+		if (v->abstractName == deviceName)
+		{
+
+			// find device
+			// iteration for comms
+			for (std::string commName: v->comm)
+			{
+				// find config by comm name
+				uint32_t size = sizeof(devcomm_config::gpioConfigList) / sizeof(devcomm_config::gpioConfigList[0]);
+				for (uint32_t i = 0; i < size; ++i)
+				{
+					if (commName == devcomm_config::gpioConfigList[i]->name)
+					{
+						devs.push_back(*devcomm_config::gpioConfigList[i]);
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	return devs;
 }
 
-const CSettings::MassStorageProtoConfig CSettings::getMassStorageProtoByName(std::string protoName)
+const std::vector<CSettings::CommUARTConfig> CSettings::getUARTByDevice(const std::string deviceName)
 {
 	// TODO: make config and return it
-	CSettings::MassStorageProtoConfig devnull;
+	std::vector<CSettings::CommUARTConfig> devs;
 
-	return devnull;
-}
-
-const CSettings::KKMProtoConfig CSettings::getKKMProtoByName(std::string deviceName, std::string protoName)
-{
-	// TODO: make config and return it
-	CSettings::KKMProtoConfig devnull;
-
-	return devnull;
-}
-
-const CSettings::CommGPIOConfig CSettings::getGPIOByDevice(std::string deviceName, uint32_t commIndex)
-{
-	// TODO: make config and return it
-	CSettings::CommGPIOConfig devnull;
-
-	return devnull;
-}
-
-const CSettings::CommUARTConfig CSettings::getUARTByDevice(std::string deviceName, uint32_t commIndex)
-{
-	// TODO: make config and return it
-	CSettings::CommUARTConfig devnull;
-
-	return devnull;
+	return devs;
 }
 
 } /* namespace database */

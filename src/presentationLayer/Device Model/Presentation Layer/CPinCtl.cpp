@@ -12,17 +12,16 @@ namespace boostio = boost::iostreams;
 namespace boostfs = boost::filesystem;
 
 const std::string CPinCtl::gpioPath = "/sys/class/gpio/";
+std::map<std::string, CPinCtl*> CPinCtl::busyPins;
 
-CBaseCommCtl* CPinCtl::getPinCtl(CBaseDevice* device, const std::string& gpioName)
+CBaseCommCtl* CPinCtl::takePinCtl(CBaseDevice* device, const std::string& gpioName)
 {
-	static std::map<std::string, CPinCtl*> busyPins;
-
 	CPinCtl* pinCtl = nullptr;
 
 	if (pinCtl == nullptr)
 	{
 
-		std::cout << "getPinCtl try to get " << gpioName << std::endl;
+		std::cout << "getPinCtl try to take " << gpioName << std::endl;
 
 		try{
 			// check busy pin
@@ -91,12 +90,46 @@ CBaseCommCtl* CPinCtl::getPinCtl(CBaseDevice* device, const std::string& gpioNam
 			return nullptr;
 		}
 
-		std::cout << "getPinCtl get " << gpioName << "successfully" << std::endl;
+		std::cout << "getPinCtl get " << gpioName << " successfully" << std::endl;
 
 	}
 
 	return pinCtl;
 }
+
+
+void CPinCtl::freePinCtl(CBaseDevice* device, const std::string& gpioName)
+{
+
+	if (device == nullptr) return;
+
+	std::cout << "getPinCtl try to free " << gpioName << std::endl;
+
+	// check busy pin
+
+	auto it = busyPins.find(gpioName);
+
+	if ( it == busyPins.end())
+	{
+		std::cout << "getPinCtl " << gpioName << " don't busy or not existing" << std::endl;
+	}
+	// OK! pin is busy
+
+	CPinCtl* pinCtl = it->second;
+	if ( pinCtl->m_deviceName != device->c_name)
+	{
+		std::cout << "getPinCtl " << gpioName << " not attached to selected device " << device->c_name << std::endl;
+	}
+
+	// free pin
+	boostio::stream_buffer<boostio::file_sink> bufExport(gpioPath+"unexport");
+	std::ostream fileExport(&bufExport);
+	fileExport << gpioName;
+	busyPins.erase(it);
+	delete pinCtl;
+
+}
+
 
 bool CPinCtl::fileIsExist(const std::string& fileName)
 {
@@ -105,7 +138,7 @@ bool CPinCtl::fileIsExist(const std::string& fileName)
 }
 
 CPinCtl::CPinCtl(CBaseDevice* device, const std::string& gpioName):
-		CBaseCommCtl(device),
+		CBaseCommCtl(device, gpioName),
 		m_timeout(0)
 {
 	// TODO: initialize pin with pars

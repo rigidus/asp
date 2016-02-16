@@ -9,7 +9,7 @@
 
 
 CSerialPortCtl::CSerialPortCtl(CBaseDevice* device, std::string& gpioName):
-	CBaseCommCtl(device),
+	CBaseCommCtl(device, gpioName),
 	m_serialPort(m_ioService)
 {
 

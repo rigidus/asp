@@ -100,9 +100,8 @@ void printdev<database::CSettings::DeviceConfig>(database::CSettings::DeviceConf
 		std::cout << "  " << comm << std::endl;
 }
 
-int main()
+void testAndDestroy()
 {
-
 	struct DeviceCtl
 	{
 		boost::shared_ptr<IAbstractDevice> devInstance;
@@ -132,26 +131,39 @@ int main()
 
 		if (v.proto.size() != 0) std::cout << " " << v.proto << std::endl;
 
-		for (auto comm: v.comm)
-			std::cout << "  " << comm << std::endl;
-
 		DeviceCtl devCtl;
 		boost::shared_ptr<IAbstractDevice> sPtr( factory.deviceFactory(v.abstractName, v.concreteName) );
 		devCtl.devInstance = sPtr;
 
-		devices.push_back(devCtl);
+		if (sPtr.get() != nullptr)
+			devices.push_back(devCtl);
+
 	}
 
-	std::string cmd("command_from_json");
-	std::string pars("pars_from_json");
+	if (devices.size())
+	{
+		std::string cmd("command_from_json");
+		std::string pars("pars_from_json");
 
-	std::cout << "Set task for device0 to thread pool" << std::endl;
+		std::cout << "Set task for device0 to thread pool" << std::endl;
 
-	GlobalThreadPool::get().AddTask(0, boost::bind(sendCommand<AbstractShlagbaum>, devices[0].devInstance.get(), cmd, pars));
+		GlobalThreadPool::get().AddTask(0, boost::bind(sendCommand<AbstractShlagbaum>, devices[0].devInstance.get(), cmd, pars));
 
-	boost::this_thread::sleep(boost::posix_time::microseconds(1000));
+		boost::this_thread::sleep(boost::posix_time::microseconds(1000));
+
+	}
+	else
+	{
+		std::cout << "No instanced device found" << std::endl;
+	}
 
 	GlobalThreadPool::stop();
+}
+
+int main()
+{
+
+	testAndDestroy();
 
 	return 0;
 }

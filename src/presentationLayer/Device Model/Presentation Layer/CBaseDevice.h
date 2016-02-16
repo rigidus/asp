@@ -29,9 +29,10 @@ public:
 	CBaseDevice(const CBaseDevice& theCBaseDevice);
 
 	virtual void sendCommand(const std::string command, const std::string pars)=0;
-	virtual bool connectToCommCtl(const std::string& deviceName, const std::string& commName)=0;
+	virtual bool connectToCommCtl()=0;
+	virtual void disconnectFromCommCtl()=0;
 
-	CBaseCommCtl* getCommCtl();
+	const std::vector<CBaseCommCtl*>& getCommCtl();
 
 	static void performEvent(CBaseDevice* device, std::vector<uint8_t>& rcvData)
 	{
@@ -42,7 +43,7 @@ public:
 
 protected:
 
-	CBaseCommCtl* m_commCtl;
+	std::vector<CBaseCommCtl*> m_commCtl;
 
 };
 

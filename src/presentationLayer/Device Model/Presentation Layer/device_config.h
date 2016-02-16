@@ -19,7 +19,7 @@ namespace device_config {
 			"shlagbaum palka",
 			"shlagbaum_in",
 			"",
-			{ "gpio12", "gpio18", "gpio8", "gpio2" },
+			{ "gpio12", "gpio18", "gpio8", "uart2" },
 			true
 	};
 
@@ -89,13 +89,13 @@ namespace device_config {
 	CSettings::DeviceConfig* deviceList[] =
 	{
 			&shlagbaum1,
-			&shlagbaum2,
-			&printer,
-			&presentSensor,
-			&passSensor,
-			&display,
-			&cardReader,
-			&kkm
+//			&shlagbaum2,
+//			&printer,
+//			&presentSensor,
+//			&passSensor,
+//			&display,
+//			&cardReader,
+//			&kkm
 	};
 
 };

@@ -71,12 +71,11 @@ private:
 	{
 		IAbstractDevice* dev = nullptr;
 
-		std::cout << "Create abstract device: " << abstractName << ", " << devName << std::endl;
+		std::cout << "Create abstract device: " << abstractName << std::endl;
 
 		if ( devName.find(T::s_abstractName) != std::string::npos)
 		{
 			dev = T::createDevice(abstractName, devName);
-			return dev;
 		}
 
 		return dev;

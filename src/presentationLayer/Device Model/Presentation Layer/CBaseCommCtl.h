@@ -23,14 +23,17 @@ class CBaseCommCtl: private noncopyable
 {
 
 public:
-	CBaseCommCtl(CBaseDevice* device);
 	virtual ~CBaseCommCtl();
 
 	virtual bool receive(int rcvData) = 0;
 	virtual uint32_t send(std::list<std::vector<uint8_t> > sendData) = 0;
 	virtual int setSettings(std::string deviceName) = 0;
 
+	std::string m_commName;
+
 protected:
+	CBaseCommCtl(CBaseDevice* device, const std::string& commName);
+
 	std::string m_deviceName;
 	CBaseDevice* m_device;
 

@@ -10,9 +10,50 @@
 
 using namespace database;
 
-namespace proto_config {
+namespace devcomm_config {
 
+	CSettings::CommGPIOConfig gpio12 =
+	{
+			"gpio12",
+			true,	// out
+			false,	// value = 0
+			3000	// default pulse value, ms
+	};
 
+	CSettings::CommGPIOConfig gpio18 =
+	{
+			"gpio18",
+			true,	// out
+			false,	// value = 0
+			3000	// default pulse value, ms
+	};
+
+	CSettings::CommGPIOConfig gpio8 =
+	{
+			"gpio8",
+			false,	// in, signal from car present
+			true,	// value = 1
+			300		// check delay, ms
+	};
+
+	CSettings::CommUARTConfig uart2 =
+	{
+			"uart2",
+			115200,
+			8, 1, true
+	};
+
+	CSettings::CommGPIOConfig* gpioConfigList[] =
+	{
+			&gpio8,
+			&gpio12,
+			&gpio18
+	};
+
+	CSettings::CommUARTConfig* uartConfigList[] =
+	{
+			&uart2
+	};
 };
 
 

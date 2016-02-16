@@ -9,8 +9,7 @@
 
 
 CBaseDevice::CBaseDevice(const std::string& str):
-	c_name(str),
-	m_commCtl(nullptr)
+	c_name(str)
 {
 
 }
@@ -22,7 +21,7 @@ CBaseDevice::~CBaseDevice(){
 }
 
 
-CBaseCommCtl* CBaseDevice::getCommCtl(){
+const std::vector<CBaseCommCtl*>& CBaseDevice::getCommCtl(){
 
 	return m_commCtl;
 }

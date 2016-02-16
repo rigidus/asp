@@ -25,7 +25,10 @@ class CPinCtl : private CBaseCommCtl
 public:
 
 	static bool fileIsExist(const std::string& fileName);
-	static CBaseCommCtl* getPinCtl(CBaseDevice* device, const std::string& gpioName);
+	static CBaseCommCtl* takePinCtl(CBaseDevice* device, const std::string& gpioName);
+	static void freePinCtl(CBaseDevice* device, const std::string& gpioName);
+
+	void freePinCtl(const std::string& gpioName);
 
 	virtual ~CPinCtl();
 
@@ -35,6 +38,8 @@ public:
 
 private:
 	CPinCtl(CBaseDevice* device, const std::string& gpioName);
+
+	static std::map<std::string, CPinCtl*> busyPins;
 
 	static const std::string gpioPath;
 

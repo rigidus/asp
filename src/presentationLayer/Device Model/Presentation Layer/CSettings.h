@@ -40,28 +40,9 @@ public:
 		bool enable;
 	};
 
-	struct PrinterPilotProtoConfig
-	{
-
-	};
-
-	struct WinStarProtoConfig
-	{
-
-	};
-
-	struct MassStorageProtoConfig
-	{
-
-	};
-
-	struct KKMProtoConfig
-	{
-
-	};
-
 	struct CommGPIOConfig
 	{
+		std::string name;
 		bool direction; // 0 - in, 1 - out
 		bool def_value;		// 0 - off 1 - on
 		uint32_t pulseLen;
@@ -69,6 +50,7 @@ public:
 
 	struct CommUARTConfig
 	{
+		std::string name;
 		uint32_t speed;
 		uint32_t bits;
 		uint32_t stop;
@@ -80,13 +62,10 @@ public:
 	~CSettings();
 
 
-	const std::vector<CSettings::DeviceConfig> getDeviceConfig();
-	const PrinterPilotProtoConfig getPrinterPilotProtoByName(std::string deviceName, std::string protoName);
-	const WinStarProtoConfig getWinstarProtoByName(std::string deviceName, std::string protoName);
-	const MassStorageProtoConfig getMassStorageProtoByName(std::string protoName);
-	const KKMProtoConfig getKKMProtoByName(std::string deviceName, std::string protoName);
-	const CommGPIOConfig getGPIOByDevice(std::string deviceName, uint32_t commIndex);
-	const CommUARTConfig getUARTByDevice(std::string deviceName, uint32_t commIndex);
+	const std::vector<DeviceConfig> getDeviceConfig();
+	const std::vector<std::string> getGPIONamesByDevice(const std::string& deviceName);
+	const std::vector<CommGPIOConfig> getGPIOByDevice(const std::string deviceName, const std::string gpioName);
+	const std::vector<CommUARTConfig> getUARTByDevice(const std::string deviceName);
 
 };
 

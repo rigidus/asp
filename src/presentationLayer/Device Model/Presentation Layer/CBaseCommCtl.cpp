@@ -8,9 +8,10 @@
 #include "CBaseCommCtl.h"
 #include "CBaseDevice.h"
 
-CBaseCommCtl::CBaseCommCtl(CBaseDevice* device): m_device(device)
+CBaseCommCtl::CBaseCommCtl(CBaseDevice* device, const std::string& commName): m_device(device)
 {
 	m_deviceName = m_device->c_name;
+	m_commName = commName;
 }
 
 
