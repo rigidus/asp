@@ -175,20 +175,20 @@ int main()
 {
 
 //  Test1 in the future
-//	for (int i=0; i<10; ++i)	// for test of create and destroy
-//	{
-//		std::cout << "------------- start new instance ---------------- " <<  i << std::endl;
+	for (int i=0; i<10; ++i)	// for test of create and destroy
+	{
+		std::cout << "------------- start new instance ---------------- " <<  i << std::endl;
+
+		testAndDestroy();
+	}
+
+//	CurlAdapter webServer;
+//	if (webServer.CurlStart(cb_commandFromBL) == false) std::cout << "False start" << std::endl;
+//	if (webServer.AddRequest("") == false) std::cout << "False add request" << std::endl;
+//	webServer.Update();
 //
-//		testAndDestroy();
-//	}
-
-	CurlAdapter webServer;
-	if (webServer.CurlStart(cb_commandFromBL) == false) std::cout << "False start" << std::endl;
-	if (webServer.AddRequest("") == false) std::cout << "False add request" << std::endl;
-	webServer.Update();
-
-	boost::this_thread::sleep(boost::posix_time::milliseconds(5000));
-
+//	boost::this_thread::sleep(boost::posix_time::milliseconds(5000));
+//
 	return 0;
 }
 
