@@ -30,11 +30,11 @@ public:
 	}
 
 
-	IAbstractDevice* deviceFactory(const std::string& abstractName, const std::string& devName)
+	CAbstractDevice* deviceFactory(const std::string& abstractName, const std::string& devName)
 	{
-		std::vector<IAbstractDevice*> devs;
+		std::vector<CAbstractDevice*> devs;
 
-		IAbstractDevice* dev = nullptr;
+		CAbstractDevice* dev = nullptr;
 
 		dev = createAbstractDevice<AbstractShlagbaum>(abstractName, devName);
 		if (dev) devs.push_back(dev);
@@ -56,7 +56,7 @@ public:
 		{
 			std::cout << "deviceFactory detected device configuration error: more than 1 abstract-concrete device created" << std::endl;
 
-			for (IAbstractDevice* d: devs)
+			for (CAbstractDevice* d: devs)
 				delete d;
 
 			return nullptr;
@@ -82,9 +82,9 @@ private:
 	}
 
 	template<class T>
-	IAbstractDevice* createAbstractDevice(const std::string& abstractName, const std::string& devName)
+	CAbstractDevice* createAbstractDevice(const std::string& abstractName, const std::string& devName)
 	{
-		IAbstractDevice* dev = nullptr;
+		CAbstractDevice* dev = nullptr;
 
 		if ( devName.find(T::s_abstractName) != std::string::npos)
 		{

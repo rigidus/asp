@@ -21,6 +21,7 @@
 #include "TestDevices.h"
 #include "CBaseDeviceFactory.h"
 #include "GlobalThreadPool.h"
+#include "curlAdapter.h"
 
 using namespace mythreadpool;
 using namespace rapidjson;
@@ -41,18 +42,21 @@ void sendError2BL(std::string)
 }
 
 template<typename T>
-static void sendCommand(IAbstractDevice* iDev, std::string command, std::string pars)
+static void sendCommand(CAbstractDevice* iDev, std::string command, std::string pars)
 {
 	iDev->sendCommand(command, pars);
 }
 
 void cb_commandFromBL(std::string jsonDoc)
 {
+
+	std::cout << jsonDoc << std::endl;
+
 //	Document workDoc;
 //	workDoc.Parse(jsonDoc.c_str());
 //
 //	CDeviceManager* pdm = CDeviceManager::getDeviceManager();
-//	IAbstractDevice* pAbstractDev = nullptr;
+//	CAbstractDevice* pAbstractDev = nullptr;
 //
 //	if (workDoc.HasMember("txid") == false) sendError2BL("txid not found");
 //
@@ -92,7 +96,13 @@ template<>
 void printdev<database::CSettings::DeviceConfig>(database::CSettings::DeviceConfig v)
 {
 	std::cout << "abstract DeviceConfig" << std::endl;
-	std::cout << v.abstractName << std::endl;
+	std::cout << v.abstractName << std::endl;//	for (int i=0; i<10; ++i)	// for test of create and destroy
+	//	{
+	//		std::cout << "------------- start new instance ---------------- " <<  i << std::endl;
+	//
+	//		testAndDestroy();
+	//	}
+
 
 	if (v.proto.size() != 0) std::cout << " " << v.proto << std::endl;
 
@@ -104,7 +114,7 @@ void testAndDestroy()
 {
 	struct DeviceCtl
 	{
-		boost::shared_ptr<IAbstractDevice> devInstance;
+		boost::shared_ptr<CAbstractDevice> devInstance;
 
 		struct Task
 		{
@@ -132,7 +142,7 @@ void testAndDestroy()
 		if (v.proto.size() != 0) std::cout << " " << v.proto << std::endl;
 
 		DeviceCtl devCtl;
-		boost::shared_ptr<IAbstractDevice> sPtr( factory.deviceFactory(v.abstractName, v.concreteName) );
+		boost::shared_ptr<CAbstractDevice> sPtr( factory.deviceFactory(v.abstractName, v.concreteName) );
 		devCtl.devInstance = sPtr;
 
 		if (sPtr.get() != nullptr)
@@ -164,12 +174,20 @@ void testAndDestroy()
 int main()
 {
 
-	for (int i=0; i<10; ++i)	// for test of create and destroy
-	{
-		std::cout << "------------- start new instance ---------------- " <<  i << std::endl;
+//  Test1 in the future
+//	for (int i=0; i<10; ++i)	// for test of create and destroy
+//	{
+//		std::cout << "------------- start new instance ---------------- " <<  i << std::endl;
+//
+//		testAndDestroy();
+//	}
 
-		testAndDestroy();
-	}
+	CurlAdapter webServer;
+	if (webServer.CurlStart(cb_commandFromBL) == false) std::cout << "False start" << std::endl;
+	if (webServer.AddRequest("") == false) std::cout << "False add request" << std::endl;
+	webServer.Update();
+
+	boost::this_thread::sleep(boost::posix_time::milliseconds(5000));
 
 	return 0;
 }

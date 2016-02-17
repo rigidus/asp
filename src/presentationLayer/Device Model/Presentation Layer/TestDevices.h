@@ -9,6 +9,7 @@
 #define TESTDEVICES_H_
 
 #include "CBaseDevice.h"
+#include "CAbstractDevice.h"
 #include "GlobalThreadPool.h"
 #include "CPinCtl.h"
 #include "CSettings.h"
@@ -92,52 +93,18 @@ const std::string ShlagbaumPalka::s_concreteName = "shlagbaum palka";
 //};
 
 // abstract classes
-class IAbstractDevice: private noncopyable
-{
-private:
-	CBaseDevice* concreteDevice;
-	const std::string c_abstractName;
 
-public:
-
-	IAbstractDevice(CBaseDevice* pDevice, const std::string& abstractName):
-		concreteDevice(pDevice),
-		c_abstractName(abstractName) {
-
-		std::cout << "Abstract Device: " << abstractName << " created." << std::endl;
-	}
-
-	virtual ~IAbstractDevice()
-	{
-		delete concreteDevice;
-	}
-
-	CBaseDevice* device()
-	{ return concreteDevice; }
-
-	const std::string& deviceAbstractName()
-	{ return c_abstractName; }
-
-	const std::string& deviceConcreteName()
-	{ return concreteDevice->c_name; }
-
-	virtual void sendCommand(const std::string& command, const std::string& pars)=0;
-
-
-};
-
-
-class AbstractShlagbaum: public IAbstractDevice
+class AbstractShlagbaum: public CAbstractDevice
 {
 
 public:
 
 	AbstractShlagbaum(CBaseDevice* pDevice, const std::string& abstractName):
-		IAbstractDevice(pDevice, abstractName) {}
+		CAbstractDevice(pDevice, abstractName) {}
 
 	static const std::string s_abstractName;
 
-	static IAbstractDevice* createDevice(const std::string& abstractName, const std::string& devName)
+	static CAbstractDevice* createDevice(const std::string& abstractName, const std::string& devName)
 	{
 
 		std::cout << "Create concrete device " << devName << std::endl;
