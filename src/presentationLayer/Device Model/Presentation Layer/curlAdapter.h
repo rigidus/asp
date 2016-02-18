@@ -14,6 +14,11 @@
 
 #include <boost/thread.hpp>
 
+//#ifdef __cplusplus
+//extern "C"
+//{
+//#endif
+
 class CurlAdapter
 {
 
@@ -22,23 +27,31 @@ class CurlAdapter
 
 	char errorBuffer[CURL_ERROR_SIZE];
 
-	static std::string buffer;
+	typedef void(*TFnCurlCallback)(std::string);
+	typedef int (*TFnCbWrite)(char*, size_t, size_t, std::string*);
 
-	static uint32_t writer(char *data, size_t size, size_t nmemb, std::string* buffer)
+	TFnCurlCallback m_cbFunction;
+
+	TFnCbWrite cbFn;
+
+	std::string m_buffer;
+
+	static int writer(char *data, size_t size, size_t nmemb, std::string* buffer)
 	{
+
+		std::cout << "CurlAdapter::writer was called " << std::endl;
+
 		uint32_t result = 0;
 
 		if (buffer != nullptr)
 		{
+			std::cout << "CurlAdapter::writer before append: " << size << ", " << nmemb << std::endl;
 			buffer->append(data, size * nmemb);
+			std::cout << "CurlAdapter::writer after append" << std::endl;
 			result = size * nmemb;
 		}
 
-		if (result == CURLE_OK)
-		{
-			s_cbFunction(*buffer);
-			buffer->clear();
-		}
+		std::cout << "CurlAdapter::writer was ended" << std::endl;
 
 		return result;
 	}
@@ -50,21 +63,27 @@ class CurlAdapter
 			curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuffer);
 //			curl_easy_setopt(curl, CURLOPT_URL, "http://localhost");
 			curl_easy_setopt(curl, CURLOPT_URL, "http://www.google.ru");
-			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CurlAdapter::writer);
-			curl_easy_setopt(curl, CURLOPT_WRITEDATA, &CurlAdapter::buffer);
+			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CurlAdapter::cbFn);
+			curl_easy_setopt(curl, CURLOPT_WRITEDATA, &m_buffer);
 		}
 	}
 
 public:
 
-	typedef void(*TFnCurlCallback)(std::string);
-	static TFnCurlCallback s_cbFunction;
+	std::vector<CURL*> vCurls;
 
 	CurlAdapter(): multicurl(nullptr), handle_count(0)
-	{	}
+	{
+		cbFn = &CurlAdapter::writer;
+		m_cbFunction = nullptr;
+	}
 
 	~CurlAdapter()
 	{
+
+		for (CURL* curl: vCurls)
+			curl_easy_cleanup(curl);
+
 		if (multicurl)
 			curl_multi_cleanup(multicurl);
 	}
@@ -75,7 +94,7 @@ public:
 
 		if (multicurl)
 		{
-			s_cbFunction = cbFunction;
+			m_cbFunction = cbFunction;
 			return true;
 		}
 
@@ -93,27 +112,51 @@ public:
 	{
 		if (!multicurl) return false;
 
-		CURL* curl = NULL;
-		curl = curl_easy_init();
+		{
+			CURL* curl = NULL;
+			curl = curl_easy_init();
 
-		if (!curl) return false;
+			if (!curl) return false;
 
-		CurlSetup(curl);
-		curl_multi_add_handle(multicurl, curl);
+			vCurls.push_back(curl);
+
+			CurlSetup(curl);
+			curl_multi_add_handle(multicurl, curl);
+		}
 
 		return true;
 	}
 
-	void Update()
+	int32_t Update()
 	{
-		if (!multicurl) return;
+		if (!multicurl) return CURLM_OK-2;
 
-		std::cout << curl_multi_perform(multicurl, &handle_count) << std::endl;
+		CURLMcode result = CURLM_CALL_MULTI_PERFORM;
+		while(1)
+		{
+			result = curl_multi_perform(multicurl, &handle_count);
+			if (handle_count == 0)
+			{
+				if (result == CURLM_OK)
+				{
+					m_cbFunction(m_buffer);
+					m_buffer.clear();
+				}
+
+				break;
+			}
+		}
+
+		return result;
 	}
 
 };
 
-CurlAdapter::TFnCurlCallback CurlAdapter::s_cbFunction = nullptr;
-std::string CurlAdapter::buffer;
+//CurlAdapter::TFnCurlCallback CurlAdapter::s_cbFunction = nullptr;
+//std::string CurlAdapter::buffer;
+
+//#ifdef __cplusplus
+//}
+//#endif
 
 #endif /* CURLADAPTER_H_ */

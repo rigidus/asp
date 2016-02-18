@@ -8,7 +8,7 @@
 #ifndef CABSTRACTDEVICE_H_
 #define CABSTRACTDEVICE_H_
 
-#include "CBaseDevice.h"
+#include <devices/CBaseDevice.h>
 
 class CAbstractDevice: private noncopyable
 {

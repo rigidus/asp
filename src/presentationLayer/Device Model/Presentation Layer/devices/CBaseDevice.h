@@ -15,11 +15,11 @@
 
 using namespace boost;
 
-#include "CBaseCodec.h"
-#include "CBaseCommCtl.h"
-#include "CSettings.h"
-#include "CPinCtl.h"
-#include "CSerialPortCtl.h"
+#include <CBaseCodec.h>
+#include <CBaseCommCtl.h>
+#include <CSettings.h>
+#include <CPinCtl.h>
+#include <CSerialPortCtl.h>
 
 
 class CBaseDevice: private noncopyable

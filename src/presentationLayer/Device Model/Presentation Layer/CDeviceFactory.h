@@ -1,30 +1,31 @@
 /*
- * CBaseDeviceFactory.h
+ * CDeviceFactory.h
  *
  *  Created on: 10 февр. 2016 г.
  *      Author: alex
  */
 
-#ifndef CBASEDEVICEFACTORY_H_
-#define CBASEDEVICEFACTORY_H_
+#ifndef CDEVICEFACTORY_H_
+#define CDEVICEFACTORY_H_
 
-#include "CBaseDevice.h"
+#include "devices/CBaseDevice.h"
+#include "abstract/ShlagbaumAbstract.h"
 
-class CBaseDeviceFactory
+class CDeviceFactory
 {
-	CBaseDeviceFactory() {}
+	CDeviceFactory() {}
 
 	boost::mutex mut;
 
 public:
 
-	static CBaseDeviceFactory& getFactory()
+	static CDeviceFactory& getFactory()
 	{
-		static CBaseDeviceFactory* ptr = nullptr;
+		static CDeviceFactory* ptr = nullptr;
 
 		boost::mutex::scoped_lock(mut);
 
-		if (ptr == nullptr) ptr = new CBaseDeviceFactory;
+		if (ptr == nullptr) ptr = new CDeviceFactory;
 
 		return *ptr;
 	}
@@ -99,4 +100,4 @@ private:
 };
 
 
-#endif /* CBASEDEVICEFACTORY_H_ */
+#endif /* CDEVICEFACTORY_H_ */

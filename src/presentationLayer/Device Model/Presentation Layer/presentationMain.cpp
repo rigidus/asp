@@ -15,13 +15,15 @@
 #include "rapidjson/stringbuffer.h"
 
 #include "CSettings.h"
-#include "CBaseDevice.h"
+#include "devices/CBaseDevice.h"
 #include "MyThreadPool.h"
 #include "CDeviceManager.h"
 #include "TestDevices.h"
-#include "CBaseDeviceFactory.h"
 #include "GlobalThreadPool.h"
 #include "curlAdapter.h"
+
+#include "abstract/ShlagbaumAbstract.h"
+#include "CDeviceFactory.h"
 
 using namespace mythreadpool;
 using namespace rapidjson;
@@ -125,12 +127,12 @@ void testAndDestroy()
 		std::queue<Task> taskQue;
 	};
 
-	std::vector<DeviceCtl> devices;
+	std::map< std::string, DeviceCtl > devices;
 
 	database::CSettings sets;
 	std::vector<database::CSettings::DeviceConfig> devList = sets.getDeviceConfig();
 
-	CBaseDeviceFactory&	factory = CBaseDeviceFactory::getFactory();
+	CDeviceFactory&	factory = CDeviceFactory::getFactory();
 
 	for (auto v: devList)
 	{
@@ -146,7 +148,7 @@ void testAndDestroy()
 		devCtl.devInstance = sPtr;
 
 		if (sPtr.get() != nullptr)
-			devices.push_back(devCtl);
+			devices.emplace( std::make_pair(v.abstractName, devCtl) );
 
 	}
 
@@ -157,7 +159,11 @@ void testAndDestroy()
 
 		std::cout << "Set task for device0 to thread pool" << std::endl;
 
-		GlobalThreadPool::get().AddTask(0, boost::bind(sendCommand<AbstractShlagbaum>, devices[0].devInstance.get(), cmd, pars));
+		/*
+		 *  Постановка задачи на отправку команды на абстрактное устройство.
+		 */
+		if ( devices.find("shlagbaum_in") != devices.end() )
+			GlobalThreadPool::get().AddTask(0, boost::bind(sendCommand<AbstractShlagbaum>, devices[ "shlagbaum_in" ].devInstance.get(), cmd, pars));
 
 		boost::this_thread::sleep(boost::posix_time::microseconds(1000));
 
@@ -185,10 +191,13 @@ int main()
 //	CurlAdapter webServer;
 //	if (webServer.CurlStart(cb_commandFromBL) == false) std::cout << "False start" << std::endl;
 //	if (webServer.AddRequest("") == false) std::cout << "False add request" << std::endl;
-//	webServer.Update();
+//
+//	int32_t result = webServer.Update();
+//
+//	std::cout << result << std::endl;
 //
 //	boost::this_thread::sleep(boost::posix_time::milliseconds(5000));
-//
+
 	return 0;
 }
 

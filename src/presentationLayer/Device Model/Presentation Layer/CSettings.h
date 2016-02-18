@@ -57,6 +57,13 @@ public:
 		bool even;
 	};
 
+	struct CommCURLConfig
+	{
+		std::string name;
+		std::string host;
+		std::string port;
+	};
+
 public:
 	CSettings();
 	~CSettings();

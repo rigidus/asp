@@ -159,6 +159,9 @@ uint32_t CPinCtl::send(std::list<std::vector<uint8_t> > sendData)
 
 	std::cout << "CPinCtl send command to pin and imitate reply ACK as callback" << std::endl;
 
+	/*
+	 * Постановка задачи на отправку сообщения на верхний уровень менеджеру
+	 */
 	GlobalThreadPool::get().AddTask(0, boost::bind(CBaseDevice::performEvent, m_device, *sendData.begin() ));
 
 	return  0;

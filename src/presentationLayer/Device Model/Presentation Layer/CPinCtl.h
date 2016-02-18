@@ -9,7 +9,7 @@
 #define EA_F6FA3185_3A4D_4043_A499_06D6A2FDBFCF__INCLUDED_
 
 #include "CBaseCommCtl.h"
-#include "CBaseDevice.h"
+#include "devices/CBaseDevice.h"
 #include "GlobalThreadPool.h"
 
 #include <iostream>

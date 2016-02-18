@@ -43,6 +43,27 @@ namespace devcomm_config {
 			8, 1, true
 	};
 
+	CSettings::CommCURLConfig curlBusinnessLogic =
+	{
+			"bl",
+			"http://localhost/businness_logic",
+			"80"
+	};
+
+	CSettings::CommCURLConfig curlWebInterface =
+	{
+			"wi",
+			"http://localhost/web_interface",
+			"80"
+	};
+
+	CSettings::CommCURLConfig curlTestInterface =
+	{
+			"ti",
+			"http://localhost/test_interface",
+			"80"
+	};
+
 	CSettings::CommGPIOConfig* gpioConfigList[] =
 	{
 			&gpio8,
@@ -54,6 +75,14 @@ namespace devcomm_config {
 	{
 			&uart2
 	};
+
+	CSettings::CommCURLConfig* curlConfigList[] =
+	{
+			&curlBusinnessLogic,
+			&curlWebInterface,
+			&curlTestInterface
+	};
+
 };
 
 

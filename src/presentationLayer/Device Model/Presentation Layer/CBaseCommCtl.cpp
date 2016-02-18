@@ -6,7 +6,7 @@
 ///////////////////////////////////////////////////////////
 
 #include "CBaseCommCtl.h"
-#include "CBaseDevice.h"
+#include "devices/CBaseDevice.h"
 
 CBaseCommCtl::CBaseCommCtl(CBaseDevice* device, const std::string& commName): m_device(device)
 {
