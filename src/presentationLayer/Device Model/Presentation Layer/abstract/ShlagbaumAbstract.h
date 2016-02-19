@@ -32,12 +32,12 @@ public:
 		if ( ShlagbaumPalka::s_concreteName == devName)
 		{
 			cDev = reinterpret_cast<CBaseDevice*> (new ShlagbaumPalka());
-		}
 
-		// Connect concrete device to communication devices
-		if (cDev != nullptr && cDev->connectToCommCtl())
-		{
-			return new AbstractShlagbaum(cDev, abstractName);
+			// Connect concrete device to communication devices
+			if (cDev->connectToCommCtl())
+			{
+				return new AbstractShlagbaum(cDev, abstractName);
+			}
 		}
 
 		return nullptr;
