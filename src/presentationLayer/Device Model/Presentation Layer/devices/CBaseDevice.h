@@ -39,7 +39,7 @@ public:
 
 	static void performEvent(CBaseDevice* device, std::vector<uint8_t>& rcvData)
 	{
-		std::cout << "CBaseDevice Perform Event From Device: " << device->c_name << ": ";
+		std::cout << "CBaseDevice performs Event from device: " << device->c_name << ": ";
 		for (auto v: rcvData) std::cout << v << " ";
 		std::cout << std::endl;
 	}

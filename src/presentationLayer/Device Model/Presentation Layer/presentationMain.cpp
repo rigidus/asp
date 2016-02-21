@@ -5,15 +5,14 @@
  *      Author: alex
  */
 
+#include "HttpServer.h"
+
 #include <iostream>
 
 #include <boost/any.hpp>
 #include <boost/bind.hpp>
+#include <boost/thread.hpp>
 #include <Settings.h>
-
-#include "rapidjson/document.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/stringbuffer.h"
 
 #include "CDeviceManager.h"
 #include "GlobalThreadPool.h"
@@ -43,7 +42,7 @@ void sendError2BL(std::string)
 	// TODO: create send answer to businness logic
 }
 
-void cb_commandFromBL(std::string jsonDoc)
+void cb_commandFromHttpClient(std::string jsonDoc)
 {
 
 	std::cout << jsonDoc << std::endl;
@@ -113,12 +112,23 @@ void testCreateAndDestroy()
 int main()
 {
 
+	boost::thread thrHttpServer = httpserver::startHttpServer();
+
 //  Test1 in the future
 	for (int i=0; i<10; ++i)	// for test of create and destroy
 	{
 		std::cout << "------------- start new instance ---------------- " <<  i << std::endl;
 
 		testCreateAndDestroy();
+	}
+
+//	CDeviceManager* devManager =
+	CDeviceManager::deviceManagerFactory(CDeviceManager::TestingSet);
+	GlobalThreadPool::get();
+
+	for (;;)
+	{
+		boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
 	}
 
 	return 0;
