@@ -1,33 +1,24 @@
 /*
- * CSettings.cpp
+ * settings.cpp
  *
  *  Created on: 8 февр. 2016 г.
  *      Author: alex
  */
 
-#include "CSettings.h"
+#include "Settings.h"
 
 #include <iostream>
 
-namespace database {
+namespace settings {
 
 #include "device_config.h"
 #include "devcomm_config.h"
 
-CSettings::CSettings() {
-	// TODO Auto-generated constructor stub
-
-}
-
-CSettings::~CSettings() {
-	// TODO Auto-generated destructor stub
-}
-
-const std::vector<CSettings::DeviceConfig> CSettings::getDeviceConfig()
+const std::vector<DeviceConfig> fromTestDevices()
 {
-	std::vector<CSettings::DeviceConfig> baseList;
+	std::vector<settings::DeviceConfig> baseList;
 
-	for (CSettings::DeviceConfig* v: device_config::deviceList)
+	for (settings::DeviceConfig* v: device_config::deviceList)
 	{
 		baseList.push_back( *v );
 	}
@@ -36,7 +27,17 @@ const std::vector<CSettings::DeviceConfig> CSettings::getDeviceConfig()
 }
 
 
-const std::vector<std::string> CSettings::getGPIONamesByDevice(const std::string& deviceName)
+const std::vector<DeviceConfig> fromDBDevices()
+{
+	std::vector<settings::DeviceConfig> baseList;
+
+	// TODO: reading device config from DB
+
+	return baseList;
+}
+
+
+const std::vector<std::string> getCommNamesByDevice(const std::string& deviceName)
 {
 	std::vector<std::string> names;
 
@@ -56,12 +57,12 @@ const std::vector<std::string> CSettings::getGPIONamesByDevice(const std::string
 }
 
 
-const std::vector<CSettings::CommGPIOConfig> CSettings::getGPIOByDevice(const std::string deviceName, const std::string gpioName)
+const std::vector<CommGPIOConfig> getGPIOByDevice(const std::string deviceName, const std::string gpioName)
 {
 	// TODO: make config and return it
-	std::vector<CSettings::CommGPIOConfig> devs;
+	std::vector<settings::CommGPIOConfig> devs;
 
-	for (CSettings::DeviceConfig* v: device_config::deviceList)
+	for (settings::DeviceConfig* v: device_config::deviceList)
 	{
 		if (v->abstractName == deviceName)
 		{
@@ -87,10 +88,10 @@ const std::vector<CSettings::CommGPIOConfig> CSettings::getGPIOByDevice(const st
 	return devs;
 }
 
-const std::vector<CSettings::CommUARTConfig> CSettings::getUARTByDevice(const std::string deviceName)
+const std::vector<CommUARTConfig> getUARTByDevice(const std::string deviceName)
 {
 	// TODO: make config and return it
-	std::vector<CSettings::CommUARTConfig> devs;
+	std::vector<settings::CommUARTConfig> devs;
 
 	return devs;
 }

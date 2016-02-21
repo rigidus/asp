@@ -5,22 +5,17 @@
  *      Author: alex
  */
 
-#ifndef CSETTINGS_H_
-#define CSETTINGS_H_
+#ifndef SETTINGS_H_
+#define SETTINGS_H_
 
 #include <string>
 #include <vector>
 
 #include <boost/cstdint.hpp>
-#include <boost/variant.hpp>
+
+namespace settings {
 
 using namespace boost;
-
-namespace database {
-
-class CSettings {
-
-public:
 
 	struct AllDeviceConf
 	{
@@ -57,25 +52,20 @@ public:
 		bool even;
 	};
 
-	struct CommCURLConfig
+	struct HttpClientConfig
 	{
 		std::string name;
 		std::string host;
 		std::string port;
 	};
 
-public:
-	CSettings();
-	~CSettings();
+	const std::vector<DeviceConfig> fromTestDevices();
+	const std::vector<DeviceConfig> fromDBDevices();
 
-
-	const std::vector<DeviceConfig> getDeviceConfig();
-	const std::vector<std::string> getGPIONamesByDevice(const std::string& deviceName);
+	const std::vector<std::string> getCommNamesByDevice(const std::string& deviceName);
 	const std::vector<CommGPIOConfig> getGPIOByDevice(const std::string deviceName, const std::string gpioName);
 	const std::vector<CommUARTConfig> getUARTByDevice(const std::string deviceName);
 
-};
-
 } /* namespace database */
 
-#endif /* CSETTINGS_H_ */
+#endif /* SETTINGS_H_ */

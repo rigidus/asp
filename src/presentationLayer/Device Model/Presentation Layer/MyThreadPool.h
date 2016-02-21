@@ -108,9 +108,9 @@ private:
 
 	friend CThreadPool;
 
-	bool IsRunning;
-	bool IsEnd;
-	bool IsFinished;
+	volatile bool IsRunning;
+	volatile bool IsEnd;
+	volatile bool IsFinished;
 
 	CTaskQueue* taskqueue;
 
@@ -127,6 +127,7 @@ private:
 
 		try
 		{
+			mystate->IsRunning = true;
 			while (mystate->IsRunning)
 			{
 
@@ -137,18 +138,27 @@ private:
 
 					CFileLog::cfilelog() << "Work thread " << mystate->id << ": Task running" << std::endl;
 
-					 boost::this_thread::disable_interruption d;
-					 fn();
-				}else{
+					boost::this_thread::disable_interruption d;
+					fn();
+					CFileLog::cfilelog() << "Work thread " << mystate->id << ": Task ready" << std::endl;
 
 					if (mystate->IsEnd) break;
+
+				}else{
+
 
 					CFileLog::cfilelog() << "Work thread " << mystate->id << ": Task waiting..." << std::endl;
 
 					boost::mutex::scoped_lock lock(mystate->mut);
+					if (mystate->IsEnd) break;
 					mystate->taskqueue->cond.wait(lock);
+
+					CFileLog::cfilelog() << "Work thread " << mystate->id << ": Try get new task" << std::endl;
 				}
 			}
+
+			mystate->IsRunning = false;
+			mystate->IsEnd = true;
 		}
 
 		catch(boost::thread_interrupted& e)
@@ -181,21 +191,27 @@ public:
 
 	~CWorker()
 	{
+		CFileLog::cfilelog() << "Destructor CWorker: " << id  << std::endl;
 
-		CFileLog::cfilelog() << "Delete Thread: " << id  << std::endl;
+		taskqueue->cond.notify_all();
 
-		if ((!IsEnd) && (IsRunning))
+		if ( !IsFinished )
 		{
 			thr->interrupt();
-		}else taskqueue->cond.notify_all();
+		}
+
+		taskqueue->cond.notify_all();
 
 		if (thr->joinable()) thr->join();
+		thr->detach();
 
+		CFileLog::cfilelog() << "Delete Thread: " << id  << std::endl;
 		delete thr;
+		CFileLog::cfilelog() << "Thread deleted: " << id  << std::endl;
 	}
 
 	CWorker(CTaskQueue* tq, u32 n):
-		IsRunning(true),
+		IsRunning(false),
 		IsEnd(false),
 		IsFinished(false),
 		taskqueue(tq),
@@ -276,6 +292,7 @@ protected:
 		while (n)
 		{
 			(*itend)->IsRunning = false;
+			(*itend)->IsEnd = true;
 			++itend; --n;
 		}
 
@@ -296,9 +313,11 @@ protected:
 
 	void InternalForceStop()
 	{
+
 		for (std::list<CWorker*>::iterator it=vWorks.begin(); it != vWorks.end(); ++it)
 		{
 			(*it)->IsRunning = false;
+			(*it)->IsEnd = true;
 		}
 
 		DeleteThreads(vWorks.begin(), vWorks.end());
@@ -317,8 +336,6 @@ public:
 
 	~CThreadPool()
 	{
-
-		boost::mutex::scoped_lock lock(tpmut);
 
 		CFileLog::cfilelog() << "Enter to ThreadPool destructor" << std::endl;
 

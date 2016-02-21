@@ -9,26 +9,20 @@
 
 #include <boost/any.hpp>
 #include <boost/bind.hpp>
+#include <Settings.h>
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
-#include "CSettings.h"
-#include "devices/CBaseDevice.h"
-#include "MyThreadPool.h"
 #include "CDeviceManager.h"
-#include "TestDevices.h"
 #include "GlobalThreadPool.h"
-#include "curlAdapter.h"
-
-#include "abstract/ShlagbaumAbstract.h"
-#include "CDeviceFactory.h"
 
 using namespace mythreadpool;
 using namespace rapidjson;
-using namespace devices;
 
+// Abstract names
+// full
 const std::string shlagbaum1("shlagbaum_in");
 const std::string shlagbaum2("shlagbaum_out");
 const std::string printer1("printer");
@@ -38,15 +32,15 @@ const std::string display1("display");
 const std::string massstorage1("sd_card");
 const std::string kkm1("kkm");
 
+// common
+const std::string AbstractShlagbaum::s_abstractName = "shlagbaum";
+
+// concrete names
+const std::string ShlagbaumPalka::s_concreteName = "shlagbaum palka";
+
 void sendError2BL(std::string)
 {
 	// TODO: create send answer to businness logic
-}
-
-template<typename T>
-static void sendCommand(CAbstractDevice* iDev, std::string command, std::string pars)
-{
-	iDev->sendCommand(command, pars);
 }
 
 void cb_commandFromBL(std::string jsonDoc)
@@ -88,92 +82,31 @@ void cb_commandFromBL(std::string jsonDoc)
 
 }
 
-template<typename T>
-void printdev(T v)
+
+void testCreateAndDestroy()
 {
-//	static_assert(false, "Error");
-}
 
-template<>
-void printdev<database::CSettings::DeviceConfig>(database::CSettings::DeviceConfig v)
-{
-	std::cout << "abstract DeviceConfig" << std::endl;
-	std::cout << v.abstractName << std::endl;//	for (int i=0; i<10; ++i)	// for test of create and destroy
-	//	{
-	//		std::cout << "------------- start new instance ---------------- " <<  i << std::endl;
-	//
-	//		testAndDestroy();
-	//	}
+	CDeviceManager* devManager = CDeviceManager::deviceManagerFactory(CDeviceManager::TestingSet);
 
+	std::string dev("shlagbaum_in");
+	std::string cmd("command_from_json");
+	std::string pars("pars_from_json");
 
-	if (v.proto.size() != 0) std::cout << " " << v.proto << std::endl;
+	GlobalThreadPool::get();
 
-	for (auto comm: v.comm)
-		std::cout << "  " << comm << std::endl;
-}
-
-void testAndDestroy()
-{
-	struct DeviceCtl
+	if (devManager)
 	{
-		boost::shared_ptr<CAbstractDevice> devInstance;
-
-		struct Task
-		{
-			uint32_t txId;
-			mythreadpool::TTaskFunc taskFn;
-		};
-
-		std::queue<Task> taskQue;
-	};
-
-	std::map< std::string, DeviceCtl > devices;
-
-	database::CSettings sets;
-	std::vector<database::CSettings::DeviceConfig> devList = sets.getDeviceConfig();
-
-	CDeviceFactory&	factory = CDeviceFactory::getFactory();
-
-	for (auto v: devList)
-	{
-		if (v.abstractName.size() == 0) continue;
-		if (v.enable == false) continue;
-
-		std::cout << v.abstractName << std::endl;
-
-		if (v.proto.size() != 0) std::cout << " " << v.proto << std::endl;
-
-		DeviceCtl devCtl;
-		boost::shared_ptr<CAbstractDevice> sPtr( factory.deviceFactory(v.abstractName, v.concreteName) );
-		devCtl.devInstance = sPtr;
-
-		if (sPtr.get() != nullptr)
-			devices.emplace( std::make_pair(v.abstractName, devCtl) );
-
-	}
-
-	if (devices.size())
-	{
-		std::string cmd("command_from_json");
-		std::string pars("pars_from_json");
-
-		std::cout << "Set task for device0 to thread pool" << std::endl;
-
-		/*
-		 *  Постановка задачи на отправку команды на абстрактное устройство.
-		 */
-		if ( devices.find("shlagbaum_in") != devices.end() )
-			GlobalThreadPool::get().AddTask(0, boost::bind(sendCommand<AbstractShlagbaum>, devices[ "shlagbaum_in" ].devInstance.get(), cmd, pars));
-
-		boost::this_thread::sleep(boost::posix_time::microseconds(1000));
-
+		devManager->setCommandToDevice(dev, cmd, pars);
 	}
 	else
 	{
-		std::cout << "No instanced device found" << std::endl;
+		std::cout << "No instanced device manager found" << std::endl;
 	}
 
 	GlobalThreadPool::stop();
+
+	CDeviceManager::destroyDeviceManager();
+
 }
 
 
@@ -185,18 +118,8 @@ int main()
 	{
 		std::cout << "------------- start new instance ---------------- " <<  i << std::endl;
 
-		testAndDestroy();
+		testCreateAndDestroy();
 	}
-
-//	CurlAdapter webServer;
-//	if (webServer.CurlStart(cb_commandFromBL) == false) std::cout << "False start" << std::endl;
-//	if (webServer.AddRequest("") == false) std::cout << "False add request" << std::endl;
-//
-//	int32_t result = webServer.Update();
-//
-//	std::cout << result << std::endl;
-//
-//	boost::this_thread::sleep(boost::posix_time::milliseconds(5000));
 
 	return 0;
 }

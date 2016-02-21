@@ -17,7 +17,7 @@ using namespace boost;
 
 #include <CBaseCodec.h>
 #include <CBaseCommCtl.h>
-#include <CSettings.h>
+#include <Settings.h>
 #include <CPinCtl.h>
 #include <CSerialPortCtl.h>
 
@@ -28,7 +28,7 @@ class CBaseDevice: private noncopyable
 public:
 	const std::string c_name;
 
-	CBaseDevice(const std::string& str);
+	CBaseDevice(const std::string& deviceName);
 	virtual ~CBaseDevice();
 	CBaseDevice(const CBaseDevice& theCBaseDevice);
 

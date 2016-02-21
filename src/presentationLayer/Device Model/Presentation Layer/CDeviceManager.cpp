@@ -7,15 +7,50 @@
 
 #include "CDeviceManager.h"
 
-namespace devices {
+CDeviceManager* CDeviceManager::ptr = nullptr;
+boost::mutex CDeviceManager::mut;
 
-CDeviceManager::CDeviceManager() {
-	// TODO Auto-generated constructor stub
+CDeviceManager::CDeviceManager(std::vector<settings::DeviceConfig> devConfig) {
+
+	CDeviceFactory&	factory = CDeviceFactory::getFactory();
+
+	for (auto v: devConfig)
+	{
+		if (v.abstractName.size() == 0) continue;
+		if (v.enable == false) continue;
+
+		std::cout << v.abstractName << std::endl;
+
+		if (v.proto.size() != 0) std::cout << " " << v.proto << std::endl;
+
+		DeviceCtl devCtl;
+		boost::shared_ptr<CAbstractDevice> sPtr( factory.deviceFactory(v.abstractName, v.concreteName) );
+		devCtl.devInstance = sPtr;
+
+		if (sPtr.get() != nullptr)
+			devices.emplace( std::make_pair(v.abstractName, devCtl) );
+
+	}
 
 }
 
 CDeviceManager::~CDeviceManager() {
-	// TODO Auto-generated destructor stub
+
 }
 
-} /* namespace devices */
+void CDeviceManager::setCommandToDevice(std::string device, std::string command, std::string parameters)
+{
+	if (devices.size())
+	{
+		/*
+		 *  Постановка задачи на отправку команды на абстрактное устройство.
+		 */
+		if ( devices.find("shlagbaum_in") != devices.end() )
+			GlobalThreadPool::get().AddTask(0, boost::bind(sendCommand<AbstractShlagbaum>, devices[device].devInstance.get(), command, parameters));
+	}
+	else
+	{
+		std::cout << "No instanced devices found" << std::endl;
+	}
+
+}

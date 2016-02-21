@@ -8,13 +8,11 @@
 #ifndef DEVICE_CONFIG_H_
 #define DEVICE_CONFIG_H_
 
-#include "CSettings.h"
-
-using namespace database;
+#include <Settings.h>
 
 namespace device_config {
 
-	CSettings::DeviceConfig shlagbaum1 =
+	settings::DeviceConfig shlagbaum1 =
 	{
 			"shlagbaum palka",
 			"shlagbaum_in",
@@ -23,7 +21,7 @@ namespace device_config {
 			true
 	};
 
-	CSettings::DeviceConfig shlagbaum2 =
+	settings::DeviceConfig shlagbaum2 =
 	{
 			"shlagbaum palka",
 			"shlagbaum_out",
@@ -32,7 +30,7 @@ namespace device_config {
 			true
 	};
 
-	CSettings::DeviceConfig printer =
+	settings::DeviceConfig printer =
 	{
 			"pechatalka_ru",
 			"printer",
@@ -41,7 +39,7 @@ namespace device_config {
 			true
 	};
 
-	CSettings::DeviceConfig presentSensor =
+	settings::DeviceConfig presentSensor =
 	{
 			"i_am_here",
 			"present sensor",
@@ -50,7 +48,7 @@ namespace device_config {
 			true
 	};
 
-	CSettings::DeviceConfig passSensor =
+	settings::DeviceConfig passSensor =
 	{
 			"get_out_from",
 			"pass sensor",
@@ -59,7 +57,7 @@ namespace device_config {
 			true
 	};
 
-	CSettings::DeviceConfig display =
+	settings::DeviceConfig display =
 	{
 			"winstar16x2",
 			"textdisplay16x2",
@@ -68,7 +66,7 @@ namespace device_config {
 			true
 	};
 
-	CSettings::DeviceConfig cardReader =
+	settings::DeviceConfig cardReader =
 	{
 			"sd-card",
 			"card reader",
@@ -77,7 +75,7 @@ namespace device_config {
 			true
 	};
 
-	CSettings::DeviceConfig kkm =
+	settings::DeviceConfig kkm =
 	{
 			"poluchalka",
 			"kkm",
@@ -86,7 +84,7 @@ namespace device_config {
 			true
 	};
 
-	CSettings::DeviceConfig* deviceList[] =
+	settings::DeviceConfig* deviceList[] =
 	{
 			&shlagbaum1,
 //			&shlagbaum2,
