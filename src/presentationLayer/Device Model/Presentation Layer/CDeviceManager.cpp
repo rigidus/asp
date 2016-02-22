@@ -38,7 +38,7 @@ CDeviceManager::~CDeviceManager() {
 
 }
 
-void CDeviceManager::setCommandToDevice(std::string device, std::string command, std::string parameters)
+void CDeviceManager::setCommandToDevice(uint32_t txid, std::string device, std::string command, std::string parameters)
 {
 	if (devices.size())
 	{

@@ -29,8 +29,13 @@ using namespace rapidjson;
 
 struct mg_serve_http_opts s_http_server_opts;
 
-static const char* kTypeNames[] =
+const char* kTypeNames[] =
     { "Null", "False", "True", "Object", "Array", "String", "Number" };
+
+const std::string attrTxId("txid"); // Обязательный атрибут - номер транзакции
+const std::string attrDev("device"); // Обязательный атрибут - имя абстрактного устройства
+const std::string attrCmd("command"); // Обязательный атрибут - команда на устройство
+const std::string attrPars("parameters"); // Опциональный атрибут - параметры команды
 
 void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 {
@@ -51,7 +56,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 		d.ParseInsitu(&jsonArray[0]);
 		if (d.HasParseError() == false)
 		{
-			std::cout << "JSON OK!" << std::endl;
+			std::cout << "JSON was parsed correctly." << std::endl;
 
 			// Stringify the DOM
 			StringBuffer buffer;
@@ -59,37 +64,76 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 			d.Accept(writer);
 			std::cout << buffer.GetString() << std::endl;
 
-			Value& valDevice = d["device"];
-			Value& valCommand = d["command"];
-
-			if (d.HasMember("parameters") == false)
+			if (d.HasMember(attrTxId.c_str()) == false)
 			{
-				 d["parameters"] = "{}";
+				// TODO отправить сообщение, что txid не найден и выйти
+				std::cout << "JSON attribute '" << attrTxId << "' not found" << std::endl;
+				return;
 			}
-			Value& valParams = d["parameters"];
+
+			if (d.HasMember(attrDev.c_str()) == false)
+			{
+				// TODO отправить сообщение, что device не найден и выйти
+				std::cout << "JSON attribute '" << attrDev << "' not found" << std::endl;
+				return;
+			}
+
+			if (d.HasMember("command") == false)
+			{
+				// TODO отправить сообщение, что txid не найден и выйти
+				std::cout << "JSON attribute '" << attrCmd << "' not found" << std::endl;
+				return;
+			}
+
+			Value valParams(kObjectType);
+			if (d.HasMember(attrPars.c_str()) == true)
+			{
+				// Если опциональные параметры существуют, то добавить из документа
+				std::cout << "JSON attribute '" << attrPars << "' has found" << std::endl;
+				valParams = d[attrPars.c_str()];
+			}
+
+			Value& valTxId = d[attrTxId.c_str()];
+			Value& valDevice = d[attrDev.c_str()];
+			Value& valCommand = d[attrCmd.c_str()];
+
+			if (valTxId.IsNumber() == false)
+			{
+				// TODO отправить сообщение, что txid не число и выйти
+				std::cout << "JSON attribute '" << attrTxId << "' isn't number type" << std::endl;
+				return;
+			}
 
 			if (valDevice.IsString() == false)
 			{
 				// TODO отправить сообщение, что девайс не строка и выйти
+				std::cout << "JSON attribute '" << attrDev << "' isn't string type" << std::endl;
+				return;
 			}
 
 			if (valCommand.IsString() == false)
 			{
 				// TODO отправить назад сообщение, что команда не строка и выйти
+				std::cout << "JSON attribute '" << attrCmd << "' isn't string type" << std::endl;
+				return;
 			}
 
 			if (valParams.IsObject() == false)
 			{
 				// TODO отправить назад сообщение, что параметры не объект и выйти
+				std::cout << "JSON attribute '" << attrPars << "' isn't object type" << std::endl;
+				return;
 			}
 
+			uint32_t TxId = (uint32_t) valTxId.GetInt();
 			std::string Device(valDevice.GetString(), valDevice.GetStringLength());
 			std::string Command(valCommand.GetString(), valCommand.GetStringLength());
 
-			std::cout << "Device: " << Device << std::endl;
-			std::cout << "Command: " << Command << std::endl;
+			std::cout << attrTxId << ": " << TxId << std::endl;
+			std::cout << attrDev << ": " << Device << std::endl;
+			std::cout << attrCmd << ": " << Command << std::endl;
 
-			std::cout << "Parameters: " << std::endl;
+			std::cout <<  attrPars << ": " << std::endl;
 
 			// Stringify parameters
 			StringBuffer strParams;
@@ -104,10 +148,18 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 			    		<< "' is " << kTypeNames[itr->value.GetType()] << std::endl;
 			}
 
+			std::cout << "JSON OK!" << std::endl;
+
 			CDeviceManager* devMgr = CDeviceManager::deviceManager();
 			if (devMgr)
 			{
-				devMgr->setCommandToDevice(Device, Command, strParams.GetString());
+				std::cout << "Set task for device" << std::endl;
+				devMgr->setCommandToDevice(TxId, Device, Command, strParams.GetString());
+			}
+			else
+			{
+				// TODO отправить назад сообщение, что устройства еще не настроены
+				std::cout << "Device manager not found." << std::endl;
 			}
 		}
 		else
@@ -115,11 +167,8 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 			memcpy(&jsonArray[0], hmsg->body.p, (hmsg->body.len+1) * sizeof(jsonArray[0]));
 			jsonArray[hmsg->body.len] = 0;
 
-			std::cout << "JSON has wrong format" << std::endl;
-			std::cout << &jsonArray[0] << std::endl;
-
 			// TODO отправить назад сообщение, что json не распарсился
-
+			std::cout << "JSON has wrong format: " << &jsonArray[0] << std::endl;
 		}
 
 	}

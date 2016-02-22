@@ -95,7 +95,7 @@ void testCreateAndDestroy()
 
 	if (devManager)
 	{
-		devManager->setCommandToDevice(dev, cmd, pars);
+		devManager->setCommandToDevice(0, dev, cmd, pars);
 	}
 	else
 	{
