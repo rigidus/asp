@@ -43,10 +43,31 @@ void CDeviceManager::setCommandToDevice(uint32_t txid, std::string device, std::
 	if (devices.size())
 	{
 		/*
-		 *  Постановка задачи на отправку команды на абстрактное устройство.
+		 *  Постановка задачи в очередь на отправку команды на абстрактное устройство.
 		 */
-		if ( devices.find("shlagbaum_in") != devices.end() )
-			GlobalThreadPool::get().AddTask(0, boost::bind(sendCommand<AbstractShlagbaum>, devices[device].devInstance.get(), command, parameters));
+		auto it = devices.find("shlagbaum_in");
+		if ( it != devices.end() )
+		{
+			DeviceCtl::Task task;
+			task.txId = txid;
+			task.taskFn = boost::bind(sendCommand<AbstractShlagbaum>, devices[device].devInstance.get(), command, parameters);
+			it->second.taskQue.push(task);
+
+			/*
+			 * Если задача в очереди одна, то отправку на устройство сделать незамедлительно
+			 */
+			if (it->second.taskQue.size() == 1)
+			{
+				/*
+				 *  Постановка задачи на отправку команды на абстрактное устройство.
+				 *  // TODO Выделить в отдельную функцию с мьютексом
+				 */
+				if ( devices.find("shlagbaum_in") != devices.end() )
+					GlobalThreadPool::get().AddTask(0, boost::bind(sendCommand<AbstractShlagbaum>, devices[device].devInstance.get(), command, parameters));
+			}
+
+		}
+
 	}
 	else
 	{
