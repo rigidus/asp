@@ -13,9 +13,9 @@
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
 #include <Settings.h>
-
-#include "CDeviceManager.h"
 #include "GlobalThreadPool.h"
+#include "CDeviceManager.h"
+#include "SetCommandTo.h"
 
 using namespace mythreadpool;
 using namespace rapidjson;
@@ -37,55 +37,11 @@ const std::string AbstractShlagbaum::s_abstractName = "shlagbaum";
 // concrete names
 const std::string ShlagbaumPalka::s_concreteName = "shlagbaum palka";
 
-void sendError2BL(std::string)
-{
-	// TODO: create send answer to businness logic
-}
-
-void cb_commandFromHttpClient(std::string jsonDoc)
-{
-
-	std::cout << jsonDoc << std::endl;
-
-//	Document workDoc;
-//	workDoc.Parse(jsonDoc.c_str());
-//
-//	CDeviceManager* pdm = CDeviceManager::getDeviceManager();
-//	CAbstractDevice* pAbstractDev = nullptr;
-//
-//	if (workDoc.HasMember("txid") == false) sendError2BL("txid not found");
-//
-//	if (workDoc.HasMember("device") == false) sendError2BL("device not found");
-//	else pAbstractDev = pdm->getAbstractDevice(workDoc["device"]);
-//
-//	if (workDoc.HasMember("command") == false) sendError2BL("command not found");
-//
-//	std::string pars("");
-//	if (workDoc.HasMember("parameters") == true) pars = workDoc["parameters"];
-//
-//	std::string strDevice(workDoc["device"]);
-//	std::string strCommand(workDoc["command"]);
-//	if ( (strDevice == shlagbaum1) || (strDevice == shlagbaum2) )
-//		g_thrPool.AddTask(0, boost::bind(sendCommand<AbstractShlagbaum>, pAbstractDev, strCommand, pars));
-
-//	if ( (strDevice == printer1) )
-//		g_thrPool.AddTask(0, boost::bind(sendCommand<AbstractPrinter>, pAbstractDev, strCommand, pars));
-//
-//	if ( (strDevice == photosensor1) )
-//		g_thrPool.AddTask(0, boost::bind(sendCommand<AbstractPassSensor>, pAbstractDev, strCommand, pars));
-//
-//	if ( (strDevice == photosensor2) )
-//		g_thrPool.AddTask(0, boost::bind(sendCommand<AbstractPresentSensor>, pAbstractDev, strCommand, pars));
-
-	// TODO: Add tasks for other abstract devices
-
-}
-
 
 void testCreateAndDestroy()
 {
 
-	CDeviceManager* devManager = CDeviceManager::deviceManagerFactory(CDeviceManager::TestingSet);
+	CDeviceManager::deviceManagerFactory(CDeviceManager::TestingSet);
 
 	std::string dev("shlagbaum_in");
 	std::string cmd("command_from_json");
@@ -93,14 +49,7 @@ void testCreateAndDestroy()
 
 	GlobalThreadPool::get();
 
-	if (devManager)
-	{
-		devManager->setCommandToDevice(0, dev, cmd, pars);
-	}
-	else
-	{
-		std::cout << "No instanced device manager found" << std::endl;
-	}
+	setCommandTo::Device(0, dev, cmd, pars, "TEST");
 
 	GlobalThreadPool::stop();
 
@@ -122,7 +71,6 @@ int main()
 		testCreateAndDestroy();
 	}
 
-//	CDeviceManager* devManager =
 	CDeviceManager::deviceManagerFactory(CDeviceManager::TestingSet);
 	GlobalThreadPool::get();
 

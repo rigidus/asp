@@ -38,19 +38,26 @@ CDeviceManager::~CDeviceManager() {
 
 }
 
-void CDeviceManager::setCommandToDevice(uint32_t txid, std::string device, std::string command, std::string parameters)
+void CDeviceManager::setCommandToDevice(uint32_t txid, std::string device, std::string command,
+			std::string parameters, std::string adresat)
 {
 	if (devices.size())
 	{
 		/*
 		 *  Постановка задачи в очередь на отправку команды на абстрактное устройство.
 		 */
+		// TODO выделить функцию с поиском по имени устройства
 		auto it = devices.find("shlagbaum_in");
 		if ( it != devices.end() )
 		{
 			DeviceCtl::Task task;
 			task.txId = txid;
+			task.adresat = adresat;
+			task.abstract = it->second.devInstance->deviceAbstractName();
+			task.concrete = it->second.devInstance->deviceConcreteName();
+
 			task.taskFn = boost::bind(sendCommand<AbstractShlagbaum>, devices[device].devInstance.get(), command, parameters);
+
 			it->second.taskQue.push(task);
 
 			/*
@@ -72,6 +79,41 @@ void CDeviceManager::setCommandToDevice(uint32_t txid, std::string device, std::
 	else
 	{
 		std::cout << "No instanced devices found" << std::endl;
+	}
+
+}
+
+void CDeviceManager::setCommandToClient(uint32_t eventFlag, std::string device, std::string command, std::string parameters)
+{
+	/* TODO
+	 * Событие надо просто разослать всем клиентам с помощью постановки задач
+	 * Ответ на команду надо послать только адресату
+	 */
+
+	if ( eventFlag == false)
+	{
+		// Transaction
+		DeviceCtl::Task task;
+		if ( popDeviceTask(device, task) == false )
+		{
+			// TODO Послать адресату сообщение, что транзакция была потеряна и выйти
+			std::cout << "Transaction lost" << std::endl;
+			return;
+		}
+
+		// TODO Set task to adresat
+		std::cout << "Set task for transaction " << task.txId << " to: "
+				<< task.adresat << std::endl;
+
+	}
+	else
+	{
+		// Event
+		// TODO Set task to decision logic to businness logic
+
+		// TODO Set task to adresat
+		std::cout << "Set event to: ???" << std::endl;
+
 	}
 
 }

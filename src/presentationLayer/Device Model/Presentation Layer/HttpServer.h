@@ -20,7 +20,7 @@
 #include <boost/thread/thread.hpp>
 #include <boost/smart_ptr.hpp>
 
-#include "CDeviceManager.h"
+#include "SetCommandTo.h"
 
 namespace httpserver
 {
@@ -150,17 +150,8 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 
 			std::cout << "JSON OK!" << std::endl;
 
-			CDeviceManager* devMgr = CDeviceManager::deviceManager();
-			if (devMgr)
-			{
-				std::cout << "Set task for device" << std::endl;
-				devMgr->setCommandToDevice(TxId, Device, Command, strParams.GetString());
-			}
-			else
-			{
-				// TODO отправить назад сообщение, что устройства еще не настроены
-				std::cout << "Device manager not found." << std::endl;
-			}
+			setCommandTo::Device(TxId, Device, Command, strParams.GetString(), "httpclient");
+
 		}
 		else
 		{

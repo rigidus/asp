@@ -11,7 +11,6 @@
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/smart_ptr.hpp>
-#include "Settings.h"
 #include "GlobalThreadPool.h"
 #include "CDeviceFactory.h"
 
@@ -31,6 +30,9 @@ private:
 		struct Task
 		{
 			uint32_t txId;
+			std::string adresat;
+			std::string abstract;
+			std::string concrete;
 			mythreadpool::TTaskFunc taskFn;
 		};
 
@@ -38,6 +40,25 @@ private:
 	};
 
 	std::map< std::string, DeviceCtl > devices;
+
+	bool popDeviceTask(std::string device, DeviceCtl::Task& task)
+	{
+		for (auto& v: devices)
+		{
+			if (v.second.devInstance->deviceConcreteName() == device)
+			{
+				if (v.second.taskQue.size() == 0)
+					return false;
+
+				task = v.second.taskQue.front();
+				v.second.taskQue.pop();
+
+				return true;
+			}
+		}
+
+		return false;
+	}
 
 public:
 
@@ -76,6 +97,8 @@ public:
 		ptr = nullptr;
 	}
 
+	void setCommandToClient(uint32_t eventFlag, std::string device, std::string command, std::string parameters);
+
 	template<typename T>
 	static void sendCommand(CAbstractDevice* iDev, std::string command, std::string pars)
 	{
@@ -83,7 +106,8 @@ public:
 	}
 
 	// Class functions
-	void setCommandToDevice(uint32_t txid, std::string device, std::string command, std::string parameters);
+	void setCommandToDevice(uint32_t txid, std::string device, std::string command,
+			std::string parameters, std::string adresat);
 
 };
 

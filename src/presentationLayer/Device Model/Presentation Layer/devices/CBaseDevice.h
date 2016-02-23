@@ -20,7 +20,7 @@ using namespace boost;
 #include <Settings.h>
 #include <CPinCtl.h>
 #include <CSerialPortCtl.h>
-
+#include <SetCommandTo.h>
 
 class CBaseDevice: private noncopyable
 {
@@ -37,11 +37,18 @@ public:
 
 	const std::vector< shared_ptr<CBaseCommCtl> >& getCommCtl();
 
-	static void performEvent(CBaseDevice* device, std::vector<uint8_t>& rcvData)
+	void performEvent(std::vector<uint8_t>& rcvData)
 	{
-		std::cout << "CBaseDevice performs Event from device: " << device->c_name << ": ";
+		std::cout << "CBaseDevice performs Event from device: " << c_name << ": ";
 		for (auto v: rcvData) std::cout << v << " ";
 		std::cout << std::endl;
+
+		// TODO Вызвать установку задачи для клиента по имени абстрактного девайса
+		std::string answer;
+		for(uint8_t v: rcvData)
+			answer += v;
+
+		setCommandTo::Client(0, c_name, "answer: ", answer);
 	}
 
 protected:
