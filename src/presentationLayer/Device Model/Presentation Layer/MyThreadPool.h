@@ -243,7 +243,9 @@ class CThreadPool
 
 	CThreadPool operator =(const CThreadPool obj) { return *this; }
 
-	boost::mutex tpmut;
+	boost::mutex mutChangeThreads;
+	boost::mutex mutAddTask;
+
 
 protected:
 
@@ -336,6 +338,7 @@ public:
 
 	~CThreadPool()
 	{
+		boost::mutex::scoped_lock lock(mutChangeThreads);
 
 		CFileLog::cfilelog() << "Enter to ThreadPool destructor" << std::endl;
 
@@ -344,7 +347,7 @@ public:
 
 	bool SetThreads(u32 thrn)
 	{
-		boost::mutex::scoped_lock lock(tpmut);
+		boost::mutex::scoped_lock lock(mutChangeThreads);
 
 		if (thrn > maxthreads)
 		{
@@ -364,7 +367,7 @@ public:
 	bool AddTask(u32 priority, TTaskFunc func)
 	{
 
-		boost::mutex::scoped_lock lock(tpmut);
+		boost::mutex::scoped_lock lock(mutAddTask);
 
 		if (qTasks.size() >= maxtask )
 		{
@@ -387,7 +390,7 @@ public:
 
 	void ForceStop()
 	{
-		boost::mutex::scoped_lock lock(tpmut);
+		boost::mutex::scoped_lock lock(mutChangeThreads);
 
 		CFileLog::cfilelog() << "Force Stop" << std::endl;
 
@@ -397,7 +400,7 @@ public:
 	void DoTasksAndStop()
 	{
 
-		boost::mutex::scoped_lock lock(tpmut);
+		boost::mutex::scoped_lock lock(mutChangeThreads);
 
 		CFileLog::cfilelog() << "Do Tasks And Stop" << std::endl;
 
@@ -411,7 +414,7 @@ public:
 
 	void SetMaxTask(u32 n)
 	{
-		boost::mutex::scoped_lock lock(tpmut);
+		boost::mutex::scoped_lock lock(mutAddTask);
 
 		CFileLog::cfilelog() << "Set MaxTasks(" << n  << ")" << std::endl;
 

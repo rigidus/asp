@@ -36,7 +36,7 @@ const std::string AbstractShlagbaum::s_abstractName = "shlagbaum";
 
 // concrete names
 const std::string ShlagbaumPalka::s_concreteName = "shlagbaum palka";
-
+const std::string ClientHttp::s_concreteName = "";
 
 void testCreateAndDestroy()
 {

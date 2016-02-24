@@ -105,14 +105,22 @@ void CDeviceManager::setCommandToClient(uint32_t eventFlag, std::string device, 
 		std::cout << "Set task for transaction " << task.txId << " to: "
 				<< task.adresat << std::endl;
 
+		if ( devices.find("logic") != devices.end() )
+			GlobalThreadPool::get().AddTask(0, boost::bind(sendCommand<BsnsLogic>, devices[device].devInstance.get(), command, parameters));
+
 	}
 	else
 	{
 		// Event
 		// TODO Set task to decision logic to businness logic
 
-		// TODO Set task to adresat
+		// TODO Set task to logic
 		std::cout << "Set event to: ???" << std::endl;
+
+		if ( devices.find("logic") != devices.end() )
+			GlobalThreadPool::get().AddTask(0, boost::bind(sendCommand<BsnsLogic>, devices[device].devInstance.get(), command, parameters));
+
+		// TODO Set task to web-interface
 
 	}
 

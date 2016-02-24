@@ -10,7 +10,19 @@
 
 #include <Settings.h>
 
+#define enabled_device	true
+#define disabled_device false
+
 namespace device_config {
+
+	settings::DeviceConfig client_http =
+	{
+			"client_http",
+			"logic",
+			"",
+			{ "" },
+			enabled_device
+	};
 
 	settings::DeviceConfig shlagbaum1 =
 	{
@@ -18,7 +30,7 @@ namespace device_config {
 			"shlagbaum_in",
 			"",
 			{ "gpio12", "gpio18", "gpio8", "uart2" },
-			true
+			enabled_device
 	};
 
 	settings::DeviceConfig shlagbaum2 =
@@ -27,7 +39,7 @@ namespace device_config {
 			"shlagbaum_out",
 			"",
 			{ "gpio13", "gpio19", "gpio9", "gpio3" },
-			true
+			disabled_device
 	};
 
 	settings::DeviceConfig printer =
@@ -36,7 +48,7 @@ namespace device_config {
 			"printer",
 			"printer_proto",
 			{"uart4"},
-			true
+			disabled_device
 	};
 
 	settings::DeviceConfig presentSensor =
@@ -45,7 +57,7 @@ namespace device_config {
 			"present sensor",
 			"",
 			{ "gpio5", "gpio6" },
-			true
+			disabled_device
 	};
 
 	settings::DeviceConfig passSensor =
@@ -54,7 +66,7 @@ namespace device_config {
 			"pass sensor",
 			"",
 			{ "gpio7", "gpio1" },
-			true
+			disabled_device
 	};
 
 	settings::DeviceConfig display =
@@ -63,7 +75,7 @@ namespace device_config {
 			"textdisplay16x2",
 			"winstar",
 			{ "gpio20", "gpio21", "gpio22", "gpio23", "gpio24", "gpio25", "gpio26" },
-			true
+			disabled_device
 	};
 
 	settings::DeviceConfig cardReader =
@@ -72,7 +84,7 @@ namespace device_config {
 			"card reader",
 			"mass_storage",
 			{ "sda", "sdb", "sdc" },
-			true
+			disabled_device
 	};
 
 	settings::DeviceConfig kkm =
@@ -81,11 +93,12 @@ namespace device_config {
 			"kkm",
 			"proto_kkm",
 			{ "uart1" },
-			true
+			disabled_device
 	};
 
 	settings::DeviceConfig* deviceList[] =
 	{
+			&client_http,
 			&shlagbaum1,
 //			&shlagbaum2,
 //			&printer,
