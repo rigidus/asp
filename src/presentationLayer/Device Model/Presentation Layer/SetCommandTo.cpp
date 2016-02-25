@@ -14,7 +14,7 @@ void setCommandTo::Device(uint32_t txid, std::string device, std::string command
 	CDeviceManager* devMgr = CDeviceManager::deviceManager();
 	if (devMgr)
 	{
-		std::cout << "Set task for device" << std::endl;
+		std::cout << "Set command for device " << device << " from " << adresat << std::endl;
 		devMgr->setCommandToDevice(txid, device, command, parameters, adresat);
 	}
 	else
@@ -30,7 +30,7 @@ void setCommandTo::Client(uint32_t eventFlag, std::string device, std::string co
 	CDeviceManager* devMgr = CDeviceManager::deviceManager();
 	if (devMgr)
 	{
-		std::cout << "Set task for client" << std::endl;
+		std::cout << "Set command to client from " << device << std::endl;
 		devMgr->setCommandToClient(eventFlag, device, command, parameters);
 	}
 	else

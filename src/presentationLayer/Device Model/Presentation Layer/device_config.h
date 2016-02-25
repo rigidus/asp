@@ -17,7 +17,7 @@ namespace device_config {
 
 	settings::DeviceConfig client_http =
 	{
-			"client_http",
+			"logic_http",
 			"logic",
 			"",
 			{ "" },

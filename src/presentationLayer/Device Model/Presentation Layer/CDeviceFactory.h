@@ -41,6 +41,9 @@ public:
 		dev = createAbstractDevice<AbstractShlagbaum>(abstractName, devName);
 		if (dev) devs.push_back(dev);
 
+		dev = createAbstractDevice<BsnsLogic>(abstractName, devName);
+		if (dev) devs.push_back(dev);
+
 //		dev = createAbstractDevice<AbstractPrinter>(abstractName, devName);
 //		if (dev) devs.push_back(dev);
 //		dev = createAbstractDevice<AbstractPassSensor>(abstractName, devName);
@@ -56,7 +59,7 @@ public:
 
 		if (devs.size() > 1)
 		{
-			std::cout << "deviceFactory detected device configuration error: more than 1 abstract-concrete device created" << std::endl;
+			std::cout << "deviceFactory detected device configuration error: more than 1 abstract device created" << std::endl;
 
 			for (CAbstractDevice* d: devs)
 				delete d;
@@ -71,9 +74,9 @@ public:
 			return nullptr;
 		}
 
-		std::cout << "deviceFactory created device" << abstractName << std::endl;
+		std::cout << "deviceFactory created device: " << abstractName << std::endl;
 
-		return dev;
+		return devs[0];
 	}
 
 private:
@@ -93,6 +96,10 @@ private:
 			std::cout << "Create abstract device: " << abstractName << std::endl;
 
 			dev = T::createDevice(abstractName, devName);
+		}
+		else
+		{
+			std::cout << "Abstract device " << abstractName << " not found in device list" << std::endl;
 		}
 
 		return dev;

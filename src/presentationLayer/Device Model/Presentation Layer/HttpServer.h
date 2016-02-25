@@ -21,6 +21,7 @@
 #include <boost/smart_ptr.hpp>
 
 #include "SetCommandTo.h"
+#include "abstract/BsnsLogic.h"
 
 namespace httpserver
 {
@@ -150,7 +151,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 
 			std::cout << "JSON OK!" << std::endl;
 
-			setCommandTo::Device(TxId, Device, Command, strParams.GetString(), "httpclient");
+			setCommandTo::Device(TxId, Device, Command, strParams.GetString(), BsnsLogic::s_abstractName);
 
 		}
 		else
@@ -179,8 +180,6 @@ void httpServerThread()
 	s_http_server_opts.document_root = ".";
 	s_http_server_opts.dav_document_root = ".";
 	s_http_server_opts.enable_directory_listing = "no";
-
-	std::cout << "Starting web server" << std::endl;
 
 	// infinite web server cycle
 	for(;;)

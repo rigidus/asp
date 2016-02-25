@@ -41,17 +41,25 @@ private:
 
 	std::map< std::string, DeviceCtl > devices;
 
-	bool popDeviceTask(std::string device, DeviceCtl::Task& task)
+	bool popDeviceTask(std::string concreteDevice, DeviceCtl::Task& task)
 	{
 		for (auto& v: devices)
 		{
-			if (v.second.devInstance->deviceConcreteName() == device)
+			if (v.second.devInstance->deviceConcreteName() == concreteDevice)
 			{
+
+				std::cout << "popDeviceTask found " << concreteDevice << std::endl;
+
 				if (v.second.taskQue.size() == 0)
+				{
+					std::cout << "popDeviceTask not found tasks in queue for " << concreteDevice << std::endl;
 					return false;
+				}
 
 				task = v.second.taskQue.front();
 				v.second.taskQue.pop();
+
+				std::cout << "popDeviceTask found tasks in queue for " << concreteDevice <<  ". Task popped." << std::endl;
 
 				return true;
 			}
@@ -99,10 +107,9 @@ public:
 
 	void setCommandToClient(uint32_t eventFlag, std::string device, std::string command, std::string parameters);
 
-	template<typename T>
-	static void sendCommand(CAbstractDevice* iDev, std::string command, std::string pars)
+	static void sendCommand(CAbstractDevice* abstractDevice, std::string command, std::string pars)
 	{
-		iDev->sendCommand(command, pars);
+		abstractDevice->sendCommand(command, pars);
 	}
 
 	// Class functions

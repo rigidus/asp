@@ -32,13 +32,19 @@ CDeviceManager::CDeviceManager(std::vector<settings::DeviceConfig> devConfig) {
 
 	}
 
+	std::cout << "Created devices:" << std::endl;
+	for (auto v: devices)
+	{
+		std::cout << "- " << v.first << "[" << v.second.devInstance.get() << "]" << std::endl;
+	}
+
 }
 
 CDeviceManager::~CDeviceManager() {
 
 }
 
-void CDeviceManager::setCommandToDevice(uint32_t txid, std::string device, std::string command,
+void CDeviceManager::setCommandToDevice(uint32_t txid, std::string abstractDevice, std::string command,
 			std::string parameters, std::string adresat)
 {
 	if (devices.size())
@@ -47,16 +53,19 @@ void CDeviceManager::setCommandToDevice(uint32_t txid, std::string device, std::
 		 *  Постановка задачи в очередь на отправку команды на абстрактное устройство.
 		 */
 		// TODO выделить функцию с поиском по имени устройства
-		auto it = devices.find("shlagbaum_in");
+		auto it = devices.find(abstractDevice);
 		if ( it != devices.end() )
 		{
+
+			std::cout << "CDeviceManager::setCommandToDevice: device " << abstractDevice << " found." << std::endl;
+
 			DeviceCtl::Task task;
 			task.txId = txid;
 			task.adresat = adresat;
 			task.abstract = it->second.devInstance->deviceAbstractName();
 			task.concrete = it->second.devInstance->deviceConcreteName();
 
-			task.taskFn = boost::bind(sendCommand<AbstractShlagbaum>, devices[device].devInstance.get(), command, parameters);
+			task.taskFn = boost::bind(sendCommand, devices[abstractDevice].devInstance.get(), command, parameters);
 
 			it->second.taskQue.push(task);
 
@@ -65,13 +74,21 @@ void CDeviceManager::setCommandToDevice(uint32_t txid, std::string device, std::
 			 */
 			if (it->second.taskQue.size() == 1)
 			{
+
+				std::cout << "CDeviceManager::setCommandToDevice: task added to " << abstractDevice << std::endl;
+
 				/*
 				 *  Постановка задачи на отправку команды на абстрактное устройство.
-				 *  // TODO Выделить в отдельную функцию с мьютексом
+				 *  // TODO Сделать выбор по устрйоствам и выделить в отдельную функцию
 				 */
-				if ( devices.find("shlagbaum_in") != devices.end() )
-					GlobalThreadPool::get().AddTask(0, boost::bind(sendCommand<AbstractShlagbaum>, devices[device].devInstance.get(), command, parameters));
+				GlobalThreadPool::get().AddTask(0, task.taskFn);
 			}
+
+		}
+		else
+		{
+
+			std::cout << "CDeviceManager::setCommandToDevice: " << abstractDevice << " not found in device list." << std::endl;
 
 		}
 
@@ -83,7 +100,7 @@ void CDeviceManager::setCommandToDevice(uint32_t txid, std::string device, std::
 
 }
 
-void CDeviceManager::setCommandToClient(uint32_t eventFlag, std::string device, std::string command, std::string parameters)
+void CDeviceManager::setCommandToClient(uint32_t eventFlag, std::string concreteDevice, std::string command, std::string parameters)
 {
 	/* TODO
 	 * Событие надо просто разослать всем клиентам с помощью постановки задач
@@ -94,20 +111,47 @@ void CDeviceManager::setCommandToClient(uint32_t eventFlag, std::string device, 
 	{
 		// Transaction
 		DeviceCtl::Task task;
-		if ( popDeviceTask(device, task) == false )
+		if ( popDeviceTask(concreteDevice, task) == false )
 		{
 			// TODO Послать адресату сообщение, что транзакция была потеряна и выйти
-			std::cout << "Transaction lost" << std::endl;
+
+			std::cout << "CDeviceManager::setCommandToClient: Transaction lost" << std::endl;
 			return;
 		}
 
-		// TODO Set task to adresat
-		std::cout << "Set task for transaction " << task.txId << " to: "
-				<< task.adresat << std::endl;
+		if ( devices.find(task.adresat) != devices.end() )
+		{
 
-		if ( devices.find("logic") != devices.end() )
-			GlobalThreadPool::get().AddTask(0, boost::bind(sendCommand<BsnsLogic>, devices[device].devInstance.get(), command, parameters));
+			if (task.adresat == "logic")
+			{
+				// TODO Set task to adresat
+				std::cout << "Set task for transaction " << task.txId << " to: "
+						<< task.adresat << std::endl;
 
+				GlobalThreadPool::get().AddTask(0, boost::bind(sendCommand, devices[task.adresat].devInstance.get(), command, parameters));
+
+				/*
+				 * Если в очереди есть еще задачи, то отправить следующую
+				 */
+				auto it = devices.find(task.abstract);
+				if (it->second.taskQue.size())
+				{
+					/*
+					 *  Постановка задачи на отправку команды на абстрактное устройство.
+					 */
+					DeviceCtl::Task& newTask = it->second.taskQue.front();
+					GlobalThreadPool::get().AddTask(0, newTask.taskFn);
+
+					std::string abstractName = it->second.devInstance.get()->deviceAbstractName();
+					std::cout << "CDeviceManager::setCommandToDevice: task added to " << abstractName << std::endl;
+				}
+
+			}
+		}
+		else
+		{
+			std::cout << "Client '" << task.adresat << "'  not found in device list." << std::endl;
+		}
 	}
 	else
 	{
@@ -118,7 +162,7 @@ void CDeviceManager::setCommandToClient(uint32_t eventFlag, std::string device, 
 		std::cout << "Set event to: ???" << std::endl;
 
 		if ( devices.find("logic") != devices.end() )
-			GlobalThreadPool::get().AddTask(0, boost::bind(sendCommand<BsnsLogic>, devices[device].devInstance.get(), command, parameters));
+			GlobalThreadPool::get().AddTask(0, boost::bind(sendCommand, devices["logic"].devInstance.get(), command, parameters));
 
 		// TODO Set task to web-interface
 

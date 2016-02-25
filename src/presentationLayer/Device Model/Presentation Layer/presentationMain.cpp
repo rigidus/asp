@@ -33,11 +33,13 @@ const std::string kkm1("kkm");
 
 // common
 const std::string AbstractShlagbaum::s_abstractName = "shlagbaum";
+const std::string BsnsLogic::s_abstractName = "logic";
 
 // concrete names
 const std::string ShlagbaumPalka::s_concreteName = "shlagbaum palka";
-const std::string ClientHttp::s_concreteName = "";
+const std::string HttpClient::s_concreteName = "logic_http";
 
+// Test 1
 void testCreateAndDestroy()
 {
 
@@ -64,12 +66,12 @@ int main()
 	boost::thread thrHttpServer = httpserver::startHttpServer();
 
 //  Test1 in the future
-	for (int i=0; i<10; ++i)	// for test of create and destroy
-	{
-		std::cout << "------------- start new instance ---------------- " <<  i << std::endl;
-
-		testCreateAndDestroy();
-	}
+//	for (int i=0; i<10; ++i)	// for test of create and destroy
+//	{
+//		std::cout << "------------- start new instance ---------------- " <<  i << std::endl;
+//
+//		testCreateAndDestroy();
+//	}
 
 	CDeviceManager::deviceManagerFactory(CDeviceManager::TestingSet);
 	GlobalThreadPool::get();
@@ -78,6 +80,9 @@ int main()
 	{
 		boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
 	}
+
+	GlobalThreadPool::stop();
+	CDeviceManager::destroyDeviceManager();
 
 	return 0;
 }
