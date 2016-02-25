@@ -6,6 +6,7 @@
 ///////////////////////////////////////////////////////////
 
 #include "CPinCtl.h"
+#include "SetCommandTo.h"
 
 namespace boostio = boost::iostreams;
 namespace boostfs = boost::filesystem;
@@ -162,7 +163,13 @@ uint32_t CPinCtl::send(std::list<std::vector<uint8_t> > sendData)
 	/*
 	 * Постановка задачи на отправку сообщения на верхний уровень менеджеру
 	 */
-	GlobalThreadPool::get().AddTask(0, boost::bind(CBaseDevice::performEvent, m_device, *sendData.begin() ));
+
+	std::vector<uint8_t> answer;
+	for (auto& vect: sendData)
+		for (auto v: vect)
+			answer.push_back(v);
+
+	m_device->performEvent(answer);
 
 	return  0;
 }

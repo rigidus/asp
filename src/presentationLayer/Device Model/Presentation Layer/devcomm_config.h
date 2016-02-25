@@ -8,11 +8,11 @@
 #ifndef DEVCOMM_CONFIG_H_
 #define DEVCOMM_CONFIG_H_
 
-using namespace database;
+#include "Settings.h"
 
 namespace devcomm_config {
 
-	CSettings::CommGPIOConfig gpio12 =
+	settings::CommGPIOConfig gpio12 =
 	{
 			"gpio12",
 			true,	// out
@@ -20,7 +20,7 @@ namespace devcomm_config {
 			3000	// default pulse value, ms
 	};
 
-	CSettings::CommGPIOConfig gpio18 =
+	settings::CommGPIOConfig gpio18 =
 	{
 			"gpio18",
 			true,	// out
@@ -28,7 +28,7 @@ namespace devcomm_config {
 			3000	// default pulse value, ms
 	};
 
-	CSettings::CommGPIOConfig gpio8 =
+	settings::CommGPIOConfig gpio8 =
 	{
 			"gpio8",
 			false,	// in, signal from car present
@@ -36,47 +36,47 @@ namespace devcomm_config {
 			300		// check delay, ms
 	};
 
-	CSettings::CommUARTConfig uart2 =
+	settings::CommUARTConfig uart2 =
 	{
 			"uart2",
 			115200,
 			8, 1, true
 	};
 
-	CSettings::CommCURLConfig curlBusinnessLogic =
+	settings::HttpClientConfig curlBusinnessLogic =
 	{
 			"bl",
 			"http://localhost/businness_logic",
 			"80"
 	};
 
-	CSettings::CommCURLConfig curlWebInterface =
+	settings::HttpClientConfig curlWebInterface =
 	{
 			"wi",
 			"http://localhost/web_interface",
 			"80"
 	};
 
-	CSettings::CommCURLConfig curlTestInterface =
+	settings::HttpClientConfig curlTestInterface =
 	{
 			"ti",
 			"http://localhost/test_interface",
 			"80"
 	};
 
-	CSettings::CommGPIOConfig* gpioConfigList[] =
+	settings::CommGPIOConfig* gpioConfigList[] =
 	{
 			&gpio8,
 			&gpio12,
 			&gpio18
 	};
 
-	CSettings::CommUARTConfig* uartConfigList[] =
+	settings::CommUARTConfig* uartConfigList[] =
 	{
 			&uart2
 	};
 
-	CSettings::CommCURLConfig* curlConfigList[] =
+	settings::HttpClientConfig* curlConfigList[] =
 	{
 			&curlBusinnessLogic,
 			&curlWebInterface,

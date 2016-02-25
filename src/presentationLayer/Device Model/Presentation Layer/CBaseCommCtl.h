@@ -38,4 +38,5 @@ protected:
 	CBaseDevice* m_device;
 
 };
+
 #endif // !defined(EA_96F2CEBA_CC67_4b9a_B21B_8FBBD7D55F20__INCLUDED_)

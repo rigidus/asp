@@ -41,8 +41,7 @@ void CBaseDevice::addCommDevice(shared_ptr<CBaseCommCtl> commCtl)
 bool CBaseDevice::connectToCommCtl()
 {
 
-	database::CSettings sets;
-	std::vector<std::string> commNames = sets.getGPIONamesByDevice(c_name);
+	std::vector<std::string> commNames = settings::getCommNamesByDevice(c_name);
 
 	if (commNames.size() == 0)
 		return false;

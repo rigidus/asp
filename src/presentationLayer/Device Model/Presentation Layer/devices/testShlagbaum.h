@@ -54,6 +54,4 @@ public:
 
 };
 
-const std::string ShlagbaumPalka::s_concreteName = "shlagbaum palka";
-
 #endif /* TESTSHLAGBAUM_H_ */

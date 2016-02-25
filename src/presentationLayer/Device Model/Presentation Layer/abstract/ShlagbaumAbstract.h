@@ -50,7 +50,4 @@ public:
 	}
 };
 
-const std::string AbstractShlagbaum::s_abstractName = "shlagbaum";
-
-
 #endif /* SHLAGBAUMABSTRACT_H_ */

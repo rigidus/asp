@@ -10,6 +10,7 @@
 
 #include "devices/CBaseDevice.h"
 #include "abstract/ShlagbaumAbstract.h"
+#include "abstract/BsnsLogic.h"
 
 class CDeviceFactory
 {
