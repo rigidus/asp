@@ -6,6 +6,7 @@
  */
 
 #include "HttpServer.h"
+#include "devices/HttpClient.h"
 
 #include <iostream>
 
@@ -19,6 +20,8 @@
 
 using namespace mythreadpool;
 using namespace rapidjson;
+
+volatile int HttpClient::s_exit_flag = 0;
 
 // Abstract names
 // full
