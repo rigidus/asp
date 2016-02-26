@@ -25,7 +25,7 @@ void setCommandTo::Device(uint32_t txid, std::string device, std::string command
 
 }
 
-void setCommandTo::Client(uint32_t eventFlag, std::string device, std::string command, std::string parameters)
+void setCommandTo::Client(CommandType eventFlag, std::string device, std::string command, std::string parameters)
 {
 	CDeviceManager* devMgr = CDeviceManager::deviceManager();
 	if (devMgr)
@@ -41,4 +41,18 @@ void setCommandTo::Client(uint32_t eventFlag, std::string device, std::string co
 
 }
 
+void setCommandTo::Manager(std::string device)
+{
+	CDeviceManager* devMgr = CDeviceManager::deviceManager();
+		if (devMgr)
+		{
+			std::cout << "Set command to manager from " << device << std::endl;
+			devMgr->ackClient(device);
+		}
+		else
+		{
+			// TODO отправить назад сообщение, что устройства еще не настроены
+			std::cout << "Device manager not found." << std::endl;
+		}
 
+}

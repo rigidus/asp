@@ -9,22 +9,22 @@
 #define HTTPCLIENT_H_
 
 #include <mongoose/mongoose.h>
+#include "SetCommandTo.h"
 
 class HttpClient: public CBaseDevice
 {
-
-// CodecType protoCodec;
-	  struct mg_mgr mgr;
+	struct mg_mgr mgr;
 
 public:
 
 	HttpClient(): CBaseDevice(s_concreteName)
 	{
-		  mg_mgr_init(&mgr, NULL);
+		mg_mgr_init(&mgr, NULL);
 	}
 
 	~HttpClient()
 	{
+		mg_mgr_free(&mgr);
 	}
 
 	static const std::string s_concreteName;
@@ -36,42 +36,51 @@ public:
 	static void ev_handler(struct mg_connection *nc, int ev, void *ev_data) {
 	  struct http_message *hm = (struct http_message *) ev_data;
 
-	  switch (ev) {
-	    case MG_EV_CONNECT:
-	      if (* (int *) ev_data != 0) {
-	        fprintf(stderr, "connect() failed: %s\n", strerror(* (int *) ev_data));
-	        s_exit_flag = 1;
-	      }
-	      break;
-	    case MG_EV_HTTP_REPLY:
-	      nc->flags |= MG_F_CLOSE_IMMEDIATELY;
-//	      if (s_show_headers) {
-//	        fwrite(hm->message.p, 1, hm->message.len, stdout);
-//	      } else {
-//	        fwrite(hm->body.p, 1, hm->body.len, stdout);
-//	      }
-	      putchar('\n');
-	      s_exit_flag = 1;
-	      break;
-	    default:
-	      break;
+		switch (ev) {
+
+		case MG_EV_CONNECT:
+			if (* (int *) ev_data != 0) {
+				std::cout << "Connect to businness logic failed: " << strerror(* (int *) ev_data);
+				s_exit_flag = 1;
+			}
+			break;
+
+		case MG_EV_HTTP_REPLY:
+			{
+				nc->flags |= MG_F_CLOSE_IMMEDIATELY;
+				std::cout << "HttpClient message transferred, response code: " << hm->resp_code << std::endl;
+				s_exit_flag = 1;
+
+				setCommandTo::Manager(HttpClient::s_concreteName);
+			}
+			break;
+
+		default:
+			break;
+
 	  }
 	}
 
 	virtual void sendCommand(const std::string command, const std::string pars)
 	{
-		std::cout << "Businness logic client performs command: " << command << "[" << pars << "]" << std::endl;
+		std::cout << "Business logic client performs command: " << command << "[" << pars << "]" << std::endl;
 
 		// TODO Сериализация JSON
 
 		// TODO Здесь пока что сделана синхронка for examle, но нужна Асинхронная передача на сервер
 		// Для чего надо ставить задачу на отправку тредпулу, а подтверждение обрабатывать в коллбэке
+		// и ставить задачу для дев менеджера для подтверждения транзакции, удаления ее из очереди и старта
+		// следующей.
 		s_exit_flag = 0;
-		mg_connect_http(&mgr, ev_handler, "http://127.0.0.1:8000", NULL, (command+pars).c_str());
+
+		mg_connect_http(&mgr, ev_handler, "http://127.0.0.1:8000", "", (command+pars).c_str());
 
 		while (s_exit_flag == 0) {
 			mg_mgr_poll(&mgr, 1000);
 		}
+
+		std::cout << "Business logic client end command: " << command << "[" << pars << "]" << std::endl;
+
 	}
 
 	virtual bool connectToCommCtl()

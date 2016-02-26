@@ -13,10 +13,14 @@
 namespace setCommandTo
 {
 
+enum CommandType { Transaction, Event };
+
 void Device(uint32_t txid, std::string device, std::string command,
 			std::string parameters, std::string adresat);
 
-void Client(uint32_t eventFlag, std::string device, std::string command, std::string parameters);
+void Client(CommandType eventFlag, std::string device, std::string command, std::string parameters);
+
+void Manager(std::string device);
 
 }
 

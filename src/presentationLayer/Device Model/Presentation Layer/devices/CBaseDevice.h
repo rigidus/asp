@@ -48,7 +48,7 @@ public:
 		for(uint8_t v: rcvData)
 			answer += v;
 
-		setCommandTo::Client(0, c_name, "answer: ", answer);
+		setCommandTo::Client( setCommandTo::Transaction, c_name, "answer: ", answer);
 	}
 
 protected:

@@ -23,6 +23,14 @@
 #include "SetCommandTo.h"
 #include "abstract/BsnsLogic.h"
 
+/*
+ * Test message for server:
+ * curl -v -H "Content-Type: application/json" -X POST
+ * -d '{"txid":12, "device":"shlagbaum_in", "command":"down",
+ * "parameters":{"state":"open", "car":"present"} }'
+ * http://localhost:8000
+ */
+
 namespace httpserver
 {
 
@@ -44,11 +52,15 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 
 	if (ev == MG_EV_HTTP_REQUEST)
 	{
-		nc->flags |= MG_F_CLOSE_IMMEDIATELY;
+		std::cout << "HTTP Server received new data." << std::endl;
+
 		char* addr = inet_ntoa(nc->sa.sin.sin_addr); // client address
 		int port = nc->sa.sin.sin_port;
 
-	    // Parse a JSON string into DOM.
+		nc->flags |= MG_F_SEND_AND_CLOSE;
+		mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\n\r\n\r\n");
+
+		// Parse a JSON string into DOM.
 	    std::vector< ASCII<>::Ch > jsonArray(hmsg->body.len+1, 0);
 		memcpy(&jsonArray[0], hmsg->body.p, (hmsg->body.len+1) * sizeof(jsonArray[0]));
 		jsonArray[hmsg->body.len] = 0;
@@ -185,7 +197,7 @@ void httpServerThread()
 	for(;;)
 	{
 		boost::this_thread::interruption_point();
-		mg_mgr_poll(&mgr, 1000);
+		mg_mgr_poll(&mgr, 100);
 	}
 
 	mg_mgr_free(&mgr);

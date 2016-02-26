@@ -13,6 +13,7 @@
 #include <boost/smart_ptr.hpp>
 #include "GlobalThreadPool.h"
 #include "CDeviceFactory.h"
+#include "SetCommandTo.h"
 
 class CDeviceManager {
 
@@ -48,20 +49,22 @@ private:
 			if (v.second.devInstance->deviceConcreteName() == concreteDevice)
 			{
 
-				std::cout << "popDeviceTask found " << concreteDevice << std::endl;
-
 				if (v.second.taskQue.size() == 0)
 				{
-					std::cout << "popDeviceTask not found tasks in queue for " << concreteDevice << std::endl;
+					std::cout << "CDeviceManager::popDeviceTask not found tasks in queue for '" << concreteDevice << "'" << std::endl;
 					return false;
 				}
 
 				task = v.second.taskQue.front();
 				v.second.taskQue.pop();
 
-				std::cout << "popDeviceTask found tasks in queue for " << concreteDevice <<  ". Task popped." << std::endl;
+				std::cout << "CDeviceManager::popDeviceTask found tasks in queue for '" << concreteDevice <<  "'. Task popped." << std::endl;
 
 				return true;
+			}
+			else
+			{
+				std::cout << "CDeviceManager::popDeviceTask not found device '" << concreteDevice << "'" << std::endl;
 			}
 		}
 
@@ -105,7 +108,7 @@ public:
 		ptr = nullptr;
 	}
 
-	void setCommandToClient(uint32_t eventFlag, std::string device, std::string command, std::string parameters);
+	void setCommandToClient(setCommandTo::CommandType eventFlag, std::string device, std::string command, std::string parameters);
 
 	static void sendCommand(CAbstractDevice* abstractDevice, std::string command, std::string pars)
 	{
@@ -115,6 +118,8 @@ public:
 	// Class functions
 	void setCommandToDevice(uint32_t txid, std::string device, std::string command,
 			std::string parameters, std::string adresat);
+
+	void ackClient(std::string concreteDevice);
 
 };
 

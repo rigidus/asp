@@ -68,8 +68,9 @@ int main()
 
 	boost::thread thrHttpServer = httpserver::startHttpServer();
 
-//  Test1 in the future
-//	for (int i=0; i<10; ++i)	// for test of create and destroy
+//  Test1 Создание и разрушение классов устройств, запуск и остановка их работы 100 раз в цикле
+//  	При разных конфигурациях, в т.ч. с отсутствием устройств
+//	for (int i=0; i < 100; ++i)	// for test of create and destroy
 //	{
 //		std::cout << "------------- start new instance ---------------- " <<  i << std::endl;
 //
@@ -78,6 +79,14 @@ int main()
 
 	CDeviceManager::deviceManagerFactory(CDeviceManager::TestingSet);
 	GlobalThreadPool::get();
+
+//	Test 2 Постановка в очередь на устройство 100 команд без задержки
+
+	for (int i=0; i < 100; ++i)
+	{
+		setCommandTo::Client(setCommandTo::Event, "logic", "",
+				"{\"txid\":12, \"device\":\"shlagbaum_in\", \"command\":\"down\", \"parameters\":{\"state\":\"open\", \"car\":\"present\"} }");
+	}
 
 	for (;;)
 	{
