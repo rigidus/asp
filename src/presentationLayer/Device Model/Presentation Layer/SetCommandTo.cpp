@@ -14,13 +14,13 @@ void setCommandTo::Device(uint32_t txid, std::string device, std::string command
 	CDeviceManager* devMgr = CDeviceManager::deviceManager();
 	if (devMgr)
 	{
-		std::cout << "Set command for device " << device << " from " << adresat << std::endl;
+		std::cout << "setCommandTo::Device: " << device << " from " << adresat << std::endl;
 		devMgr->setCommandToDevice(txid, device, command, parameters, adresat);
 	}
 	else
 	{
 		// TODO отправить назад сообщение, что устройства еще не настроены
-		std::cout << "Device manager not found." << std::endl;
+		std::cout << "ERROR! setCommandTo::Device: not found." << std::endl;
 	}
 
 }
@@ -30,13 +30,13 @@ void setCommandTo::Client(CommandType eventFlag, std::string device, std::string
 	CDeviceManager* devMgr = CDeviceManager::deviceManager();
 	if (devMgr)
 	{
-		std::cout << "Set command to client from " << device << std::endl;
+		std::cout << "setCommandTo::Client: Set command to client from " << device << std::endl;
 		devMgr->setCommandToClient(eventFlag, device, command, parameters);
 	}
 	else
 	{
 		// TODO отправить назад сообщение, что устройства еще не настроены
-		std::cout << "Device manager not found." << std::endl;
+		std::cout << "ERROR! setCommandTo::Client: Device manager not found." << std::endl;
 	}
 
 }
@@ -46,13 +46,13 @@ void setCommandTo::Manager(std::string device)
 	CDeviceManager* devMgr = CDeviceManager::deviceManager();
 		if (devMgr)
 		{
-			std::cout << "Set command to manager from " << device << std::endl;
+			std::cout << "setCommandTo::Manager: Set command to manager from " << device << std::endl;
 			devMgr->ackClient(device);
 		}
 		else
 		{
 			// TODO отправить назад сообщение, что устройства еще не настроены
-			std::cout << "Device manager not found." << std::endl;
+			std::cout << "ERROR! setCommandTo::Manager: Device manager not found." << std::endl;
 		}
 
 }

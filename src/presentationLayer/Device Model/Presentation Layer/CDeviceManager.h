@@ -23,6 +23,7 @@ private:
 
 	static CDeviceManager* ptr;
 	static boost::mutex mut;
+	static boost::mutex queMutex;
 
 	struct DeviceCtl
 	{
@@ -51,22 +52,20 @@ private:
 
 				if (v.second.taskQue.size() == 0)
 				{
-					std::cout << "CDeviceManager::popDeviceTask not found tasks in queue for '" << concreteDevice << "'" << std::endl;
+					std::cout << "CDeviceManager::popDeviceTask: not found tasks in queue for '" << concreteDevice << "'" << std::endl;
 					return false;
 				}
 
 				task = v.second.taskQue.front();
 				v.second.taskQue.pop();
 
-				std::cout << "CDeviceManager::popDeviceTask found tasks in queue for '" << concreteDevice <<  "'. Task popped." << std::endl;
+				std::cout << "CDeviceManager::popDeviceTask: found tasks in queue for '" << concreteDevice <<  "'. Task popped." << std::endl;
 
 				return true;
 			}
-			else
-			{
-				std::cout << "CDeviceManager::popDeviceTask not found device '" << concreteDevice << "'" << std::endl;
-			}
 		}
+
+		std::cout << "ERROR: CDeviceManager::popDeviceTask: not found device '" << concreteDevice << "'" << std::endl;
 
 		return false;
 	}
@@ -97,7 +96,7 @@ public:
 	static CDeviceManager* deviceManager()
 	{
 		if (ptr == nullptr)
-			std::cout << "ERROR: deviceManager is NULL" << std::endl;
+			std::cout << "ERROR! CDeviceManager::deviceManager: is NULL" << std::endl;
 
 		return ptr;
 	}

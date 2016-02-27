@@ -24,7 +24,7 @@ shared_ptr<CBaseCommCtl> CPinCtl::takeCommCtl(CBaseDevice* device, const std::st
 		// check busy pin
 		if (busyPins.find(gpioName) != busyPins.end())
 		{
-			std::cout << "CPinCtl::takeCommCtl getting " << gpioName << " failed: gpio is busy or not existing" << std::endl;
+			std::cout << "ERROR! CPinCtl::takeCommCtl: getting " << gpioName << " failed: gpio is busy or not existing" << std::endl;
 			return nullptr;
 		}
 		// OK! pin is free
@@ -39,25 +39,25 @@ shared_ptr<CBaseCommCtl> CPinCtl::takeCommCtl(CBaseDevice* device, const std::st
 //
 //		if ( CPinCtl::fileIsExist( pinPath+"direction" ) == false)
 //		{
-//			std::cout << "CPinCtl::takeCommCtl getting" << gpioName << " failed: direction not found" << std::endl;
+//			std::cout << "ERROR! CPinCtl::takeCommCtl getting" << gpioName << " failed: direction not found" << std::endl;
 //			return nullptr;
 //		}
 //
 //		if ( CPinCtl::fileIsExist( pinPath+"value" ) == false)
 //		{
-//			std::cout << "CPinCtl::takeCommCtl getting" << gpioName << " failed: value not found" << std::endl;
+//			std::cout << "ERROR! CPinCtl::takeCommCtl getting" << gpioName << " failed: value not found" << std::endl;
 //			return nullptr;
 //		}
 //
 //		if ( CPinCtl::fileIsExist( pinPath+"edge" ) == false)
 //		{
-//			std::cout << "CPinCtl::takeCommCtl getting" << gpioName << " failed: edge not found" << std::endl;
+//			std::cout << "ERROR! CPinCtl::takeCommCtl getting" << gpioName << " failed: edge not found" << std::endl;
 //			return nullptr;
 //		}
 //
 //		if ( CPinCtl::fileIsExist( pinPath+"active_low" ) == false)
 //		{
-//			std::cout << "CPinCtl::takeCommCtl getting" << gpioName << " failed: active_low not found" << std::endl;
+//			std::cout << "ERROR! CPinCtl::takeCommCtl getting" << gpioName << " failed: active_low not found" << std::endl;
 //			return nullptr;
 //		}
 		// OK! pin is present
@@ -67,26 +67,26 @@ shared_ptr<CBaseCommCtl> CPinCtl::takeCommCtl(CBaseDevice* device, const std::st
 		busyPins.emplace(std::make_pair(gpioName, pinCtl));
 		// OK! pin is made as busied and stored
 
-		std::cout << "CPinCtl::takeCommCtl take " << gpioName << " successfully" << std::endl;
+		std::cout << "CPinCtl::takeCommCtl: take " << gpioName << " successfully" << std::endl;
 
 		return pinCtl;
 	}
 
 	catch(boost::exception& ex)
 	{
-		std::cout << "CPinCtl::takeCommCtl exception: " << boost::diagnostic_information(ex) << std::endl;
+		std::cout << "ERROR! CPinCtl::takeCommCtl: exception: " << boost::diagnostic_information(ex) << std::endl;
 		return nullptr;
 	}
 
 	catch(std::exception& ex)
 	{
-		std::cout << "CPinCtl::takeCommCtl exception: " << ex.what() << std::endl;
+		std::cout << "ERROR! CPinCtl::takeCommCtl: exception: " << ex.what() << std::endl;
 		return nullptr;
 	}
 
 	catch(...)
 	{
-		std::cout << "CPinCtl::takeCommCtl unknown exception: " << std::endl;
+		std::cout << "ERROR! CPinCtl::takeCommCtl unknown exception: " << std::endl;
 		return nullptr;
 	}
 
@@ -99,7 +99,7 @@ void CPinCtl::freeCommCtl(CBaseDevice* device, const std::string& gpioName)
 
 	if (device == nullptr) return;
 
-	std::cout << "getPinCtl try to free " << gpioName << std::endl;
+	std::cout << "CPinCtl::freeCommCtl: getPinCtl try to free " << gpioName << std::endl;
 
 	// check busy pin
 
@@ -122,7 +122,7 @@ void CPinCtl::freeCommCtl(CBaseDevice* device, const std::string& gpioName)
 	std::ostream fileExport(&bufExport);
 	fileExport << gpioName;
 
-	std::cout << "getPinCtl " << gpioName << " is free" << std::endl;
+	std::cout << "CPinCtl::freeCommCtl: " << gpioName << " is free" << std::endl;
 
 	busyPins.erase(it);
 }
@@ -158,7 +158,7 @@ bool CPinCtl::receive(int rcvData){
 uint32_t CPinCtl::send(std::list<std::vector<uint8_t> > sendData)
 {
 
-	std::cout << "CPinCtl send command to pin and imitate reply ACK as callback" << std::endl;
+	std::cout << "CPinCtl::send: command to pin and imitate reply ACK as callback" << std::endl;
 
 	/*
 	 * Постановка задачи на отправку сообщения на верхний уровень менеджеру

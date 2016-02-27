@@ -33,7 +33,7 @@ void CBaseDevice::addCommDevice(shared_ptr<CBaseCommCtl> commCtl)
 	{
 		m_commCtl.push_back(commCtl);
 
-		std::cout << "addCommDevice: " << commCtl->m_commName << " connected to " << c_name << std::endl;
+		std::cout << "CBaseDevice::addCommDevice: " << commCtl->m_commName << " was added to " << c_name << std::endl;
 	}
 }
 
@@ -48,7 +48,7 @@ bool CBaseDevice::connectToCommCtl()
 
 	for (auto comm: commNames)
 	{
-		std::cout << "  " << comm << std::endl;
+		std::cout << "CBaseDevice::connectToCommCtl: " << c_name << " connected to " << comm << std::endl;
 
 		addCommDevice( takeCommDevice<CPinCtl>(comm) );
 		addCommDevice( takeCommDevice<CSerialPortCtl>(comm) );

@@ -22,7 +22,7 @@ public:
 		concreteDevice(pDevice),
 		c_abstractName(abstractName) {
 
-		std::cout << "Abstract Device: " << abstractName << " created." << std::endl;
+		std::cout << "CAbstractDevice constructor: Abstract Device: " << abstractName << " created." << std::endl;
 	}
 
 	virtual ~CAbstractDevice()

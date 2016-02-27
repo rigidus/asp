@@ -8,6 +8,7 @@
 #ifndef HTTPCLIENT_H_
 #define HTTPCLIENT_H_
 
+#include <boost/thread/mutex.hpp>
 #include <mongoose/mongoose.h>
 #include "SetCommandTo.h"
 
@@ -33,6 +34,8 @@ public:
 
 	static volatile int s_exit_flag;
 
+	static boost::mutex HTTPconnectMutex;
+
 	static void ev_handler(struct mg_connection *nc, int ev, void *ev_data) {
 	  struct http_message *hm = (struct http_message *) ev_data;
 
@@ -40,7 +43,7 @@ public:
 
 		case MG_EV_CONNECT:
 			if (* (int *) ev_data != 0) {
-				std::cout << "Connect to businness logic failed: " << strerror(* (int *) ev_data);
+				std::cout << "HttpClient::ev_handler: Connect to businness logic failed: " << strerror(* (int *) ev_data);
 				s_exit_flag = 1;
 			}
 			break;
@@ -48,7 +51,7 @@ public:
 		case MG_EV_HTTP_REPLY:
 			{
 				nc->flags |= MG_F_CLOSE_IMMEDIATELY;
-				std::cout << "HttpClient message transferred, response code: " << hm->resp_code << std::endl;
+				std::cout << "HttpClient::ev_handler: message transferred, response code: " << hm->resp_code << std::endl;
 				s_exit_flag = 1;
 
 				setCommandTo::Manager(HttpClient::s_concreteName);
@@ -63,7 +66,10 @@ public:
 
 	virtual void sendCommand(const std::string command, const std::string pars)
 	{
-		std::cout << "Business logic client performs command: " << command << "[" << pars << "]" << std::endl;
+
+		boost::mutex::scoped_lock lock(HTTPconnectMutex);
+
+		std::cout << "HttpClient::sendCommand: Business logic client performs command: " << command << "[" << pars << "]" << std::endl;
 
 		// TODO Сериализация JSON
 
@@ -79,7 +85,7 @@ public:
 			mg_mgr_poll(&mgr, 1000);
 		}
 
-		std::cout << "Business logic client end command: " << command << "[" << pars << "]" << std::endl;
+		std::cout << "HttpClient::sendCommand: Business logic client end command: " << command << "[" << pars << "]" << std::endl;
 
 	}
 

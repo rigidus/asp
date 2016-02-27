@@ -59,7 +59,7 @@ public:
 
 		if (devs.size() > 1)
 		{
-			std::cout << "deviceFactory detected device configuration error: more than 1 abstract device created" << std::endl;
+			std::cout << "ERROR! CDeviceFactory::deviceFactory: detected device configuration error: more than 1 abstract device created" << std::endl;
 
 			for (CAbstractDevice* d: devs)
 				delete d;
@@ -69,12 +69,12 @@ public:
 
 		if (devs.size() == 0)
 		{
-			std::cout << "deviceFactory detected device configuration error: no device created" << std::endl;
+			std::cout << "ERROR! CDeviceFactory::deviceFactory detected device configuration error: no device created" << std::endl;
 
 			return nullptr;
 		}
 
-		std::cout << "deviceFactory created device: " << abstractName << std::endl;
+		std::cout << "CDeviceFactory::deviceFactory created device: " << abstractName << std::endl;
 
 		return devs[0];
 	}
@@ -93,13 +93,13 @@ private:
 
 		if ( devName.find(T::s_abstractName) != std::string::npos)
 		{
-			std::cout << "Create abstract device: " << abstractName << std::endl;
+			std::cout << "CDeviceFactory::createAbstractDevice: Create abstract device: " << abstractName << std::endl;
 
 			dev = T::createDevice(abstractName, devName);
 		}
 		else
 		{
-			std::cout << "Abstract device " << abstractName << " not found in device list" << std::endl;
+			std::cout << "ERROR! CDeviceFactory::createAbstractDevice: Abstract device " << abstractName << " not found in device list" << std::endl;
 		}
 
 		return dev;

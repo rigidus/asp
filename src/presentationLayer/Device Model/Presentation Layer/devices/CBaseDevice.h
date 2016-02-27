@@ -39,7 +39,7 @@ public:
 
 	void performEvent(std::vector<uint8_t>& rcvData)
 	{
-		std::cout << "CBaseDevice performs Event from device: " << c_name << ": ";
+		std::cout << "CBaseDevice::performEvent: performs Event from device: " << c_name << ": ";
 		for (auto v: rcvData) std::cout << v << " ";
 		std::cout << std::endl;
 
@@ -61,7 +61,7 @@ protected:
 
 		if ( commName.find(T::s_name) != std::string::npos)
 		{
-			std::cout << "Take communication device: " << commName << std::endl;
+			std::cout << "CBaseDevice::takeCommDevice: Take communication device: " << commName << std::endl;
 
 			return T::takeCommCtl(this, commName);
 		}

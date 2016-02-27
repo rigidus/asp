@@ -25,7 +25,7 @@ public:
 	static CAbstractDevice* createDevice(const std::string& abstractName, const std::string& devName)
 	{
 
-		std::cout << "Create concrete device " << devName << std::endl;
+		std::cout << "AbstractShlagbaum::createDevice: Create concrete device " << devName << std::endl;
 
 		CBaseDevice* cDev = nullptr;
 

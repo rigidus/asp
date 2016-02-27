@@ -32,7 +32,7 @@ public:
 
 	virtual void sendCommand(const std::string command, const std::string pars)
 	{
-		std::cout << "ShlagbaumPalka performs command: " << command << "[" << pars << "]" << std::endl;
+		std::cout << "ShlagbaumPalka::sendCommand: performs command: " << command << "[" << pars << "]" << std::endl;
 
 		rcvData.clear();
 		rcvData.push_back('A');
@@ -40,6 +40,12 @@ public:
 		rcvData.push_back('K');
 		std::list<std::vector<uint8_t>> data;
 		data.push_back(rcvData);
+
+		if (m_commCtl.size() == 0)
+		{
+			std::cout << "ERROR! ShlagbaumPalka::sendCommand: communication devices has lost" << std::endl;
+			return;
+		}
 
 		// command "up"
 		if (m_commCtl[0])

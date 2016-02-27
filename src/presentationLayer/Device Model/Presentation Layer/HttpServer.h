@@ -52,7 +52,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 
 	if (ev == MG_EV_HTTP_REQUEST)
 	{
-		std::cout << "HTTP Server received new data." << std::endl;
+		std::cout << "httpServer::cb_HttpServer: HTTP Server received new data." << std::endl;
 
 		char* addr = inet_ntoa(nc->sa.sin.sin_addr); // client address
 		int port = nc->sa.sin.sin_port;
@@ -69,7 +69,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 		d.ParseInsitu(&jsonArray[0]);
 		if (d.HasParseError() == false)
 		{
-			std::cout << "JSON was parsed correctly." << std::endl;
+			std::cout << "httpServer::cb_HttpServer: JSON was parsed correctly." << std::endl;
 
 			// Stringify the DOM
 			StringBuffer buffer;
@@ -80,21 +80,21 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 			if (d.HasMember(attrTxId.c_str()) == false)
 			{
 				// TODO отправить сообщение, что txid не найден и выйти
-				std::cout << "JSON attribute '" << attrTxId << "' not found" << std::endl;
+				std::cout << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrTxId << "' not found" << std::endl;
 				return;
 			}
 
 			if (d.HasMember(attrDev.c_str()) == false)
 			{
 				// TODO отправить сообщение, что device не найден и выйти
-				std::cout << "JSON attribute '" << attrDev << "' not found" << std::endl;
+				std::cout << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrDev << "' not found" << std::endl;
 				return;
 			}
 
 			if (d.HasMember("command") == false)
 			{
 				// TODO отправить сообщение, что txid не найден и выйти
-				std::cout << "JSON attribute '" << attrCmd << "' not found" << std::endl;
+				std::cout << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrCmd << "' not found" << std::endl;
 				return;
 			}
 
@@ -102,7 +102,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 			if (d.HasMember(attrPars.c_str()) == true)
 			{
 				// Если опциональные параметры существуют, то добавить из документа
-				std::cout << "JSON attribute '" << attrPars << "' has found" << std::endl;
+				std::cout << "httpServer::cb_HttpServer: JSON attribute '" << attrPars << "' has found" << std::endl;
 				valParams = d[attrPars.c_str()];
 			}
 
@@ -113,28 +113,28 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 			if (valTxId.IsNumber() == false)
 			{
 				// TODO отправить сообщение, что txid не число и выйти
-				std::cout << "JSON attribute '" << attrTxId << "' isn't number type" << std::endl;
+				std::cout << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrTxId << "' isn't number type" << std::endl;
 				return;
 			}
 
 			if (valDevice.IsString() == false)
 			{
 				// TODO отправить сообщение, что девайс не строка и выйти
-				std::cout << "JSON attribute '" << attrDev << "' isn't string type" << std::endl;
+				std::cout << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrDev << "' isn't string type" << std::endl;
 				return;
 			}
 
 			if (valCommand.IsString() == false)
 			{
 				// TODO отправить назад сообщение, что команда не строка и выйти
-				std::cout << "JSON attribute '" << attrCmd << "' isn't string type" << std::endl;
+				std::cout << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrCmd << "' isn't string type" << std::endl;
 				return;
 			}
 
 			if (valParams.IsObject() == false)
 			{
 				// TODO отправить назад сообщение, что параметры не объект и выйти
-				std::cout << "JSON attribute '" << attrPars << "' isn't object type" << std::endl;
+				std::cout << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrPars << "' isn't object type" << std::endl;
 				return;
 			}
 
@@ -161,7 +161,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 			    		<< "' is " << kTypeNames[itr->value.GetType()] << std::endl;
 			}
 
-			std::cout << "JSON OK!" << std::endl;
+			std::cout << "httpServer::cb_HttpServer: JSON OK!" << std::endl;
 
 			setCommandTo::Device(TxId, Device, Command, strParams.GetString(), BsnsLogic::s_abstractName);
 
@@ -172,7 +172,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 			jsonArray[hmsg->body.len] = 0;
 
 			// TODO отправить назад сообщение, что json не распарсился
-			std::cout << "JSON has wrong format: " << &jsonArray[0] << std::endl;
+			std::cout << "ERROR! httpServer::cb_HttpServer: JSON has wrong format: " << &jsonArray[0] << std::endl;
 		}
 
 	}

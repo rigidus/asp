@@ -22,6 +22,7 @@ using namespace mythreadpool;
 using namespace rapidjson;
 
 volatile int HttpClient::s_exit_flag = 0;
+boost::mutex HttpClient::HTTPconnectMutex;
 
 // Abstract names
 // full
@@ -84,8 +85,11 @@ int main()
 
 	for (int i=0; i < 100; ++i)
 	{
-		setCommandTo::Client(setCommandTo::Event, "logic", "",
-				"{\"txid\":12, \"device\":\"shlagbaum_in\", \"command\":\"down\", \"parameters\":{\"state\":\"open\", \"car\":\"present\"} }");
+		std::stringstream strPar;
+
+		strPar << "{\"txid\":" << i << ", \"device\":\"shlagbaum_in\", \"command\":\"down\", \"parameters\":{\"state\":\"open\", \"car\":\"present\"} }";
+
+		setCommandTo::Client(setCommandTo::Event, "logic", "", strPar.str());
 	}
 
 	for (;;)
