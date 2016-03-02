@@ -82,15 +82,15 @@ int main()
 	GlobalThreadPool::get();
 
 //	Test 2 Постановка в очередь на устройство 100 команд без задержки
-
-	for (int i=0; i < 100; ++i)
-	{
-		std::stringstream strPar;
-
-		strPar << "{\"txid\":" << i << ", \"device\":\"shlagbaum_in\", \"command\":\"down\", \"parameters\":{\"state\":\"open\", \"car\":\"present\"} }";
-
-		setCommandTo::Client(setCommandTo::Event, "logic", "", strPar.str());
-	}
+//
+//	for (int i=0; i < 100; ++i)
+//	{
+//		std::stringstream strPar;
+//
+//		strPar << "{\"txid\":" << i << ", \"device\":\"shlagbaum_in\", \"command\":\"down\", \"parameters\":{\"state\":\"open\", \"car\":\"present\"} }";
+//
+//		setCommandTo::Client(setCommandTo::Event, "logic", "", strPar.str());
+//	}
 
 	for (;;)
 	{

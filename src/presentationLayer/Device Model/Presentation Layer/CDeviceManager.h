@@ -103,6 +103,8 @@ public:
 
 	static void destroyDeviceManager()
 	{
+		CPinCtl::stopNotifier();
+
 		delete ptr;
 		ptr = nullptr;
 	}

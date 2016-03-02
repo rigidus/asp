@@ -14,6 +14,8 @@
 
 #include <iostream>
 #include <map>
+#include <boost/asio.hpp>
+#include <boost/thread.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/device/file.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -45,11 +47,24 @@ public:
 
 	virtual ~CPinCtl();
 
+	static const std::string s_name;
+
+	static boost::thread* thrNotify;
+
+	static void startNotifier();
+	static void stopNotifier();
+	static void Notifier();
+
+	// Thread function for waiting GPIO events
+	// TODO: тред должен ждать события на пине через интерфейс inotify
+	// тред должен как-то управляться из того же места, где
+	// будут управляться все треды комм. девайсов
+	static void cb_NotifyGPIOEvent(boost::asio::posix::stream_descriptor* const stream_descriptor, const boost::system::error_code& error);
+
+	// CPinCtl public members
 	bool receive(int rcvData);
 	uint32_t send(std::list<std::vector<uint8_t> > sendData);
 	int setSettings(std::string deviceName);
-
-	static const std::string s_name;
 
 private:
 	CPinCtl(CBaseDevice* device, const std::string& gpioName);
@@ -60,12 +75,23 @@ private:
 
 	static std::map<std::string, shared_ptr<CBaseCommCtl> > busyPins;
 
+	struct TPinData{
+		std::string name;
+		int32_t fd;
+		int32_t events;
+		int32_t watch;
+	};
+
+	static std::vector<TPinData> PinData;
+
 	static const std::string gpioPath;
 
 	std::filebuf fBuf;
 	std::fstream fLog;
 
 	uint32_t m_timeout;
+
+	static bool stopFlag;
 
 };
 

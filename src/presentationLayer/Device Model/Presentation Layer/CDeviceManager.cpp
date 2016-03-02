@@ -6,6 +6,7 @@
  */
 
 #include "CDeviceManager.h"
+#include "CPinCtl.h"
 
 CDeviceManager* CDeviceManager::ptr = nullptr;
 boost::mutex CDeviceManager::mut;
@@ -33,6 +34,8 @@ CDeviceManager::CDeviceManager(std::vector<settings::DeviceConfig> devConfig) {
 			devices.emplace( std::make_pair(v.abstractName, devCtl) );
 		}
 	}
+
+	CPinCtl::startNotifier();
 
 	std::cout << "CDeviceManager constructor: Created device list:" << std::endl;
 	for (auto v: devices)

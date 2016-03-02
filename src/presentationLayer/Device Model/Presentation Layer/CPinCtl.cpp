@@ -7,6 +7,7 @@
 
 #include "CPinCtl.h"
 #include "SetCommandTo.h"
+#include <sys/inotify.h>
 
 namespace boostio = boost::iostreams;
 namespace boostfs = boost::filesystem;
@@ -14,6 +15,9 @@ namespace boostfs = boost::filesystem;
 const std::string CPinCtl::s_name = "gpio";
 const std::string CPinCtl::gpioPath = "/sys/class/gpio/";
 std::map<std::string, shared_ptr<CBaseCommCtl> > CPinCtl::busyPins;
+boost::thread* CPinCtl::thrNotify = nullptr;
+std::vector<CPinCtl::TPinData> CPinCtl::PinData;
+bool CPinCtl::stopFlag = false;
 
 shared_ptr<CBaseCommCtl> CPinCtl::takeCommCtl(CBaseDevice* device, const std::string& gpioName)
 {
@@ -35,8 +39,8 @@ shared_ptr<CBaseCommCtl> CPinCtl::takeCommCtl(CBaseDevice* device, const std::st
 		std::ostream fileExport(&bufExport);
 		fileExport << gpioName;
 
-//		std::string pinPath = CPinCtl::gpioPath + "/" + gpioName + "/";
-//
+		std::string pinPath = CPinCtl::gpioPath + "/" + gpioName + "/";
+
 //		if ( CPinCtl::fileIsExist( pinPath+"direction" ) == false)
 //		{
 //			std::cout << "ERROR! CPinCtl::takeCommCtl getting" << gpioName << " failed: direction not found" << std::endl;
@@ -178,4 +182,114 @@ uint32_t CPinCtl::send(std::list<std::vector<uint8_t> > sendData)
 int CPinCtl::setSettings(std::string deviceName){
 
 	return 0;
+}
+
+void CPinCtl::startNotifier()
+{
+
+	thrNotify = new boost::thread(Notifier);
+
+}
+
+void CPinCtl::stopNotifier()
+{
+	stopFlag = true;
+	thrNotify->join();
+	delete thrNotify;
+
+}
+
+void CPinCtl::Notifier()
+{
+
+	int d_inoty = inotify_init();
+
+	for (auto busyPin: busyPins)
+	{
+		std::string fname(gpioPath + busyPin.first + "/value");
+
+		TPinData pin;
+		pin.fd = open( fname.c_str(), O_RDWR | O_NONBLOCK);
+
+		if (pin.fd == -1)
+		{
+			std::cout << "ERROR! CPinCtl::Notifier didn't find file: " << fname << ". Notifier exits." << std::endl;
+ 			return;
+		}
+
+		pin.events = IN_MODIFY;
+		pin.watch =  inotify_add_watch(d_inoty, fname.c_str(), pin.events);
+		pin.name = busyPin.first;
+
+		PinData.push_back(pin);
+	}
+
+	fd_set readset, excpset;
+
+	while(stopFlag == false)
+	{
+		FD_ZERO(&readset);
+		FD_ZERO(&excpset);
+		FD_SET(d_inoty, &readset);
+		FD_SET(d_inoty, &excpset);
+
+		struct timeval tv;
+		tv.tv_sec = 0;
+		tv.tv_usec = 100000;
+		select(d_inoty + 1, &readset, NULL, &excpset, &tv);
+
+		if (FD_ISSET(d_inoty, &excpset)){
+
+			std::cout << "CPinCtl::Notifier: Inotify exception 0x%X\n" << std::endl;
+		}
+
+		if (FD_ISSET(d_inoty, &readset)){
+
+			struct inotify_event einoty;
+			ssize_t rdlen=0;
+			rdlen = read(d_inoty, (char*) &einoty, sizeof(struct inotify_event));
+			if (rdlen){
+
+				if (einoty.mask){
+
+					TPinData pindata;
+					for (auto pin: PinData)
+					{
+						if (pin.watch == einoty.wd)
+						{
+							pindata = pin;
+							break;
+						}
+					}
+
+					uint32_t mask = einoty.mask & pindata.events;
+
+					// Calling callback functions
+					if (mask & IN_MODIFY)
+					{
+						std::cout << "CPinCtl::Notifier: Inotify found modify file " << pindata.name << std::endl;
+
+						lseek(pindata.fd, 0, SEEK_SET);
+						char Value = 0;
+						size_t size = read(pindata.fd, &Value, 1);
+						if (size == 1)
+						{
+							std::cout << "GPIO was changed: " << Value << std::endl;
+							std::vector<uint8_t> data;
+							data.push_back(Value);
+
+							auto it = busyPins.find(pindata.name);
+							if ( it != busyPins.end())
+							{
+								it->second->myDevice().performEvent(data);
+							}
+						}
+					}
+
+				}
+			}
+		}
+	}
+
+
 }
