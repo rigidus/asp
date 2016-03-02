@@ -41,10 +41,19 @@ struct mg_serve_http_opts s_http_server_opts;
 const char* kTypeNames[] =
     { "Null", "False", "True", "Object", "Array", "String", "Number" };
 
+const std::string attrError("error"); // Опциональный атрибут, отменяет все остальные атрибуты
 const std::string attrTxId("txid"); // Обязательный атрибут - номер транзакции
 const std::string attrDev("device"); // Обязательный атрибут - имя абстрактного устройства
 const std::string attrCmd("command"); // Обязательный атрибут - команда на устройство
 const std::string attrPars("parameters"); // Опциональный атрибут - параметры команды
+
+void sendErrorToClient(std::stringstream& errorText)
+{
+	std::stringstream jsonError;
+	jsonError << "{ \"error\":\"" << errorText.str() << "\"}";
+
+	setCommandTo::Client(setCommandTo::Event, BsnsLogic::s_abstractName, "", jsonError.str());
+}
 
 void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 {
@@ -54,8 +63,9 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 	{
 		std::cout << "httpServer::cb_HttpServer: HTTP Server received new data." << std::endl;
 
-		char* addr = inet_ntoa(nc->sa.sin.sin_addr); // client address
-		int port = nc->sa.sin.sin_port;
+//		HOWTO: take remote address and port in mongoose
+//		char* addr = inet_ntoa(nc->sa.sin.sin_addr); // client address
+//		int port = nc->sa.sin.sin_port;
 
 		nc->flags |= MG_F_SEND_AND_CLOSE;
 		mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\n\r\n\r\n");
@@ -67,113 +77,172 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 
 		Document d;
 		d.ParseInsitu(&jsonArray[0]);
-		if (d.HasParseError() == false)
-		{
-			std::cout << "httpServer::cb_HttpServer: JSON was parsed correctly." << std::endl;
-
-			// Stringify the DOM
-			StringBuffer buffer;
-			Writer<StringBuffer> writer(buffer);
-			d.Accept(writer);
-			std::cout << buffer.GetString() << std::endl;
-
-			if (d.HasMember(attrTxId.c_str()) == false)
-			{
-				// TODO отправить сообщение, что txid не найден и выйти
-				std::cout << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrTxId << "' not found" << std::endl;
-				return;
-			}
-
-			if (d.HasMember(attrDev.c_str()) == false)
-			{
-				// TODO отправить сообщение, что device не найден и выйти
-				std::cout << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrDev << "' not found" << std::endl;
-				return;
-			}
-
-			if (d.HasMember("command") == false)
-			{
-				// TODO отправить сообщение, что txid не найден и выйти
-				std::cout << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrCmd << "' not found" << std::endl;
-				return;
-			}
-
-			Value valParams(kObjectType);
-			if (d.HasMember(attrPars.c_str()) == true)
-			{
-				// Если опциональные параметры существуют, то добавить из документа
-				std::cout << "httpServer::cb_HttpServer: JSON attribute '" << attrPars << "' has found" << std::endl;
-				valParams = d[attrPars.c_str()];
-			}
-
-			Value& valTxId = d[attrTxId.c_str()];
-			Value& valDevice = d[attrDev.c_str()];
-			Value& valCommand = d[attrCmd.c_str()];
-
-			if (valTxId.IsNumber() == false)
-			{
-				// TODO отправить сообщение, что txid не число и выйти
-				std::cout << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrTxId << "' isn't number type" << std::endl;
-				return;
-			}
-
-			if (valDevice.IsString() == false)
-			{
-				// TODO отправить сообщение, что девайс не строка и выйти
-				std::cout << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrDev << "' isn't string type" << std::endl;
-				return;
-			}
-
-			if (valCommand.IsString() == false)
-			{
-				// TODO отправить назад сообщение, что команда не строка и выйти
-				std::cout << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrCmd << "' isn't string type" << std::endl;
-				return;
-			}
-
-			if (valParams.IsObject() == false)
-			{
-				// TODO отправить назад сообщение, что параметры не объект и выйти
-				std::cout << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrPars << "' isn't object type" << std::endl;
-				return;
-			}
-
-			uint32_t TxId = (uint32_t) valTxId.GetInt();
-			std::string Device(valDevice.GetString(), valDevice.GetStringLength());
-			std::string Command(valCommand.GetString(), valCommand.GetStringLength());
-
-			std::cout << attrTxId << ": " << TxId << std::endl;
-			std::cout << attrDev << ": " << Device << std::endl;
-			std::cout << attrCmd << ": " << Command << std::endl;
-
-			std::cout <<  attrPars << ": " << std::endl;
-
-			// Stringify parameters
-			StringBuffer strParams;
-			Writer<StringBuffer> writerParams(strParams);
-			valParams.Accept(writerParams);
-			std::cout << strParams.GetString() << std::endl;
-
-			for (Value::ConstMemberIterator itr = valParams.MemberBegin();
-			    itr != valParams.MemberEnd(); ++itr)
-			{
-			    std::cout << "Type of parameter '" << itr->name.GetString()
-			    		<< "' is " << kTypeNames[itr->value.GetType()] << std::endl;
-			}
-
-			std::cout << "httpServer::cb_HttpServer: JSON OK!" << std::endl;
-
-			setCommandTo::Device(TxId, Device, Command, strParams.GetString(), BsnsLogic::s_abstractName);
-
-		}
-		else
+		if (d.HasParseError() == true)
 		{
 			memcpy(&jsonArray[0], hmsg->body.p, (hmsg->body.len+1) * sizeof(jsonArray[0]));
 			jsonArray[hmsg->body.len] = 0;
 
 			// TODO отправить назад сообщение, что json не распарсился
-			std::cout << "ERROR! httpServer::cb_HttpServer: JSON has wrong format: " << &jsonArray[0] << std::endl;
+			std::stringstream error;
+			error << "ERROR! httpServer::cb_HttpServer: JSON has wrong format: " << &jsonArray[0];
+			sendErrorToClient(error);
+
+			std::cout << error.str() << std::endl;
+
+			return;
 		}
+
+
+		std::cout << "httpServer::cb_HttpServer: JSON was parsed correctly." << std::endl;
+
+		// Stringify the DOM
+		StringBuffer buffer;
+		Writer<StringBuffer> writer(buffer);
+		d.Accept(writer);
+		std::cout << buffer.GetString() << std::endl;
+
+		if (d.HasMember(attrError.c_str()) == true)
+		{
+			// TODO: Обработка ошибок составления документа
+			Value& valError = d[attrError.c_str()];
+			if (valError.IsString())
+			{
+				std::stringstream error;
+				error << "Error has received: " << valError.GetString();
+				std::cout << error.str() << std::endl;
+			}
+			else
+			{
+				std::stringstream error;
+				error << "Error has received but value isn't String";
+				std::cout << error.str() << std::endl;
+			}
+
+			return;
+		}
+
+		if (d.HasMember(attrTxId.c_str()) == false)
+		{
+			// TODO отправить сообщение, что txid не найден и выйти
+			std::stringstream error;
+			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrTxId << "' not found.";
+			sendErrorToClient(error);
+
+			std::cout << error.str() << std::endl;
+
+			return;
+		}
+
+		if (d.HasMember(attrDev.c_str()) == false)
+		{
+			// TODO отправить сообщение, что device не найден и выйти
+			std::stringstream error;
+			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrDev << "' not found.";
+			sendErrorToClient(error);
+
+			std::cout << error.str() << std::endl;
+
+			return;
+		}
+
+		if (d.HasMember(attrCmd.c_str()) == false)
+		{
+			// TODO отправить сообщение, что txid не найден и выйти
+			std::stringstream error;
+			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrCmd << "' not found.";
+			sendErrorToClient(error);
+
+			std::cout << error.str() << std::endl;
+
+			return;
+		}
+
+		Value valParams(kObjectType);
+		if (d.HasMember(attrPars.c_str()) == true)
+		{
+			// Если опциональные параметры существуют, то добавить из документа
+			std::cout << "httpServer::cb_HttpServer: JSON attribute '" << attrPars << "' has found." << std::endl;
+			valParams = d[attrPars.c_str()];
+		}
+
+		Value& valTxId = d[attrTxId.c_str()];
+		Value& valDevice = d[attrDev.c_str()];
+		Value& valCommand = d[attrCmd.c_str()];
+
+		if (valTxId.IsNumber() == false)
+		{
+			// TODO отправить сообщение, что txid не число и выйти
+			std::stringstream error;
+			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrTxId << "' isn't number type";
+			sendErrorToClient(error);
+
+			std::cout << error.str() << std::endl;
+
+			return;
+		}
+
+		if (valDevice.IsString() == false)
+		{
+			// TODO отправить сообщение, что девайс не строка и выйти
+			std::stringstream error;
+			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrDev << "' isn't string type";
+			sendErrorToClient(error);
+
+			std::cout << error.str() << std::endl;
+
+			return;
+		}
+
+		if (valCommand.IsString() == false)
+		{
+			// TODO отправить назад сообщение, что команда не строка и выйти
+			std::stringstream error;
+			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrCmd << "' isn't string type";
+			sendErrorToClient(error);
+
+			std::cout << error.str() << std::endl;
+
+			return;
+		}
+
+		if (valParams.IsObject() == false)
+		{
+			// TODO отправить назад сообщение, что параметры не объект и выйти
+			std::stringstream error;
+			std::cout << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrPars << "' isn't object type";
+			sendErrorToClient(error);
+
+			std::cout << error.str() << std::endl;
+
+			return;
+		}
+
+		uint32_t TxId = (uint32_t) valTxId.GetInt();
+		std::string Device(valDevice.GetString(), valDevice.GetStringLength());
+		std::string Command(valCommand.GetString(), valCommand.GetStringLength());
+
+		std::cout << attrTxId << ": " << TxId << std::endl;
+		std::cout << attrDev << ": " << Device << std::endl;
+		std::cout << attrCmd << ": " << Command << std::endl;
+
+		std::cout <<  attrPars << ": " << std::endl;
+
+		// Stringify parameters
+		StringBuffer strParams;
+		Writer<StringBuffer> writerParams(strParams);
+		valParams.Accept(writerParams);
+		std::cout << strParams.GetString() << std::endl;
+
+		for (Value::ConstMemberIterator itr = valParams.MemberBegin();
+			itr != valParams.MemberEnd(); ++itr)
+		{
+			std::cout << "Type of parameter '" << itr->name.GetString()
+					<< "' is " << kTypeNames[itr->value.GetType()] << std::endl;
+		}
+
+		std::cout << "httpServer::cb_HttpServer: JSON OK!" << std::endl;
+
+		setCommandTo::Device(TxId, Device, Command, strParams.GetString(), BsnsLogic::s_abstractName);
 
 	}
 
