@@ -89,7 +89,7 @@ int main()
 //
 //		strPar << "{\"txid\":" << i << ", \"device\":\"shlagbaum_in\", \"command\":\"down\", \"parameters\":{\"state\":\"open\", \"car\":\"present\"} }";
 //
-//		setCommandTo::Client(setCommandTo::Event, "logic", "", strPar.str());
+//		setCommandTo::Client(setCommandTo::Event, BsnsLogic::s_abstractName, "", strPar.str());
 //	}
 
 	for (;;)
