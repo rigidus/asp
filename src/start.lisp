@@ -5,17 +5,23 @@
 
 (in-package #:asp)
 
+(defclass asp-render () ())
+
+(restas:define-route main ("/")
+  "test main page")
+
 (defun main ()
   ;; start
   (restas:start '#:asp :port 3999)
   (restas:debug-mode-on)
   ;; (restas:debugg-mode-off)
   (setf hunchentoot:*catch-errors-p* t)
-  (make-event :name "restart"
-              :tag "restart"
-              :msg (format nil "Сервер перезапущен")
-              :author-id 0
-              :ts-create (get-universal-time)))
+  ;; (make-event :name "restart"
+  ;;             :tag "restart"
+  ;;             :msg (format nil "Сервер перезапущен")
+  ;;             :author-id 0
+  ;;             :ts-create (get-universal-time))
+  )
 
 (main)
 
@@ -23,8 +29,7 @@
 
 ;; Тестируем asp
 (defun asp-test ()
-  (make-checkpoint :name "1" :state ":POWEROFF")
-  
+  (make-checkpoint :name "1" :state ":SELFTEST")
   
   (dbg "passed: asp-test~%"))
 (asp-test)

@@ -19,7 +19,7 @@
   #+BEGIN_SRC lisp :tangle src/mod/entity.lisp :noweb tangle :exports code
     ;;;; entity.lisp
 
-    (in-package #:moto)
+    (in-package #:asp)
 
     <<entity>>
 
@@ -524,7 +524,7 @@
 
   #+NAME: compute_outgoing_states
   #+BEGIN_SRC lisp :exports code :padline no :comments link
-    (in-package #:moto)
+    (in-package #:asp)
 
     (defun compute-outgoing-states (the-class source-state)
       (let ((applicable-methods))
@@ -543,7 +543,7 @@
 
   #+NAME: possible_trans
   #+BEGIN_SRC lisp :exports code :padline no :comments link
-    (in-package #:moto)
+    (in-package #:asp)
 
     (defmethod possible-trans ((obj t))
       (compute-outgoing-states
