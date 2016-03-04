@@ -29,17 +29,24 @@ public:
 
 		CBaseDevice* cDev = nullptr;
 
-		if ( ShlagbaumPalka::s_concreteName == devName)
+		// INTEGRATE DEVICE SECTION: место для создания конкретных устройств типа шлагбаум
 		{
-			cDev = reinterpret_cast<CBaseDevice*> (new ShlagbaumPalka());
 
-			// Connect concrete device to communication devices
-			if (cDev->connectToCommCtl())
+			// Создание конкретного такого абстракного типа шлагбаума с конкретной моделью "палка"
+			if ( ShlagbaumPalka::s_concreteName == devName)
 			{
-				return new AbstractShlagbaum(cDev, abstractName);
-			}
-		}
+				cDev = reinterpret_cast<CBaseDevice*> (new ShlagbaumPalka());
 
+				// Connect concrete device to communication devices
+				if (cDev->connectToCommCtl())
+				{
+					return new AbstractShlagbaum(cDev, abstractName);
+				}
+			}
+
+			// INTEGRATE DEVICE SECTION: добавь создание нового устройства сюда
+
+		}
 		return nullptr;
 	}
 

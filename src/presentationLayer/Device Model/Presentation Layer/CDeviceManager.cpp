@@ -35,7 +35,10 @@ CDeviceManager::CDeviceManager(std::vector<settings::DeviceConfig> devConfig) {
 		}
 	}
 
-	CPinCtl::startNotifier();
+	// INTEGRATE COMMDEVICE SECTION: добавь сюда все startNotifier, которые есть в проекте
+	{
+		CPinCtl::startNotifier();
+	}
 
 	std::cout << "CDeviceManager constructor: Created device list:" << std::endl;
 	for (auto v: devices)
@@ -47,6 +50,49 @@ CDeviceManager::CDeviceManager(std::vector<settings::DeviceConfig> devConfig) {
 
 CDeviceManager::~CDeviceManager() {
 
+}
+
+CDeviceManager* CDeviceManager::deviceManagerFactory( DeviceManagerType type)
+{
+	boost::mutex::scoped_lock(mut);
+
+	if (ptr == nullptr)
+	{
+		if (type == WorkingSet)
+		{
+			ptr = new CDeviceManager(settings::fromDBDevices());
+		}
+
+		if (type == TestingSet)
+		{
+			ptr = new CDeviceManager(settings::fromTestDevices());
+		}
+	}
+	return ptr;
+}
+
+CDeviceManager* CDeviceManager::deviceManager()
+{
+	if (ptr == nullptr)
+		std::cout << "ERROR! CDeviceManager::deviceManager: is NULL" << std::endl;
+
+	return ptr;
+}
+
+void CDeviceManager::destroyDeviceManager()
+{
+	// INTEGRATE COMMDEVICE SECTION: добавь сюда все stopNotifier, которые есть в проекте
+	{
+		CPinCtl::stopNotifier();
+	}
+
+	delete ptr;
+	ptr = nullptr;
+}
+
+void CDeviceManager::sendCommand(CAbstractDevice* abstractDevice, std::string command, std::string pars)
+{
+	abstractDevice->sendCommand(command, pars);
 }
 
 void CDeviceManager::setCommandToDevice(uint32_t txid, std::string abstractDevice, std::string command,
@@ -314,4 +360,31 @@ void CDeviceManager::ackClient(std::string concreteDevice)
 	}
 
 
+}
+
+bool CDeviceManager::popDeviceTask(std::string concreteDevice, DeviceCtl::Task& task)
+{
+	for (auto& v: devices)
+	{
+		if (v.second.devInstance->deviceConcreteName() == concreteDevice)
+		{
+
+			if (v.second.taskQue.size() == 0)
+			{
+				std::cout << "CDeviceManager::popDeviceTask: not found tasks in queue for '" << concreteDevice << "'" << std::endl;
+				return false;
+			}
+
+			task = v.second.taskQue.front();
+			v.second.taskQue.pop();
+
+			std::cout << "CDeviceManager::popDeviceTask: found tasks in queue for '" << concreteDevice <<  "'. Task popped." << std::endl;
+
+			return true;
+		}
+	}
+
+	std::cout << "ERROR: CDeviceManager::popDeviceTask: not found device '" << concreteDevice << "'" << std::endl;
+
+	return false;
 }

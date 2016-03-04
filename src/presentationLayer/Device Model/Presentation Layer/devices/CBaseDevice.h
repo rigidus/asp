@@ -37,23 +37,17 @@ public:
 
 	const std::vector< shared_ptr<CBaseCommCtl> >& getCommCtl();
 
-	void performEvent(std::vector<uint8_t>& rcvData)
-	{
-		std::cout << "CBaseDevice::performEvent: performs Event from device: " << c_name << ": ";
-		for (auto v: rcvData) std::cout << v << " ";
-		std::cout << std::endl;
-
-		// TODO Вызвать установку задачи для клиента по имени абстрактного девайса
-		std::string answer;
-		for(uint8_t v: rcvData)
-			answer += v;
-
-		setCommandTo::Client( setCommandTo::Transaction, c_name, "answer: ", answer);
-	}
+	void performEvent(std::vector<uint8_t>& rcvData);
 
 protected:
 
 	std::vector< shared_ptr<CBaseCommCtl> > m_commCtl;
+
+	void addCommDevice(shared_ptr<CBaseCommCtl> commCtl);
+
+	virtual void disconnectFromCommCtl();
+
+	/*** Templates ***/
 
 	template<class T>
 	shared_ptr<CBaseCommCtl> takeCommDevice(const std::string& commName)
@@ -69,9 +63,6 @@ protected:
 		return nullptr;
 	}
 
-	void addCommDevice(shared_ptr<CBaseCommCtl> commCtl);
-
-	virtual void disconnectFromCommCtl();
 };
 
 
