@@ -5277,6 +5277,91 @@ zlib1g_1.2.8.dfsg-2+b1_armel.deb
 ****** WAIT Работа через собственный драйвер
 
 **** TODO Дисплеи
+***** TODO Winstar 16x2 и другие на чипе HD44780			:bvl:
+      Для работы с подобными дисплеями мы пользуемся прекрасным драйвером с гитхаба
+      https://github.com/hsm5xw/Linux-Device-Driver-for-Character-LCD-Kernel-Level
+      Как идёт с ним работа - прекрасно видно на видео
+      https://www.youtube.com/watch?v=icP9ckrTLKc
+      Этот модуль реализует в системе символьное устройство /dev/klcd, которое принимает
+      в себя простые и понятные команды, отрабатывая вывод на подключенный известным способом
+      дисплей.
+
+      Чтобы у нас заработала "вся фигня", нужно проделать два шага:
+
+****** Маленький шаг: правильно собрать klcd.ko
+       git clone https://github.com/hsm5xw/Linux-Device-Driver-for-Character-LCD-Kernel-Level
+       (делаем это не на ВВВ, а на хост-машине под Linux, см. следующий большой шаг)
+       Дальше лезем в исходник klcd.h и меняем константы в разделах LCD Pin Configuration и
+       LCD Constants, руководствуясь таблицами Дерека Моллоя (см. devices/BBB_itself).
+
+       Далее открываем Makefile и поправляем ссылки в переменных KDIR и CROSS_COMPILE. Я
+       менять ничего не стал, просто создал в /root символьные ссылки на нужные мне адреса
+       в системе. KDIR должен указывать на место расположения исходника Linux в нужной
+       конфигурации (3.8.13-bone47), с актуальным файлом Module.symvers. Как его получить:
+
+****** Большой шаг: собираем ядро Linux в нашей частной конфигурации 3.8.13-bone47
+       git clone https://github.com/RobertCNelson/bb-kernel.git
+       git checkout 3.8.13-bone47
+       Это скрипты, которые собирают ядро нужной версии за нас. Перед запуском скрипты
+       потребуют некоторой правки:
+       =version.sh=
+       #+BEGIN_SRC 
+#toolchain="gcc_linaro_gnueabi_4_6"
+#toolchain="gcc_linaro_gnueabihf_4_7"
+#toolchain="gcc_linaro_gnueabihf_4_8"
+toolchain="gcc_linaro_gnueabihf_4_9"       
+       #+END_SRC
+
+       =scripts/gcc.sh=
+       По образцу gcc_linaro_gnueabihf_4_8) добавляем:
+       #+BEGIN_SRC 
+       gcc_linaro_gnueabihf_4_9)
+       #http://releases.linaro.org/14.09/components/toolchain/binaries/gcc-linaro-arm-linux-gnueabihf-4.9-2014.09_linux.tar.xz
+       gcc_version="4.9"
+       release="2014.09"
+       toolchain_name="gcc-linaro-arm-linux-gnueabihf"
+       site="https://releases.linaro.org"
+       version="14.09/components/toolchain/binaries"
+       directory="${toolchain_name}-${gcc_version}-${release}_linux"
+       filename="${directory}.tar.xz"
+       datestamp="${release}-${toolchain_name}"
+
+       binary="bin/arm-linux-gnueabihf-"
+       ;;
+
+       #+END_SRC
+
+       Скрещиваем пальцы на удачу, запускаем =sudo build_kernel.sh=. Что происходит:
+       1. Определяется хост-система
+       2. Скачивается указанный выше хост-компилятор. 4.8 потом выдает ошибки, нужен 4.9
+       3. Скачивается километр исходников Linux из git.kernel.org. Это не лезет в ВВВ, даже
+не пытайтесь.
+       4. Патчатся исходники ядра в соответствии с меткой 3.8.13-bone47.
+       5. Вылезает окно дополнительной конфигурации. Делаем =Exit=.
+       6. По команде "СОБЕРИСЬ, ТРЯПКА" - собирается полное ведро исходников Linux с заголовками.
+       7. Отрабатывают какие-то дополнительные скрипты, собирающие dtbs.
+
+       У нас получается свежий каталог bb-kernel/KERNEL, в котором индикатором готовности выступает
+       файл Module.symvers. На каталог стараемся не дышать - он нам еще не раз пригодится именно
+       в этом виде.
+
+****** Конечный шаг - собираем, проверяем.
+       В каталоге =code/klcd= делаем =make=. KDIR можно перенаправить на появившийся в предыдущем
+       шаге =bb-kernel/dl/gcc-linaro-arm-linux-gnueabihf-4.9-2014.09_linux=, должно сработать.
+
+       Идем в =code/klcd/ioctl_testDir=, там делаем =gcc driver.c -o ioctl_test=. Копируем получившиеся
+       klcd.ko и ioctl_test на ВВВ.
+
+       Загружаем модуль ядра: =insmod klcd.ko=, проверяем через =lsmod=. Если klcd не появился в списке,
+       ошибка может быть видна в =dmesg=. Также можно увидеть появившийся /dev/klcd - это успех.
+       Отправляем команды на экран через ioctl_test, список команд можно увидеть во второй части видео
+       или из исходника driver.c.
+
+****** TODO Интеграция в код ASPP.
+       Для каждого дисплея может быть (и будет) свой драйвер - свои ножки, свои параметры длины
+       строки и т. д. Kernel Object должен выбираться и загружаться нашим софтом исходя из настроек
+       при старте. 
+
 **** TODO Сканеры штрихкодов
 
 ** TODO Работа с библиотеками                                      :bvl:aav:
