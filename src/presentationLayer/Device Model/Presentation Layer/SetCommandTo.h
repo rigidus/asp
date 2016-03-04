@@ -22,6 +22,8 @@ void Client(CommandType eventFlag, std::string device, std::string command, std:
 
 void Manager(std::string device);
 
+void sendErrorToClient(std::stringstream& errorText);
+
 }
 
 

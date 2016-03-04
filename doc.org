@@ -4190,8 +4190,6 @@
 
 *** Архитектура классов нижнего уровня
 
-    [TODO:aav] [TODO:bvl] Написать описание архитектуры нижнего уровня
-
     Нижний уровень управляет следующими типами устройств:
     - Display
     - Sensor panel
@@ -4626,8 +4624,6 @@ void CBaseDevice::disconnectFromCommCtl()
 	for (auto comm: m_commCtl)
 	{
 		CPinCtl::freeCommCtl(this, comm->m_commName);
-
-		// TODO: все сыпется при добавлении этой строчки
 		CSerialPortCtl::freeCommCtl(this, comm->m_commName);
 	}
 }

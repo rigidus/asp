@@ -52,7 +52,7 @@ public:
 
 	virtual void sendCommand(const std::string& command, const std::string& pars)
 	{
-		// TODO: parse command and parameters and call concrete command of concrete device
+		std::cout << "AbstractShlagbaum::sendCommand: " << command << "; " << pars << std::endl;
 		device()->sendCommand(command, pars);
 	}
 };

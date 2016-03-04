@@ -47,13 +47,13 @@ const std::string attrDev("device"); // Обязательный атрибут 
 const std::string attrCmd("command"); // Обязательный атрибут - команда на устройство
 const std::string attrPars("parameters"); // Опциональный атрибут - параметры команды
 
-void sendErrorToClient(std::stringstream& errorText)
-{
-	std::stringstream jsonError;
-	jsonError << "{ \"error\":\"" << errorText.str() << "\"}";
-
-	setCommandTo::Client(setCommandTo::Event, BsnsLogic::s_abstractName, "", jsonError.str());
-}
+//void sendErrorToClient(std::stringstream& errorText)
+//{
+//	std::stringstream jsonError;
+//	jsonError << "{ \"error\":\"" << errorText.str() << "\"}";
+//
+//	setCommandTo::Client(setCommandTo::Event, BsnsLogic::s_abstractName, "", jsonError.str());
+//}
 
 void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 {
@@ -82,10 +82,10 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 			memcpy(&jsonArray[0], hmsg->body.p, (hmsg->body.len+1) * sizeof(jsonArray[0]));
 			jsonArray[hmsg->body.len] = 0;
 
-			// TODO отправить назад сообщение, что json не распарсился
+			// отправить назад сообщение, что json не распарсился
 			std::stringstream error;
 			error << "ERROR! httpServer::cb_HttpServer: JSON has wrong format: " << &jsonArray[0];
-			sendErrorToClient(error);
+			setCommandTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;
 
@@ -103,7 +103,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 
 		if (d.HasMember(attrError.c_str()) == true)
 		{
-			// TODO: Обработка ошибок составления документа
+			// Обработка ошибок составления документа
 			Value& valError = d[attrError.c_str()];
 			if (valError.IsString())
 			{
@@ -123,10 +123,10 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 
 		if (d.HasMember(attrTxId.c_str()) == false)
 		{
-			// TODO отправить сообщение, что txid не найден и выйти
+			// отправить сообщение, что txid не найден и выйти
 			std::stringstream error;
 			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrTxId << "' not found.";
-			sendErrorToClient(error);
+			setCommandTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;
 
@@ -135,10 +135,10 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 
 		if (d.HasMember(attrDev.c_str()) == false)
 		{
-			// TODO отправить сообщение, что device не найден и выйти
+			// отправить сообщение, что device не найден и выйти
 			std::stringstream error;
 			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrDev << "' not found.";
-			sendErrorToClient(error);
+			setCommandTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;
 
@@ -147,10 +147,10 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 
 		if (d.HasMember(attrCmd.c_str()) == false)
 		{
-			// TODO отправить сообщение, что txid не найден и выйти
+			// отправить сообщение, что command не найден и выйти
 			std::stringstream error;
 			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrCmd << "' not found.";
-			sendErrorToClient(error);
+			setCommandTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;
 
@@ -171,10 +171,10 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 
 		if (valTxId.IsNumber() == false)
 		{
-			// TODO отправить сообщение, что txid не число и выйти
+			// отправить сообщение, что txid не число и выйти
 			std::stringstream error;
 			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrTxId << "' isn't number type";
-			sendErrorToClient(error);
+			setCommandTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;
 
@@ -183,10 +183,10 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 
 		if (valDevice.IsString() == false)
 		{
-			// TODO отправить сообщение, что девайс не строка и выйти
+			// отправить сообщение, что девайс не строка и выйти
 			std::stringstream error;
 			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrDev << "' isn't string type";
-			sendErrorToClient(error);
+			setCommandTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;
 
@@ -195,10 +195,10 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 
 		if (valCommand.IsString() == false)
 		{
-			// TODO отправить назад сообщение, что команда не строка и выйти
+			// отправить назад сообщение, что команда не строка и выйти
 			std::stringstream error;
 			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrCmd << "' isn't string type";
-			sendErrorToClient(error);
+			setCommandTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;
 
@@ -207,10 +207,10 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 
 		if (valParams.IsObject() == false)
 		{
-			// TODO отправить назад сообщение, что параметры не объект и выйти
+			// отправить назад сообщение, что параметры не объект и выйти
 			std::stringstream error;
 			std::cout << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrPars << "' isn't object type";
-			sendErrorToClient(error);
+			setCommandTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;
 

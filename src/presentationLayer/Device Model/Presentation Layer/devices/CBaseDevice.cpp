@@ -80,8 +80,6 @@ void CBaseDevice::disconnectFromCommCtl()
 	for (auto comm: m_commCtl)
 	{
 		CPinCtl::freeCommCtl(this, comm->m_commName);
-
-		// TODO: все сыпется при добавлении этой строчки
 		CSerialPortCtl::freeCommCtl(this, comm->m_commName);
 	}
 }

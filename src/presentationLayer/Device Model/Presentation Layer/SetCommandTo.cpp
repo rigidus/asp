@@ -8,6 +8,14 @@
 #include "SetCommandTo.h"
 #include "CDeviceManager.h"
 
+void setCommandTo::sendErrorToClient(std::stringstream& errorText)
+{
+	std::stringstream jsonError;
+	jsonError << "{ \"error\":\"" << errorText.str() << "\"}";
+
+	setCommandTo::Client(setCommandTo::Event, BsnsLogic::s_abstractName, "", jsonError.str());
+}
+
 void setCommandTo::Device(uint32_t txid, std::string device, std::string command,
 			std::string parameters, std::string adresat)
 {
@@ -19,8 +27,12 @@ void setCommandTo::Device(uint32_t txid, std::string device, std::string command
 	}
 	else
 	{
-		// TODO отправить назад сообщение, что устройства еще не настроены
-		std::cout << "ERROR! setCommandTo::Device: not found." << std::endl;
+		// отправить назад сообщение, что устройства еще не настроены
+		std::stringstream error;
+		error << "ERROR! setCommandTo::Device: Manager not found.";
+		sendErrorToClient(error);
+
+		std::cout << error.str() << std::endl;
 	}
 
 }
@@ -35,8 +47,12 @@ void setCommandTo::Client(CommandType eventFlag, std::string device, std::string
 	}
 	else
 	{
-		// TODO отправить назад сообщение, что устройства еще не настроены
-		std::cout << "ERROR! setCommandTo::Client: Device manager not found." << std::endl;
+		// отправить назад сообщение, что устройства еще не настроены
+		std::stringstream error;
+		error << "ERROR! setCommandTo::Device: Manager not found.";
+		sendErrorToClient(error);
+
+		std::cout << error.str() << std::endl;
 	}
 
 }
@@ -51,7 +67,7 @@ void setCommandTo::Manager(std::string device)
 		}
 		else
 		{
-			// TODO отправить назад сообщение, что устройства еще не настроены
+			// отправить назад сообщение, что устройства еще не настроены
 			std::cout << "ERROR! setCommandTo::Manager: Device manager not found." << std::endl;
 		}
 
