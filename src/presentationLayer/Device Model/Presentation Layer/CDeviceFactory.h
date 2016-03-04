@@ -38,24 +38,27 @@ public:
 
 		CAbstractDevice* dev = nullptr;
 
-		dev = createAbstractDevice<AbstractShlagbaum>(abstractName, devName);
-		if (dev) devs.push_back(dev);
+		// INTEGRATE ABSTRACT SECTION: добавь создание нового абстракта сюда
+		{
+			dev = createAbstractDevice<AbstractShlagbaum>(abstractName, devName);
+			if (dev) devs.push_back(dev);
 
-		dev = createAbstractDevice<BsnsLogic>(abstractName, devName);
-		if (dev) devs.push_back(dev);
+			dev = createAbstractDevice<BsnsLogic>(abstractName, devName);
+			if (dev) devs.push_back(dev);
 
-//		dev = createAbstractDevice<AbstractPrinter>(abstractName, devName);
-//		if (dev) devs.push_back(dev);
-//		dev = createAbstractDevice<AbstractPassSensor>(abstractName, devName);
-//		if (dev) devs.push_back(dev);
-//		dev = createAbstractDevice<AbstractPresentSensor>(abstractName, devName);
-//		if (dev) devs.push_back(dev);
-//		dev = createAbstractDevice<AbstractDisplay>(abstractName, devName);
-//		if (dev) devs.push_back(dev);
-//		dev = createAbstractDevice<AbstractMassStorage>(abstractName, devName);
-//		if (dev) devs.push_back(dev);
-//		dev = createAbstractDevice<AbstractKKM>(abstractName, devName);
-//		if (dev) devs.push_back(dev);
+//			dev = createAbstractDevice<AbstractPrinter>(abstractName, devName);
+//			if (dev) devs.push_back(dev);
+//			dev = createAbstractDevice<AbstractPassSensor>(abstractName, devName);
+//			if (dev) devs.push_back(dev);
+//			dev = createAbstractDevice<AbstractPresentSensor>(abstractName, devName);
+//			if (dev) devs.push_back(dev);
+//			dev = createAbstractDevice<AbstractDisplay>(abstractName, devName);
+//			if (dev) devs.push_back(dev);
+//			dev = createAbstractDevice<AbstractMassStorage>(abstractName, devName);
+//			if (dev) devs.push_back(dev);
+//			dev = createAbstractDevice<AbstractKKM>(abstractName, devName);
+//			if (dev) devs.push_back(dev);
+		}
 
 		if (devs.size() > 1)
 		{

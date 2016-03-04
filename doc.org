@@ -41,7 +41,7 @@
    обновлять прямо в нем, нажимая =C-u r= о чем собственно и будет написано у него
    наверху. И внутри этого буфера можно будет бродить по всем интересующим разделам,
    который будут открываться в вашем исходном буфере.
-   
+
 ** Правила оформления
 
    Всегда, если вы написали какой-то кусок текста или отвечаете за данную задачу, или
@@ -172,7 +172,7 @@
 
      (global-set-key (kbd "C-c m") 'what-can-i-do)
    #+END_SRC
-   
+
 * Назначение и цель создания системы
 
   Целью проводимых работ является создание спецификации, разработка, отладка и
@@ -3470,6 +3470,9 @@
 
 **** DONE Стандартное назначение подключения датчиков                   :bvl:
 
+[TODO:bvl] Вписать в таблицы в этих трех разделах конкретные названия пинов в виде
+PX.XX и соответствующие им GPIO_XX.
+
      #+CAPTION: Сенсорный ввод
       |    |                                 |                       | Ввод      | Домен       | Типичный    | max U при      |
       |    | Тип / описание назначения       | Название в системе    | по умолч. | развязки    | ур. сигнала | ошибке монтажа |
@@ -4190,8 +4193,6 @@
 
 *** Архитектура классов нижнего уровня
 
-    [TODO:aav] [TODO:bvl] Написать описание архитектуры нижнего уровня
-
     Нижний уровень управляет следующими типами устройств:
     - Display
     - Sensor panel
@@ -4200,25 +4201,32 @@
     - Schlagbaum
     - Hardware buttons
 
-    Нижний уровень с точки зрения реализации представляет собой иерархию классов,
-    снабженную:
-    - менеджером динамического создания и удаления представлений устройств
-    - менеджером проходящих транзакций
-    - представлениями абстрактных и конкретных устройств
-    - подключениями к физическим устройствам через коммуникационное оборудование
-    - инфраструктурой поддержки: CSettings, GlobalThreadPool.
+    В основе реализации нижнего уровня находится менеджер устройств и транзакций.
+    Он содержит указатели на имплементации каждого конкретного устройства и его
+    индивидуальной очереди транзакций. По отношению к устройствам менеджер позволяет
+    динамически создавать и удалять набор устройств для реализации возможности гибкой
+    смены конфигурации в рантайме. Подключениями к физическим устройствам через
+    коммуникационное оборудование управляет сам объект конкретного устройства.
+
+    Асинхронный обмен сообщениями между клиентом и устройством основан на принципах
+    Bulk Synchronous Parallelism (BSP) и реализован на пуле потоков, исполняющего
+    задачи из собственной очереди с приоритетами.
+
+    Источником задач являются внешние и внутренние клиенты нижнего уровня, сами устройства
+    и менеджер транзакций. Клиенты и устройства ставят задачи только для менеджера
+    транзакций, соблюдая таки образом строгую очередность исполнения команд.
 
     Возможны два сценария работы: =транзакция= и =событие=
-    В первом сценарии инициатором обмена является клиент уровня представления
+    В первом сценарии инициатором обмена является клиент нижнего уровня.
     Во втором сценарии инициатором обмена является устройство: физическое или его
-    представление -  неважно.
+    представление - неважно.
 
-    Клиент уровня представления это ПО, которое может быть внешним или внутренним
-    по отношению к уровню представления.
+    Клиент нижнего уровня это ПО, которое может быть внешним или внутренним
+    по отношению к этому уровню.
     Список текущих клиентов:
-    что-то, подключающееся через http. Механизм идентификации отсутствует.
+    клиент, подключающийся через http. Механизм идентификации отсутствует.
     встроенный пингер
-    встроенный в каждый класс конкретного устройства инициализатор
+    инициализатор устройства, встроенный в каждый класс конкретного устройства
 
 **** Создание представлений устройств
 
@@ -4238,9 +4246,9 @@
        }
      #+END_EXAMPLE
 
-     [COMMENT:pyub] Откуда мы берем айдишник сообщения
+     [COMMENT:pyub] Откуда мы берем айдишник сообщения?
 
-     [COMMENT:aav] Из PostgreSQL
+     [COMMENT:aav] id сообщения выдает бизнес-логика по собственным правилам
 
      =Нижний уровень= принимает сообщение и осуществляет диспетчеризацию, отправляя
      сообщение классу конкретного дисплея, например =DisplayWinstar1602A=.
@@ -4357,7 +4365,11 @@
 
      Абстрактное устройство без привязанного к нему конкретного лишено смысла.
 
-     Интеграция с кодом производится в CDeviceFactory::deviceFactory, фабрике абстрактных устройств.
+     Интеграция с кодом производится в CDeviceFactory::deviceFactory, фабрике
+     абстрактных устройств.
+
+     ! Место для интеграции абстрактного устройства в код помечено как // INTEGRATE
+     ABSTRACT SECTION: <comment>
 
 **** Интеграция кода нового конкретного устройства
 
@@ -4374,6 +4386,8 @@
      Интеграция с кодом производится в реализации <CAbstractDevice>::createDevice, фабрике конкретных
      устройств данного абстрактного устройства.
 
+     ! Место для интеграции помечено как // INTEGRATE DEVICE SECTION: <comment>
+
 **** Интеграция кода нового вида коммуникационных устройств
 
      Класс коммуникационного устройства поддерживает все коммуникационные устройства
@@ -4384,29 +4398,30 @@
      каждого комм. устройства инстанцируется только один объект класса и
      ведется список занятых устройств.
 
-     Класс должен
-     наследоваться от CBaseCommCtl
-     переопределять чисто виртуальные функции receive, send, setSettings
-     в функции setSettings самостоятельно определять настройки каждого комм. устройства из БД.
-     в функции send проксировать сериализованные данные из класса конкретного устройства
-     в комм. устройство
-     в функции receive проксировать принятые данные от комм. устройства на конкретное устройство.
+     Класс должен: наследоваться от CBaseCommCtl, переопределять чисто виртуальные
+     функции receive, send, setSettings
 
-     <TODO:aav> Добавить функции для старта/стопа кода прослушки устройств.
+     в функции setSettings самостоятельно определять настройки каждого комм. устройства
+     из БД.
 
-     Интеграция с кодом производится в реализации CBaseDevice::connectToCommCtl или
-     в переопределении этой функции.
+     в функции send проксировать сериализованные данные из класса конкретного
+     устройства в комм. устройство
 
-*** Архитектура уровня представления                                   :man:
+     в функции receive проксировать принятые данные от комм. устройства на конкретное
+     устройство.
 
-    [COMMENT:bvl] Этот раздел приводится для справки, т. к. предполагаются существенные
-    упрощения в реализации. По мере реализации будет правильным вносить исправления в
-    этот раздел.
+     в функции takeCommDevice - производить захват комм. устройства и возвращать инстанс
+     на класс управления им.
+     в функции freeCommDevice - освобождать устройство.
 
-    [COMMENT:aav] Существенных упрощений реализации здесь не вижу, но конечно все
-    готов обсуждать в разумных пределах.
+     в функциях startNotifier и stopNotifier - запускать и останавливать тред
+     получения событий от устройства.
+     ! Добавить вызов функции startNotifier в конструкторе CDeviceManager
+     ! Добавить вызов функции stopNotifier в деструктор менеджера устройств
 
-    Чем отличается этот раздел и Архитектура классов нижнего уровня?
+     Все места для внедрения в коде помечены как // INTEGRATE COMMDEVICE SECTION:
+     <comment>
+
 
 **** COMMENT Абстрактный базовый класс CBaseDevice
 
@@ -4468,14 +4483,156 @@
        останавливаться. Я бы уже посмотрел бы пример кода, например так:
      #+END_COMMENT
 
-     #+BEGIN_SRC cpp
-       class CBaseDevice {
-       public:
-           CBaseDevice() {
-               ...
-           };
-       };
+     #+BEGIN_COMMENT gmm
+     Смотри. Но я уверен, что этому коду место не тут.
+     #+END_COMMENT
+
+     #+BEGIN_SRC header_cpp
+#include <boost/noncopyable.hpp>
+#include <boost/thread/thread.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/smart_ptr.hpp>
+
+using namespace boost;
+
+#include <CBaseCodec.h>
+#include <CBaseCommCtl.h>
+#include <Settings.h>
+#include <CPinCtl.h>
+#include <CSerialPortCtl.h>
+#include <SetCommandTo.h>
+
+class CBaseDevice: private noncopyable
+{
+
+public:
+	const std::string c_name;
+
+	CBaseDevice(const std::string& deviceName);
+	virtual ~CBaseDevice();
+	CBaseDevice(const CBaseDevice& theCBaseDevice);
+
+	virtual void sendCommand(const std::string command, const std::string pars)=0;
+	virtual bool connectToCommCtl()=0;
+
+	const std::vector< shared_ptr<CBaseCommCtl> >& getCommCtl();
+
+	void performEvent(std::vector<uint8_t>& rcvData);
+
+protected:
+
+	std::vector< shared_ptr<CBaseCommCtl> > m_commCtl;
+
+	void addCommDevice(shared_ptr<CBaseCommCtl> commCtl);
+
+	virtual void disconnectFromCommCtl();
+
+	/*** Templates ***/
+
+	template<class T>
+	shared_ptr<CBaseCommCtl> takeCommDevice(const std::string& commName)
+	{
+
+		if ( commName.find(T::s_name) != std::string::npos)
+		{
+			std::cout << "CBaseDevice::takeCommDevice: Take communication device: " << commName << std::endl;
+
+			return T::takeCommCtl(this, commName);
+		}
+
+		return nullptr;
+	}
+
+};
+
+
+#endif // !defined(EA_AAF6E551_FF21_4908_B83B_A548A70782BC__INCLUDED_)
+
      #+END_SRC
+
+     #+BEGIN_SRC source_cpp
+
+#include "CBaseDevice.h"
+
+
+CBaseDevice::CBaseDevice(const std::string& str):
+	c_name(str)
+{
+
+}
+
+
+
+CBaseDevice::~CBaseDevice(){
+
+}
+
+
+const std::vector< shared_ptr<CBaseCommCtl> >& CBaseDevice::getCommCtl(){
+
+	return m_commCtl;
+}
+
+
+void CBaseDevice::performEvent(std::vector<uint8_t>& rcvData)
+{
+	std::cout << "CBaseDevice::performEvent: performs Event from device: " << c_name << ": ";
+	for (auto v: rcvData) std::cout << v << " ";
+	std::cout << std::endl;
+
+	// Вызвать установку задачи для клиента по имени абстрактного девайса
+	std::string answer;
+	for(uint8_t v: rcvData)
+		answer += v;
+
+	setCommandTo::Client( setCommandTo::Transaction, c_name, "answer: ", answer);
+}
+
+
+void CBaseDevice::addCommDevice(shared_ptr<CBaseCommCtl> commCtl)
+{
+	if (commCtl != nullptr)
+	{
+		m_commCtl.push_back(commCtl);
+
+		std::cout << "CBaseDevice::addCommDevice: " << commCtl->m_commName << " was added to " << c_name << std::endl;
+	}
+}
+
+
+bool CBaseDevice::connectToCommCtl()
+{
+
+	std::vector<std::string> commNames = settings::getCommNamesByDevice(c_name);
+
+	if (commNames.size() == 0)
+		return false;
+
+	for (auto comm: commNames)
+	{
+		std::cout << "CBaseDevice::connectToCommCtl: " << c_name << " connected to " << comm << std::endl;
+
+		addCommDevice( takeCommDevice<CPinCtl>(comm) );
+		addCommDevice( takeCommDevice<CSerialPortCtl>(comm) );
+
+	}
+
+	return m_commCtl.size() == commNames.size();
+}
+
+
+void CBaseDevice::disconnectFromCommCtl()
+{
+
+	for (auto comm: m_commCtl)
+	{
+		CPinCtl::freeCommCtl(this, comm->m_commName);
+		CSerialPortCtl::freeCommCtl(this, comm->m_commName);
+	}
+}
+
+     #+END_SRC
+
 
 **** Класс абстрактного устройства CAbstractDevice
 

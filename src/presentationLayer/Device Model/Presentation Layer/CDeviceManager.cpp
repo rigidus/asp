@@ -35,7 +35,10 @@ CDeviceManager::CDeviceManager(std::vector<settings::DeviceConfig> devConfig) {
 		}
 	}
 
-	CPinCtl::startNotifier();
+	// INTEGRATE COMMDEVICE SECTION: добавь сюда все startNotifier, которые есть в проекте
+	{
+		CPinCtl::startNotifier();
+	}
 
 	std::cout << "CDeviceManager constructor: Created device list:" << std::endl;
 	for (auto v: devices)
@@ -47,6 +50,49 @@ CDeviceManager::CDeviceManager(std::vector<settings::DeviceConfig> devConfig) {
 
 CDeviceManager::~CDeviceManager() {
 
+}
+
+CDeviceManager* CDeviceManager::deviceManagerFactory( DeviceManagerType type)
+{
+	boost::mutex::scoped_lock(mut);
+
+	if (ptr == nullptr)
+	{
+		if (type == WorkingSet)
+		{
+			ptr = new CDeviceManager(settings::fromDBDevices());
+		}
+
+		if (type == TestingSet)
+		{
+			ptr = new CDeviceManager(settings::fromTestDevices());
+		}
+	}
+	return ptr;
+}
+
+CDeviceManager* CDeviceManager::deviceManager()
+{
+	if (ptr == nullptr)
+		std::cout << "ERROR! CDeviceManager::deviceManager: is NULL" << std::endl;
+
+	return ptr;
+}
+
+void CDeviceManager::destroyDeviceManager()
+{
+	// INTEGRATE COMMDEVICE SECTION: добавь сюда все stopNotifier, которые есть в проекте
+	{
+		CPinCtl::stopNotifier();
+	}
+
+	delete ptr;
+	ptr = nullptr;
+}
+
+void CDeviceManager::sendCommand(CAbstractDevice* abstractDevice, std::string command, std::string pars)
+{
+	abstractDevice->sendCommand(command, pars);
 }
 
 void CDeviceManager::setCommandToDevice(uint32_t txid, std::string abstractDevice, std::string command,
@@ -88,14 +134,8 @@ void CDeviceManager::setCommandToDevice(uint32_t txid, std::string abstractDevic
 
 				/*
 				 *  Постановка задачи на отправку команды на абстрактное устройство.
-				 *  // TODO Сделать выбор по устрйоствам и выделить в отдельную функцию
 				 */
 				GlobalThreadPool::get().AddTask(0, task.taskFn);
-			}
-			else
-			{
-//				std::cout << "CDeviceManager::setCommandToDevice: " << it->first << " queue has "
-//						<< it->second.taskQue.size() << " tasks already." << std::endl;
 			}
 
 		}
@@ -116,7 +156,7 @@ void CDeviceManager::setCommandToDevice(uint32_t txid, std::string abstractDevic
 
 void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std::string concreteDevice, std::string command, std::string parameters)
 {
-	/* TODO
+	/*
 	 * Событие надо просто разослать всем клиентам с помощью постановки задач
 	 * Ответ на команду надо послать только адресату
 	 */
@@ -129,9 +169,13 @@ void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std
 		DeviceCtl::Task task;
 		if ( popDeviceTask(concreteDevice, task) == false )
 		{
-			// TODO Послать адресату сообщение, что транзакция была потеряна и выйти
+			// Послать адресату сообщение, что транзакция была потеряна и выйти
 
-			std::cout << "CDeviceManager::setCommandToClient: Transaction lost" << std::endl;
+			std::stringstream error;
+			error << "ERROR! CDeviceManager::setCommandToClient: Transaction lost.";
+			setCommandTo::sendErrorToClient(error);
+
+			std::cout << error.str() << std::endl;
 			return;
 		}
 
@@ -141,7 +185,7 @@ void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std
 
 			if (task.adresat == "logic")
 			{
-				// TODO Set task to adresat
+				// Set task to adresat
 				std::cout << "CDeviceManager::setCommandToClient: Set task for transaction " << task.txId << " to: "
 						<< task.adresat << std::endl;
 
@@ -172,11 +216,6 @@ void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std
 
 					GlobalThreadPool::get().AddTask(0, clientTask.taskFn);
 
-				}
-				else
-				{
-//					std::cout << "CDeviceManager::setCommandToClient: " << itAdresat->first << " queue has "
-//							<<  itAdresat->second.taskQue.size() << " tasks already." << std::endl;
 				}
 
 				/*
@@ -209,9 +248,7 @@ void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std
 	}
 	else
 	{
-		// Event
-		// TODO Set task to decision logic to businness logic
-
+		// Event !!!
 		// Event не значит, что транзакция отработана, а наоборот, поэтому очередь девайса не трогаем
 
 		// Отправка команды на бизнес-логику
@@ -248,11 +285,6 @@ void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std
 				GlobalThreadPool::get().AddTask(0, clientTask.taskFn);
 
 			}
-			else
-			{
-//				std::cout << "CDeviceManager::setCommandToClient: " << itAdresat->first << " queue has "
-//						<<  itAdresat->second.taskQue.size() << " tasks already." << std::endl;
-			}
 
 		}
 
@@ -269,15 +301,18 @@ void CDeviceManager::ackClient(std::string concreteDevice)
 	DeviceCtl::Task task;
 	if ( popDeviceTask(concreteDevice, task) == false )
 	{
-		// TODO Удивиться, что транзакция клиента была профачена. WTF! It's a BUG!
+		// Удивиться, что транзакция клиента была профачена. WTF! It's a BUG!
+		std::stringstream error;
+		error << "ERROR! CDeviceManager::ackClient: Transaction for " << concreteDevice << " lost" << std::endl;
+		setCommandTo::sendErrorToClient(error);
 
-		std::cout << "ERROR! CDeviceManager::ackClient: Transaction for " << concreteDevice << " lost" << std::endl;
+		std::cout << error.str() << std::endl;
 		return;
 	}
 
 	std::cout << "CDeviceManager::ackClient: Check queue for '" << concreteDevice << "'" << std::endl;
 
-	// TODO Послать следующую команду из очереди на клиент
+	// Послать следующую команду из очереди на клиент
 
 	/*
 	 * Если в очереди есть еще задачи для устройства, то отправить следующую
@@ -314,4 +349,31 @@ void CDeviceManager::ackClient(std::string concreteDevice)
 	}
 
 
+}
+
+bool CDeviceManager::popDeviceTask(std::string concreteDevice, DeviceCtl::Task& task)
+{
+	for (auto& v: devices)
+	{
+		if (v.second.devInstance->deviceConcreteName() == concreteDevice)
+		{
+
+			if (v.second.taskQue.size() == 0)
+			{
+				std::cout << "CDeviceManager::popDeviceTask: not found tasks in queue for '" << concreteDevice << "'" << std::endl;
+				return false;
+			}
+
+			task = v.second.taskQue.front();
+			v.second.taskQue.pop();
+
+			std::cout << "CDeviceManager::popDeviceTask: found tasks in queue for '" << concreteDevice <<  "'. Task popped." << std::endl;
+
+			return true;
+		}
+	}
+
+	std::cout << "ERROR: CDeviceManager::popDeviceTask: not found device '" << concreteDevice << "'" << std::endl;
+
+	return false;
 }

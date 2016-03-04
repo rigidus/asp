@@ -59,7 +59,7 @@ const std::vector<std::string> getCommNamesByDevice(const std::string& deviceNam
 
 const std::vector<CommGPIOConfig> getGPIOByDevice(const std::string deviceName, const std::string gpioName)
 {
-	// TODO: make config and return it
+	// make config and return it
 	std::vector<settings::CommGPIOConfig> devs;
 
 	for (settings::DeviceConfig* v: device_config::deviceList)

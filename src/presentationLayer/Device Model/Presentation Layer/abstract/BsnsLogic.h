@@ -29,11 +29,18 @@ public:
 
 		CBaseDevice* cDev = nullptr;
 
-		if ( HttpClient::s_concreteName == devName)
+		// INTEGRATE DEVICE SECTION: место для создания конкретных устройств типа клиент
 		{
-			cDev = reinterpret_cast<CBaseDevice*> (new HttpClient());
+			// Создание клиента "http client"
+			if ( HttpClient::s_concreteName == devName)
+			{
+				cDev = reinterpret_cast<CBaseDevice*> (new HttpClient());
 
-			return new BsnsLogic(cDev, abstractName);
+				return new BsnsLogic(cDev, abstractName);
+			}
+
+			// INTEGRATE DEVICE SECTION: добавь создание нового устройства сюда
+
 		}
 
 		return nullptr;
@@ -41,7 +48,6 @@ public:
 
 	virtual void sendCommand(const std::string& command, const std::string& pars)
 	{
-		// TODO: parse command and parameters and call concrete command of concrete device
 		std::cout << "BsnsLogic::sendCommand: " << command << "; " << pars << std::endl;
 		device()->sendCommand(command, pars);
 	}
