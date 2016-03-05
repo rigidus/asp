@@ -25,7 +25,6 @@ class CBaseCommCtl: private noncopyable
 public:
 	virtual ~CBaseCommCtl();
 
-	virtual bool receive(int rcvData) = 0;
 	virtual uint32_t send(std::list<std::vector<uint8_t> > sendData) = 0;
 	virtual int setSettings(std::string deviceName) = 0;
 

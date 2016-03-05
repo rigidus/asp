@@ -153,11 +153,6 @@ CPinCtl::~CPinCtl(){
 
 }
 
-bool CPinCtl::receive(int rcvData){
-
-	return false;
-}
-
 
 uint32_t CPinCtl::send(std::list<std::vector<uint8_t> > sendData)
 {
