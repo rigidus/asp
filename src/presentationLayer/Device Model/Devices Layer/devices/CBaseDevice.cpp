@@ -58,9 +58,6 @@ bool CBaseDevice::connectToCommCtl()
 
 	std::vector<std::string> commNames = settings::getCommNamesByDevice(c_name);
 
-	if (commNames.size() == 0)
-		return false;
-
 	for (auto comm: commNames)
 	{
 		std::cout << "CBaseDevice::connectToCommCtl: " << c_name << " connected to " << comm << std::endl;

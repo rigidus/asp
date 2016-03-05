@@ -160,15 +160,9 @@ uint32_t CPinCtl::send(std::list<std::vector<uint8_t> > sendData)
 	std::cout << "CPinCtl::send: command to pin and imitate reply ACK as callback" << std::endl;
 
 	/*
-	 * Постановка задачи на отправку сообщения на верхний уровень менеджеру
+	 * Парсинг команды записи в конкретный файл пина
+	 * value, direction, edge, active_low
 	 */
-
-	std::vector<uint8_t> answer;
-	for (auto& vect: sendData)
-		for (auto v: vect)
-			answer.push_back(v);
-
-	m_device->performEvent(answer);
 
 	return  0;
 }

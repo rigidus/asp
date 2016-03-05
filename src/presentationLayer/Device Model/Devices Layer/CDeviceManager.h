@@ -47,9 +47,7 @@ private:
 
 public:
 
-	enum DeviceManagerType { WorkingSet = 1, TestingSet};
-
-	static CDeviceManager* deviceManagerFactory( DeviceManagerType type);
+	static CDeviceManager* deviceManagerFactory( std::vector<settings::DeviceConfig> devConfig );
 
 	static CDeviceManager* deviceManager();
 

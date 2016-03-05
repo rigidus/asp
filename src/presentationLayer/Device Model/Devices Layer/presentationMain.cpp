@@ -7,6 +7,7 @@
 
 #include "HttpServer.h"
 #include "devices/HttpClient.h"
+#include "devices/HttpDevLayerClient.h"
 
 #include <iostream>
 
@@ -23,45 +24,8 @@ using namespace rapidjson;
 
 volatile int HttpClient::s_exit_flag = 0;
 boost::mutex HttpClient::HTTPconnectMutex;
-
-// Abstract names
-// full
-const std::string shlagbaum1("shlagbaum_in");
-const std::string shlagbaum2("shlagbaum_out");
-const std::string printer1("printer");
-const std::string photosensor1("pass_photosensor");
-const std::string photosensor2("present_photosensor");
-const std::string display1("display");
-const std::string massstorage1("sd_card");
-const std::string kkm1("kkm");
-
-// common
-const std::string AbstractShlagbaum::s_abstractName = "shlagbaum";
-const std::string BsnsLogic::s_abstractName = "logic";
-
-// concrete names
-const std::string ShlagbaumPalka::s_concreteName = "shlagbaum palka";
-const std::string HttpClient::s_concreteName = "logic_http";
-
-// Test 1
-void testCreateAndDestroy()
-{
-
-	CDeviceManager::deviceManagerFactory(CDeviceManager::TestingSet);
-
-	std::string dev("shlagbaum_in");
-	std::string cmd("command_from_json");
-	std::string pars("pars_from_json");
-
-	GlobalThreadPool::get();
-
-	setCommandTo::Device(0, dev, cmd, pars, "TEST");
-
-	GlobalThreadPool::stop();
-
-	CDeviceManager::destroyDeviceManager();
-
-}
+volatile int HttpDevLayerClient::s_exit_flag = 0;
+boost::mutex HttpDevLayerClient::HTTPconnectMutex;
 
 
 int main()
@@ -69,28 +33,8 @@ int main()
 
 	boost::thread thrHttpServer = httpserver::startHttpServer();
 
-//  Test1 Создание и разрушение классов устройств, запуск и остановка их работы 100 раз в цикле
-//  	При разных конфигурациях, в т.ч. с отсутствием устройств
-//	for (int i=0; i < 100; ++i)	// for test of create and destroy
-//	{
-//		std::cout << "------------- start new instance ---------------- " <<  i << std::endl;
-//
-//		testCreateAndDestroy();
-//	}
-
-	CDeviceManager::deviceManagerFactory(CDeviceManager::TestingSet);
+	CDeviceManager::deviceManagerFactory( settings::fromDBDevices() );
 	GlobalThreadPool::get();
-
-//	Test 2 Постановка в очередь на устройство 100 команд без задержки
-//
-//	for (int i=0; i < 100; ++i)
-//	{
-//		std::stringstream strPar;
-//
-//		strPar << "{\"txid\":" << i << ", \"device\":\"shlagbaum_in\", \"command\":\"down\", \"parameters\":{\"state\":\"open\", \"car\":\"present\"} }";
-//
-//		setCommandTo::Client(setCommandTo::Event, BsnsLogic::s_abstractName, "", strPar.str());
-//	}
 
 	for (;;)
 	{

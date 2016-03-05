@@ -10,7 +10,7 @@
 
 #include "CAbstractDevice.h"
 #include <devices/CBaseDevice.h>
-#include <devices/testShlagbaum.h>
+#include <devices/gpioShlagbaum.h>
 
 class AbstractShlagbaum: public CAbstractDevice
 {
@@ -33,9 +33,9 @@ public:
 		{
 
 			// Создание конкретного такого абстракного типа шлагбаума с конкретной моделью "палка"
-			if ( ShlagbaumPalka::s_concreteName == devName)
+			if ( CGPIOShlagbaum::s_concreteName == devName)
 			{
-				cDev = reinterpret_cast<CBaseDevice*> (new ShlagbaumPalka());
+				cDev = reinterpret_cast<CBaseDevice*> (new CGPIOShlagbaum());
 
 				// Connect concrete device to communication devices
 				if (cDev->connectToCommCtl())

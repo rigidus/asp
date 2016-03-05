@@ -11,6 +11,7 @@
 #include "CAbstractDevice.h"
 #include <devices/CBaseDevice.h>
 #include <devices/HttpClient.h>
+#include <devices/HttpDevLayerClient.h>
 
 class BsnsLogic: public CAbstractDevice
 {
@@ -35,6 +36,13 @@ public:
 			if ( HttpClient::s_concreteName == devName)
 			{
 				cDev = reinterpret_cast<CBaseDevice*> (new HttpClient());
+
+				return new BsnsLogic(cDev, abstractName);
+			}
+
+			if ( HttpDevLayerClient::s_concreteName == devName)
+			{
+				cDev = reinterpret_cast<CBaseDevice*> (new HttpDevLayerClient());
 
 				return new BsnsLogic(cDev, abstractName);
 			}

@@ -18,15 +18,33 @@ namespace device_config {
 	settings::DeviceConfig client_http =
 	{
 			"logic_http",
-			"logic",
+			"logic_bsns_layer",
 			"",
-			{ "" },
+			{  },
+			enabled_device
+	};
+
+	settings::DeviceConfig client_http_dev_layer =
+	{
+			"logic_http_dev_layer",
+			"logic_dev_layer",
+			"",
+			{  },
+			enabled_device
+	};
+
+	settings::DeviceConfig test_device =
+	{
+			"concrete_device",
+			"abstract_device",
+			"",
+			{  },
 			enabled_device
 	};
 
 	settings::DeviceConfig shlagbaum1 =
 	{
-			"shlagbaum palka",
+			"shlagbaum_gpio",
 			"shlagbaum_in",
 			"",
 			{ "gpio12", "gpio18", "gpio8", "uart2" },
@@ -35,7 +53,7 @@ namespace device_config {
 
 	settings::DeviceConfig shlagbaum2 =
 	{
-			"shlagbaum palka",
+			"shlagbaum_gpio",
 			"shlagbaum_out",
 			"",
 			{ "gpio13", "gpio19", "gpio9", "gpio3" },
@@ -78,15 +96,6 @@ namespace device_config {
 			disabled_device
 	};
 
-	settings::DeviceConfig cardReader =
-	{
-			"sd-card",
-			"card reader",
-			"mass_storage",
-			{ "sda", "sdb", "sdc" },
-			disabled_device
-	};
-
 	settings::DeviceConfig kkm =
 	{
 			"poluchalka",
@@ -99,13 +108,14 @@ namespace device_config {
 	settings::DeviceConfig* deviceList[] =
 	{
 			&client_http,
-			&shlagbaum1,
+			&client_http_dev_layer,
+			&test_device,
+//			&shlagbaum1,
 //			&shlagbaum2,
 //			&printer,
 //			&presentSensor,
 //			&passSensor,
 //			&display,
-//			&cardReader,
 //			&kkm
 	};
 

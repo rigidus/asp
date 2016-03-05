@@ -1,27 +1,27 @@
 /*
- * testShlagbaum.h
+ * gpioShlagbaum.h
  *
- *  Created on: 18 февр. 2016 г.
- *      Author: alex
+ *  Created on: 5 марта 2016 г.
+ *      Author: drema
  */
 
-#ifndef TESTSHLAGBAUM_H_
-#define TESTSHLAGBAUM_H_
+#ifndef GPIOSHLAGBAUM_H_
+#define GPIOSHLAGBAUM_H_
 
 
 #include "devices/CBaseDevice.h"
 #include "GlobalThreadPool.h"
 
-class ShlagbaumPalka: public CBaseDevice
+class CGPIOShlagbaum: public CBaseDevice
 {
 
 // CodecType protoCodec;
 
 public:
 
-	ShlagbaumPalka(): CBaseDevice(s_concreteName) {}
+	CGPIOShlagbaum(): CBaseDevice(s_concreteName) {}
 
-	~ShlagbaumPalka()
+	~CGPIOShlagbaum()
 	{
 		CBaseDevice::disconnectFromCommCtl();
 	}
@@ -32,14 +32,9 @@ public:
 
 	virtual void sendCommand(const std::string command, const std::string pars)
 	{
-		std::cout << "ShlagbaumPalka::sendCommand: performs command: " << command << "[" << pars << "]" << std::endl;
+		std::cout << "GPIOShlagbaum::sendCommand: performs command: " << command << "[" << pars << "]" << std::endl;
 
-		rcvData.clear();
-		rcvData.push_back('A');
-		rcvData.push_back('C');
-		rcvData.push_back('K');
-		std::list<std::vector<uint8_t>> data;
-		data.push_back(rcvData);
+		std::list<std::vector<uint8_t> > data;
 
 		if (m_commCtl.size() == 0)
 		{
@@ -60,4 +55,5 @@ public:
 
 };
 
-#endif /* TESTSHLAGBAUM_H_ */
+
+#endif /* GPIOSHLAGBAUM_H_ */

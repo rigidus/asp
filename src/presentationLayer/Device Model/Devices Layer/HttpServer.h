@@ -47,13 +47,6 @@ const std::string attrDev("device"); // Обязательный атрибут 
 const std::string attrCmd("command"); // Обязательный атрибут - команда на устройство
 const std::string attrPars("parameters"); // Опциональный атрибут - параметры команды
 
-//void sendErrorToClient(std::stringstream& errorText)
-//{
-//	std::stringstream jsonError;
-//	jsonError << "{ \"error\":\"" << errorText.str() << "\"}";
-//
-//	setCommandTo::Client(setCommandTo::Event, BsnsLogic::s_abstractName, "", jsonError.str());
-//}
 
 void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 {
@@ -242,7 +235,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 
 		std::cout << "httpServer::cb_HttpServer: JSON OK!" << std::endl;
 
-		setCommandTo::Device(TxId, Device, Command, strParams.GetString(), BsnsLogic::s_abstractName);
+		setCommandTo::Device(TxId, Device, Command, strParams.GetString(), "logic_bsns_layer");
 
 	}
 

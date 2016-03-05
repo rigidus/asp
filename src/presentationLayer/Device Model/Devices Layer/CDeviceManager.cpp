@@ -52,21 +52,13 @@ CDeviceManager::~CDeviceManager() {
 
 }
 
-CDeviceManager* CDeviceManager::deviceManagerFactory( DeviceManagerType type)
+CDeviceManager* CDeviceManager::deviceManagerFactory( std::vector<settings::DeviceConfig> devConfig)
 {
 	boost::mutex::scoped_lock(mut);
 
 	if (ptr == nullptr)
 	{
-		if (type == WorkingSet)
-		{
-			ptr = new CDeviceManager(settings::fromDBDevices());
-		}
-
-		if (type == TestingSet)
-		{
-			ptr = new CDeviceManager(settings::fromTestDevices());
-		}
+		ptr = new CDeviceManager(devConfig);
 	}
 	return ptr;
 }
@@ -183,7 +175,7 @@ void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std
 		if ( itAdresat != devices.end() )
 		{
 
-			if (task.adresat == "logic")
+			if (task.adresat == "logic_bsns_layer")
 			{
 				// Set task to adresat
 				std::cout << "CDeviceManager::setCommandToClient: Set task for transaction " << task.txId << " to: "
@@ -252,7 +244,7 @@ void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std
 		// Event не значит, что транзакция отработана, а наоборот, поэтому очередь девайса не трогаем
 
 		// Отправка команды на бизнес-логику
-		auto itAdresat = devices.find(BsnsLogic::s_abstractName);
+		auto itAdresat = devices.find("logic_bsns_layer");
 		if ( itAdresat != devices.end() )
 		{
 			std::cout << "CDeviceManager::setCommandToClient: Set event to '" << BsnsLogic::s_abstractName <<"' from " << concreteDevice << " as Event." << std::endl;

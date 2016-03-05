@@ -9,6 +9,7 @@
 #define CDEVICEFACTORY_H_
 
 #include "devices/CBaseDevice.h"
+#include "abstract/testAbstractDevice.h"
 #include "abstract/ShlagbaumAbstract.h"
 #include "abstract/BsnsLogic.h"
 
@@ -58,6 +59,10 @@ public:
 //			if (dev) devs.push_back(dev);
 //			dev = createAbstractDevice<AbstractKKM>(abstractName, devName);
 //			if (dev) devs.push_back(dev);
+
+			dev = createAbstractDevice<CTestAbstractDevice>(abstractName, devName);
+			if (dev) devs.push_back(dev);
+
 		}
 
 		if (devs.size() > 1)
@@ -94,15 +99,11 @@ private:
 	{
 		CAbstractDevice* dev = nullptr;
 
-		if ( devName.find(T::s_abstractName) != std::string::npos)
-		{
-			std::cout << "CDeviceFactory::createAbstractDevice: Create abstract device: " << abstractName << std::endl;
+		std::cout << "CDeviceFactory::createAbstractDevice: Try create abstract device '" << abstractName << "' as '" << T::s_abstractName << "'" << std::endl;
 
-			dev = T::createDevice(abstractName, devName);
-		}
-		else
+		if ( abstractName.find(T::s_abstractName) != std::string::npos)
 		{
-			std::cout << "ERROR! CDeviceFactory::createAbstractDevice: Abstract device " << abstractName << " not found in device list" << std::endl;
+			dev = T::createDevice(abstractName, devName);
 		}
 
 		return dev;
