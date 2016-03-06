@@ -145,7 +145,54 @@ CPinCtl::CPinCtl(CBaseDevice* device, const std::string& gpioName):
 		CBaseCommCtl(device, gpioName),
 		m_timeout(0)
 {
-	// TODO: initialize pin with pars
+	std::vector<settings::CommGPIOConfig> configList =
+			settings::getGPIOByDevice(device->c_name, gpioName);
+
+	settings::CommGPIOConfig config;
+	for (auto v: configList)
+	{
+		if (v.name == gpioName)
+		{
+			config = v;
+			break;
+		}
+	}
+
+	std::string pinPath = CPinCtl::gpioPath + "/" + gpioName + "/";
+
+	{
+		std::string strActiveLow("0");
+		boostio::stream_buffer<boostio::file_sink> bufExport(gpioPath+"active_low");
+		std::ostream fileExport(&bufExport);
+		fileExport << strActiveLow;
+	}
+
+	{
+		std::string strDir("in");
+		if (config.direction)
+			strDir = "out";
+
+		boostio::stream_buffer<boostio::file_sink> bufExport(gpioPath+"direction");
+		std::ostream fileExport(&bufExport);
+		fileExport << strDir;
+	}
+
+	{
+		std::string strEdge("both");
+		boostio::stream_buffer<boostio::file_sink> bufExport(gpioPath+"edge");
+		std::ostream fileExport(&bufExport);
+		fileExport << strEdge;
+	}
+
+	{
+		std::string strDef("0");
+		if (config.def_value)
+			strDef = "1";
+
+		boostio::stream_buffer<boostio::file_sink> bufExport(gpioPath+"value");
+		std::ostream fileExport(&bufExport);
+		fileExport << strDef;
+	}
 
 }
 

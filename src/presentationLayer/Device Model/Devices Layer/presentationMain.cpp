@@ -14,7 +14,9 @@
 #include <boost/any.hpp>
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
+
 #include <Settings.h>
+
 #include "GlobalThreadPool.h"
 #include "CDeviceManager.h"
 #include "SetCommandTo.h"
