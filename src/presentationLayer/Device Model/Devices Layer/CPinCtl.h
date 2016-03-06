@@ -56,13 +56,12 @@ public:
 	static void Notifier();
 
 	// Thread function for waiting GPIO events
-	// TODO: тред должен ждать события на пине через интерфейс inotify
+	// тред должен ждать события на пине через интерфейс inotify
 	// тред должен как-то управляться из того же места, где
 	// будут управляться все треды комм. девайсов
 	static void cb_NotifyGPIOEvent(boost::asio::posix::stream_descriptor* const stream_descriptor, const boost::system::error_code& error);
 
 	// CPinCtl public members
-	bool receive(int rcvData);
 	uint32_t send(std::list<std::vector<uint8_t> > sendData);
 	int setSettings(std::string deviceName);
 

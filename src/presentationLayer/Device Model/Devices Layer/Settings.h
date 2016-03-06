@@ -59,12 +59,15 @@ using namespace boost;
 		std::string port;
 	};
 
-	const std::vector<DeviceConfig> fromTestDevices();
-	const std::vector<DeviceConfig> fromDBDevices();
+	const std::vector<DeviceConfig> getDeviceConfig();
 
 	const std::vector<std::string> getCommNamesByDevice(const std::string& deviceName);
 	const std::vector<CommGPIOConfig> getGPIOByDevice(const std::string deviceName, const std::string gpioName);
 	const std::vector<CommUARTConfig> getUARTByDevice(const std::string deviceName);
+
+	extern std::vector<DeviceConfig*> deviceList;
+	extern std::vector<CommGPIOConfig*> gpioConfigList;
+	extern std::vector<CommUARTConfig*> uartConfigList;
 
 } /* namespace database */
 

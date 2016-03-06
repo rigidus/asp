@@ -20,12 +20,6 @@ CBaseCommCtl::~CBaseCommCtl(){
 }
 
 
-bool CBaseCommCtl::receive(int rcvData){
-
-	return false;
-}
-
-
 uint32_t CBaseCommCtl::send(std::list<std::vector<uint8_t> > sendData){
 
 	return  0;

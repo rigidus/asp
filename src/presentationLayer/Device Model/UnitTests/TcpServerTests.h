@@ -13,7 +13,7 @@
 #include <CTcpServerManager.h>
 #include <CTcpClient.h>
 
-class CTestTcpIpMultiServer
+class CTcpIpMultiServerTest
 {
 
 private:

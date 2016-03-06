@@ -1,29 +1,29 @@
 /*
- * clientHttp.h
+ * HttpDevLayerClient.h
  *
- *  Created on: 24 февр. 2016 г.
- *      Author: alex
+ *  Created on: 6 марта 2016 г.
+ *      Author: drema
  */
 
-#ifndef HTTPCLIENT_H_
-#define HTTPCLIENT_H_
+#ifndef HTTPDEVLAYERCLIENT_H_
+#define HTTPDEVLAYERCLIENT_H_
 
 #include <boost/thread/mutex.hpp>
 #include <mongoose/mongoose.h>
 #include "SetCommandTo.h"
 
-class HttpClient: public CBaseDevice
+class HttpDevLayerClient: public CBaseDevice
 {
 	struct mg_mgr mgr;
 
 public:
 
-	HttpClient(): CBaseDevice(s_concreteName)
+	HttpDevLayerClient(): CBaseDevice(s_concreteName)
 	{
 		mg_mgr_init(&mgr, NULL);
 	}
 
-	~HttpClient()
+	~HttpDevLayerClient()
 	{
 		mg_mgr_free(&mgr);
 	}
@@ -43,7 +43,7 @@ public:
 
 		case MG_EV_CONNECT:
 			if (* (int *) ev_data != 0) {
-				std::cout << "HttpClient::ev_handler: Connect to businness logic failed: " << strerror(* (int *) ev_data);
+				std::cout << "HttpDevLayerClient::ev_handler: Connect to businness logic failed: " << strerror(* (int *) ev_data);
 				s_exit_flag = 1;
 			}
 			break;
@@ -51,10 +51,10 @@ public:
 		case MG_EV_HTTP_REPLY:
 			{
 				nc->flags |= MG_F_CLOSE_IMMEDIATELY;
-				std::cout << "HttpClient::ev_handler: message transferred, response code: " << hm->resp_code << std::endl;
+				std::cout << "HttpDevLayerClient::ev_handler: message transferred, response code: " << hm->resp_code << std::endl;
 				s_exit_flag = 1;
 
-				setCommandTo::Manager(HttpClient::s_concreteName);
+				setCommandTo::Manager(HttpDevLayerClient::s_concreteName);
 			}
 			break;
 
@@ -69,11 +69,11 @@ public:
 
 		boost::mutex::scoped_lock lock(HTTPconnectMutex);
 
-		std::cout << "HttpClient::sendCommand: Business logic client performs command: " << command << "[" << pars << "]" << std::endl;
+		std::cout << "HttpDevLayerClient::sendCommand: Business logic client performs command: " << command << "[" << pars << "]" << std::endl;
 
 		// TODO Сериализация JSON
 
-		// TODO Здесь пока что сделана синхронка for examle, но нужна Асинхронная передача на сервер
+		// TODO Здесь пока что сделана синхронка for example, но нужна Асинхронная передача на сервер
 		// Для чего надо ставить задачу на отправку тредпулу, а подтверждение обрабатывать в коллбэке
 		// и ставить задачу для дев менеджера для подтверждения транзакции, удаления ее из очереди и старта
 		// следующей.
@@ -85,7 +85,7 @@ public:
 			mg_mgr_poll(&mgr, 1000);
 		}
 
-		std::cout << "HttpClient::sendCommand: Business logic client end command: " << command << "[" << pars << "]" << std::endl;
+		std::cout << "HttpDevLayerClient::sendCommand: Business logic client end command: " << command << "[" << pars << "]" << std::endl;
 
 	}
 
@@ -96,4 +96,6 @@ public:
 
 };
 
-#endif /* HTTPCLIENT_H_ */
+
+
+#endif /* HTTPDEVLAYERCLIENT_H_ */

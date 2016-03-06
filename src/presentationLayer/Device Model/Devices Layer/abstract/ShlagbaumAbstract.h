@@ -10,7 +10,7 @@
 
 #include "CAbstractDevice.h"
 #include <devices/CBaseDevice.h>
-#include <devices/testShlagbaum.h>
+#include <devices/gpioShlagbaum.h>
 
 class AbstractShlagbaum: public CAbstractDevice
 {
@@ -29,23 +29,30 @@ public:
 
 		CBaseDevice* cDev = nullptr;
 
-		if ( ShlagbaumPalka::s_concreteName == devName)
+		// INTEGRATE DEVICE SECTION: место для создания конкретных устройств типа шлагбаум
 		{
-			cDev = reinterpret_cast<CBaseDevice*> (new ShlagbaumPalka());
 
-			// Connect concrete device to communication devices
-			if (cDev->connectToCommCtl())
+			// Создание конкретного такого абстракного типа шлагбаума с конкретной моделью "палка"
+			if ( CGPIOShlagbaum::s_concreteName == devName)
 			{
-				return new AbstractShlagbaum(cDev, abstractName);
-			}
-		}
+				cDev = reinterpret_cast<CBaseDevice*> (new CGPIOShlagbaum());
 
+				// Connect concrete device to communication devices
+				if (cDev->connectToCommCtl())
+				{
+					return new AbstractShlagbaum(cDev, abstractName);
+				}
+			}
+
+			// INTEGRATE DEVICE SECTION: добавь создание нового устройства сюда
+
+		}
 		return nullptr;
 	}
 
 	virtual void sendCommand(const std::string& command, const std::string& pars)
 	{
-		// TODO: parse command and parameters and call concrete command of concrete device
+		std::cout << "AbstractShlagbaum::sendCommand: " << command << "; " << pars << std::endl;
 		device()->sendCommand(command, pars);
 	}
 };
