@@ -13,7 +13,7 @@
 #define enabled_device	true
 #define disabled_device false
 
-namespace device_config {
+namespace demo_device_config {
 
 	settings::DeviceConfig client_http =
 	{
@@ -110,7 +110,7 @@ namespace device_config {
 			&client_http,
 			&client_http_dev_layer,
 			&test_device,
-//			&shlagbaum1,
+			&shlagbaum1,
 //			&shlagbaum2,
 //			&printer,
 //			&presentSensor,

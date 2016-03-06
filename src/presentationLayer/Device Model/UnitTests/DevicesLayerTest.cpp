@@ -32,6 +32,7 @@
 #include "../Devices Layer/NameInstanses.cpp"
 
 #include "DevicesLayerTests.h"
+#include "DeviceLayerSettings.h"
 volatile boost::atomic<uint32_t> CDevicesLayerTest::stopServer(0);
 struct mg_serve_http_opts CDevicesLayerTest::s_http_server_opts;
 
@@ -94,13 +95,27 @@ boost::thread CDevicesLayerTest::startHttpServer()
 }
 
 
+const std::vector<settings::DeviceConfig> CDevicesLayerTest::getDeviceConfig()
+{
+	std::vector<settings::DeviceConfig> baseList;
+
+	for (settings::DeviceConfig* v: test_device_config::deviceList)
+	{
+		baseList.push_back( *v );
+	}
+
+	return baseList;
+}
+
+
+
 // Test 1
 void CDevicesLayerTest::CTestCreateDestroyLoop::runTest()
 {
 
 	std::cout << "Start test: " << getName() << std::endl;
 
-	CDeviceManager::deviceManagerFactory( settings::fromTestDevices() );
+	CDeviceManager::deviceManagerFactory( CDevicesLayerTest::getDeviceConfig() );
 
 	GlobalThreadPool::get();
 
@@ -121,7 +136,7 @@ void CDevicesLayerTest::CTestSendReceiveLoop::runTest()
 	boost::thread thrHttpLogicLayerServer = CDevicesLayerTest::startHttpServer();
 	boost::thread thrHttpDevLayerServer = httpserver::startHttpServer();
 
-	CDeviceManager::deviceManagerFactory( settings::fromTestDevices() );
+	CDeviceManager::deviceManagerFactory( CDevicesLayerTest::getDeviceConfig() );
 	GlobalThreadPool::get();
 
 	boost::this_thread::sleep(boost::posix_time::milliseconds(100));

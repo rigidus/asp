@@ -14,24 +14,16 @@ namespace settings {
 #include "device_config.h"
 #include "devcomm_config.h"
 
-const std::vector<DeviceConfig> fromTestDevices()
+
+const std::vector<DeviceConfig> getDeviceConfig()
 {
+	// TODO: reading device config from DB
 	std::vector<settings::DeviceConfig> baseList;
 
-	for (settings::DeviceConfig* v: device_config::deviceList)
+	for (settings::DeviceConfig* v: demo_device_config::deviceList)
 	{
 		baseList.push_back( *v );
 	}
-
-	return baseList;
-}
-
-
-const std::vector<DeviceConfig> fromDBDevices()
-{
-	std::vector<settings::DeviceConfig> baseList;
-
-	// TODO: reading device config from DB
 
 	return baseList;
 }
@@ -41,7 +33,7 @@ const std::vector<std::string> getCommNamesByDevice(const std::string& deviceNam
 {
 	std::vector<std::string> names;
 
-	for (DeviceConfig* v: device_config::deviceList)
+	for (DeviceConfig* v: demo_device_config::deviceList)
 	{
 		if (v->concreteName == deviceName)
 		{
@@ -62,7 +54,7 @@ const std::vector<CommGPIOConfig> getGPIOByDevice(const std::string deviceName, 
 	// make config and return it
 	std::vector<settings::CommGPIOConfig> devs;
 
-	for (settings::DeviceConfig* v: device_config::deviceList)
+	for (settings::DeviceConfig* v: demo_device_config::deviceList)
 	{
 		if (v->abstractName == deviceName)
 		{

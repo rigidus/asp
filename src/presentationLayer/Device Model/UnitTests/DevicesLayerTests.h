@@ -20,6 +20,7 @@
 
 #include <CTcpServerManager.h>
 #include <CTcpClient.h>
+#include <Settings.h>
 
 #include <boost/intrusive_ptr.hpp>
 #include <boost/atomic.hpp>
@@ -35,6 +36,7 @@ private:
 	static boost::thread startHttpServer();
 	static void cb_HttpServer(struct mg_connection* nc, int ev, void* p);
 	static volatile boost::atomic<uint32_t> stopServer;
+	static const std::vector<settings::DeviceConfig> getDeviceConfig();
 
 public:
 

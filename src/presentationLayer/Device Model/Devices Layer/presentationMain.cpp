@@ -33,7 +33,7 @@ int main()
 
 	boost::thread thrHttpServer = httpserver::startHttpServer();
 
-	CDeviceManager::deviceManagerFactory( settings::fromDBDevices() );
+	CDeviceManager::deviceManagerFactory( settings::getDeviceConfig() );
 	GlobalThreadPool::get();
 
 	for (;;)
