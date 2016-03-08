@@ -12,12 +12,12 @@
 (defparameter PARENSCRIPT::SUPPRESS-VALUES nil)
 
 ;; Подключение к базе данных PostgreSQL
-(defvar *db-name* "ylg_new")
-(defvar *db-user* "ylg")
-(defvar *db-pass* "6mEfBjyLrSzlE")
+(defvar *db-name* "asp")
+(defvar *db-user* "asp_admin")
+(defvar *db-pass* "qwe123")
 (defvar *db-serv* "localhost")
 
-(defvar *db-spec* (list "ylg_new" "ylg" "6mEfBjyLrSzlE" "localhost"))
+(defvar *db-spec* (list "asp" "asp_admin" "qwe123" "localhost"))
 
 ;; Подключение к базе данных Mysql
 ;; (defvar *mysql-db-host* "bkn.ru")
