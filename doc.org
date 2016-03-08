@@ -1500,7 +1500,6 @@
 
      См. [[*%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0%20%d0%b8%d0%bc%d0%bf%d1%83%d0%bb%d1%8c%d1%81%d0%b0%20%d0%b7%d0%b0%d0%ba%d1%80%d1%8b%d1%82%d0%b8%d1%8f%20%d1%88%d0%bb%d0%b0%d0%b3%d0%b1%d0%b0%d1%83%d0%bc%d0%b0][настройка импульса закрытия шлагбаума]]
 
-
 **** TODO Настройка импульса открытия шлагбаума                         :gmm:
 
      [TODO:gmm] описать проверку в виде кода.
@@ -1751,7 +1750,6 @@
 
 невозможность перевода в процессе исполнения задачи /
       автомата или перехода между состояниями
-
 
 ** TODO Некорректные действия посетителя                                :all:
 
@@ -4422,8 +4420,7 @@ PX.XX и соответствующие им GPIO_XX.
      Все места для внедрения в коде помечены как // INTEGRATE COMMDEVICE SECTION:
      <comment>
 
-
-**** COMMENT Абстрактный базовый класс CBaseDevice
+**** Абстрактный базовый класс CBaseDevice
 
      Является базовым классом для классов устройств.
      Реализует паттерн Strategy для конкретных классов от базовых CBaseCodec
@@ -4632,7 +4629,6 @@ void CBaseDevice::disconnectFromCommCtl()
 }
 
      #+END_SRC
-
 
 **** Класс абстрактного устройства CAbstractDevice
 
@@ -5462,16 +5458,16 @@ zlib1g_1.2.8.dfsg-2+b1_armel.deb
        Это скрипты, которые собирают ядро нужной версии за нас. Перед запуском скрипты
        потребуют некоторой правки:
        =version.sh=
-       #+BEGIN_SRC 
+       #+BEGIN_SRC
 #toolchain="gcc_linaro_gnueabi_4_6"
 #toolchain="gcc_linaro_gnueabihf_4_7"
 #toolchain="gcc_linaro_gnueabihf_4_8"
-toolchain="gcc_linaro_gnueabihf_4_9"       
+toolchain="gcc_linaro_gnueabihf_4_9"
        #+END_SRC
 
        =scripts/gcc.sh=
        По образцу gcc_linaro_gnueabihf_4_8) добавляем:
-       #+BEGIN_SRC 
+       #+BEGIN_SRC
        gcc_linaro_gnueabihf_4_9)
        #http://releases.linaro.org/14.09/components/toolchain/binaries/gcc-linaro-arm-linux-gnueabihf-4.9-2014.09_linux.tar.xz
        gcc_version="4.9"
@@ -5517,7 +5513,7 @@ toolchain="gcc_linaro_gnueabihf_4_9"
 ****** TODO Интеграция в код ASPP.
        Для каждого дисплея может быть (и будет) свой драйвер - свои ножки, свои параметры длины
        строки и т. д. Kernel Object должен выбираться и загружаться нашим софтом исходя из настроек
-       при старте. 
+       при старте.
 
 **** TODO Сканеры штрихкодов
 
@@ -5732,7 +5728,6 @@ toolchain="gcc_linaro_gnueabihf_4_9"
     - вместо батарейки RTC можно попробовать ставить ионистор, но удержим мы время только до 2х суток, устроит ли это нас?
       проверили тему, но вариант не очень
     - предлагается использовать маленькую батарейку CR1025
-
 
 *** WAIT Оптимизация программной части                                  :all:
 
@@ -6467,7 +6462,7 @@ toolchain="gcc_linaro_gnueabihf_4_9"
 
   [COMMENT:pyub] Хотелки тут в первую очередь мои. О хотелках начальства вам лучше не
   думать. В первую очередь нужно сделать UI для настройки контроллера и "фишечку" в
-  виде печати каhтинки на чеке - этого мы раньше не умели, а теперь уже умеем. Во
+  виде печати картинки на чеке - этого мы раньше не умели, а теперь уже умеем. Во
   вторую - чтобы у нас замыкались щёлкая две релюшки и были замкнуты ровно столько мс,
   сколько выставлен "импульс" в том же UI.
 
@@ -6673,6 +6668,401 @@ toolchain="gcc_linaro_gnueabihf_4_9"
        (mapconcat 'identity (reverse result) ""))
    #+END_SRC
 
+** DONE События
+
+   События протоколируют все что происходит в системе. Каждое создание
+   сущности, каждое изменение состояния автомата регистрируется
+   здесь. Роботы используют эти события для своей работы. Также
+   информация о событиях попадает на главную страницу.
+
+   Событие является простой сущностью и не имеет состояния.
+
+   #+CAPTION: Данные события
+   #+NAME: event_flds
+     | field name | field type           | note                   |
+     |------------+----------------------+------------------------|
+     | id         | serial               | идентификатор          |
+     | name       | (or db-null varchar) | имя события            |
+     | tag        | (or db-null varchar) | тег события            |
+     | msg        | (or db-null varchar) | сообщение или описание |
+     | author-id  | (or db-null varchar) | инициатор события      |
+     | ts-create  | bigint               | время события          |
+
+   Теперь сгенерируем код:
+
+   #+NAME: event_entity
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_entity("event", "события", event_flds)>>
+   #+END_SRC
+
+** DONE Роли (role)
+
+   Роли определяют набор сценариев, которые пользователь выполняет на
+   сайте. Функционал, который выполняют сценарии запрашивает
+   разрешение на выполнение действий, которое опирается на роль,
+   присвоенную пользователю. Пользователь может иметь только одну роль
+   или не иметь ее вовсе.
+
+   Роль является простой сущностью и не имеет состояния.
+
+   #+CAPTION: Данные роли
+   #+NAME: role_flds
+     | field name | field type           | note          |
+     |------------+----------------------+---------------|
+     | id         | serial               | идентификатор |
+     | name       | varchar              | имя           |
+     | descr      | (or db-null varchar) | описание      |
+
+   Теперь сгенерируем код и cоздадим необходимые роли:
+
+   #+NAME: role_entity
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     (in-package #:asp)
+     <<gen_entity("role", "роли", role_flds)>>
+     ;; (make-role :name "webuser")
+     ;; (make-role :name "timebot")
+     ;; (make-role :name "autotester")
+     ;; (make-role :name "system")
+
+     ;; (upd-role (get-role 1) (list :descr "Пользователи сайта. Они могут выполнять все пользовательские сценарии, (начиная с \"регистрации\" и \"логина\") и использовать все функциональные элементы на страницах сайта. Некоторые из пользователей, имеющих эту роль имеют дополнительные права, например на редактирование групп"))
+
+     ;; (upd-role (get-role 2) (list :descr "Роботы, выполняющие задачи по расписанию. Могут подключаться к таймерам и использовать низкоуровневое API сайта для сбора и обработки данных. Они представляют собой код, который работает прямо внутри системы"))
+
+     ;; (upd-role (get-role 3) (list :descr "Роботы, выполняющие тестирование внешних API сайта. Могу подключаться к таймерам и использовать внешнее REST-API сайта по протоколам взаимодейтствия, определенным для внешних агентов. Они представляют собой код, который работает как сторонняя программа, возможно даже на другой машине"))
+
+     ;; (upd-role (get-role 4) (list :name "agent" :descr "Сторонние программы и агенты (такие, как мобильные приложения), которые могут только использовать только внешнее REST-API системы"))
+   #+END_SRC
+
+** DONE Пользователи (user)
+
+   Для начала надо определиться, какие данные мы собираемся хранить о пользователях, и
+   какого типа будут эти данные. Типы данных задаем в формате =Postmodern= чтобы потом
+   сохранить данные в =PostgreSQL=
+
+   #+CAPTION: Данные пользователя
+   #+NAME: user_flds
+     | field name  | field type           | note                      |
+     |-------------+----------------------+---------------------------|
+     | id          | serial               | идентификатор             |
+     | name        | varchar              | никнейм пользователя      |
+     | password    | varchar              | пароль                    |
+     | email       | varchar              | емейл                     |
+     | firstname   | (or db-null varchar) | имя                       |
+     | lastname    | (or db-null varchar) | фамилия                   |
+     | phone       | (or db-null varchar) | телефон                   |
+     | mobilephone | (or db-null varchar) | мобильный телефон         |
+     | sex         | (or db-null varchar) | пол                       |
+     | birth-day   | (or db-null varchar) | день рождения             |
+     | birth-month | (or db-null varchar) | месяц рождения            |
+     | birth-year  | (or db-null varchar) | год рождения              |
+     | ts-create   | bigint               | время регистрации         |
+     | ts-last     | bigint               | время последнего действия |
+     | role-id     | (or db-null integer) | идентификатор роли        |
+
+   В нашей системе пользователь может существовать (или не существовать) в одном из
+   нескольких состояний:
+    + Когда пользователь еще не зарегистрирован на сайте мы можем считать его
+      незарегистрированным (=unregistred=)
+    + После регистрации он автоматически становится залогиненным (=logged=)
+    + Пользователь может покинуть сайт и перейти в состояние =unlogged=
+    + Пользователь может забыть свой пароль, тогда мы должны выслать ему ссылку для
+      восстановления пароля (=sended=)
+    + И наконец, после восстановления пароля пользователь вновь становится залогиненным
+      (=logged=)
+
+   Все эти переходы и состояния сведем в единую таблицу:
+
+   #+CAPTION: Состояния конечного автомата пользователя
+   #+NAME: user_state
+     | action         | from        | to          |
+     |----------------+-------------+-------------|
+     | registration   | unregistred | logged      |
+     | unregistration | logged      | unregistred |
+     | enter          | unlogged    | logged      |
+     | leave          | logged      | unlogged    |
+     | forgot         | unlogged    | sended      |
+     | remember       | sended      | logged      |
+
+   Теперь мы можем полностью описать поведение пользователя как конечный автомат:
+
+   #+NAME: user_state_graph
+   #+BEGIN_SRC emacs-lisp :var table=user_state :results output :exports none
+     (mapcar #'(lambda (x)
+                 (princ (format "%s -> %s [label =\"%s\"];\n"
+                                (second x) (third x) (first x))))
+             table)
+   #+END_SRC
+
+   #+BEGIN_SRC dot :file img/user-state.png :var input=user_state_graph :exports results
+     digraph G {
+       rankdir = LR;
+       $input
+     }
+   #+END_SRC
+
+   Для того чтобы избежать дублирования ников и связанной с этим
+   ситуации, когда один пользователь выдает себя за другого, следует
+   определить констрейнт на уникальность поля =name= и =email=
+
+   #+NAME: user_constraints
+   #+BEGIN_SRC lisp :exports none :padline no :comments link
+     (with-connection *db-spec*
+       (unless (table-exists-p "user")
+         (query (:alter-table "user" :add-constraint "uniq_email" :unique "email"))
+         (query (:alter-table "user" :add-constraint "uniq_name" :unique "name"))))
+   #+END_SRC
+
+   Так как в системе все пользователи тесно связаны с ролями, следует
+   определить внешний ключ на таблицу ролей:
+
+   #+NAME: user_constraints
+   #+BEGIN_SRC lisp :exports none :padline no :comments link
+     (with-connection *db-spec*
+       (unless (table-exists-p "user")
+         (query (:alter-table "user" :add-constraint "foreign_role" :foreign-key ("role_id") ("role" "id")))))
+   #+END_SRC
+
+   Теперь сгенерируем код и определим функции, которые вызываются на
+   переходах из одного состояния в другое. Также установим ограничение
+   на колонку =name= чтобы избежать дублирования ников.
+
+   #+NAME: user_automat
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_automat("user", "пользователя", user_flds, user_state)>>
+     <<user_constraints>>
+     (defun registration ()
+       "unregistred -> logged")
+     (defun unregistration ()
+       "logged -> unregistred")
+     (defun enter ()
+       "unlogged -> logged")
+     (defun leave ()
+       "logged -> unlogged")
+     (defun forgot ()
+       "unlogged -> sended")
+     (defun remember ()
+       "sended -> logged")
+   #+END_SRC
+
+** DONE Группы (group, user2group)
+
+   Группы пользователей определяют набор операций, которые
+   пользователь может выполнять над объектами системы. В отличие от
+   ролей, один пользователь может входить в несколько групп или не
+   входить ни в одну из них.
+
+   Группа является простой сущностью и не имеет состояния.
+
+   #+CAPTION: Данные группы
+   #+NAME: group_flds
+     | field name | field type           | note                           |
+     |------------+----------------------+--------------------------------|
+     | id         | serial               | идентификатор                  |
+     | name       | varchar              | имя группы                     |
+     | descr      | (or db-null varchar) | описание группы                |
+     | ts-create  | bigint               | время создания группы          |
+     | author-id  | (or db-null integer) | идентификатор создателя группы |
+
+   Сгенерируем код и создадим необходимые группы:
+
+   #+NAME: group_entity
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_entity("group", "группы", group_flds)>>
+     ;; (make-group
+     ;;  :name "Исполнитель желаний"
+     ;;  :descr "Создатель штук, которых еще нет. Исправлятель штук, которые неправильно работают."
+     ;;  :ts-create (get-universal-time)
+     ;;  :author-id 1)
+     ;; (make-group
+     ;;  :name "Пропускать везде"
+     ;;  :descr "Для этого пользователя нет запретных мест"
+     ;;  :ts-create (get-universal-time)
+     ;;  :author-id 1)
+     ;; (make-group
+     ;;  :name "Острый глаз"
+     ;;  :descr "Обладает способностью замечать недоработки"
+     ;;  :ts-create (get-universal-time)
+     ;;  :author-id 1)
+     ;; (make-group
+     ;;  :name "Основатель"
+     ;;  :descr "Был с нами еще до того как это стало мейнстримом"
+     ;;  :ts-create (get-universal-time)
+     ;;  :author-id 1)
+     ;; (make-group
+     ;;  :name "Рулевой"
+     ;;  :descr "Управляет пользователями и назначает права доступа"
+     ;;  :ts-create (get-universal-time)
+     ;;  :author-id 1)
+   #+END_SRC
+
+   Теперь создадим таблицу связи, которая свяжет пользователей и группы:
+
+   #+CAPTION: Данные таблицы связи пользователя и группы
+   #+NAME: user2group_flds
+     | field name | field type | note                       |
+     |------------+------------+----------------------------|
+     | id         | serial     | идентификатор              |
+     | user-id    | integer    | идентификатор пользователя |
+     | group-id   | integer    | идентификатор группы       |
+
+   Чтобы пары в таблице связи удалялись при удалении связанных групп и
+   пользователей следует установить on-delete foreigh keys.
+
+   #+NAME: user2group_constraints
+   #+BEGIN_SRC lisp :exports none :padline no :comments link
+     (with-connection *db-spec*
+       (unless (table-exists-p "user2group")
+         (query (:alter-table "user2group" :add-constraint "on_del_user"  :foreign-key ("user_id") ("user" "id") :cascade))
+         (query (:alter-table "user2group" :add-constraint "on_del_group" :foreign-key ("group_id") ("group" "id") :cascade))))
+   #+END_SRC
+
+
+   И сгенерируем код для нее:
+
+   #+NAME: user2group_entity
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_entity("user2group", "связи пользователя и группы", user2group_flds)>>
+     <<user2group_constraints>>
+   #+END_SRC
+
+** DONE Сообщения (msg)
+
+   О сообщениях мы знаем только от кого они посылаются, кому и собственно текст
+   сообщения. Его наверно не стоит ограничивать. По идее как посылающий, так и принимающий
+   может удалить сообщение (пометить как удаленное), для этого мы используем отдельные
+   флаги.
+
+   #+CAPTION: Данные сообщения
+   #+NAME: msg_flds
+     | field name  | field type | note                                     |
+     |-------------+------------+------------------------------------------|
+     | id          | serial     | идентификатор                            |
+     | snd-id      | integer    | пользователь, который послал сообщение   |
+     | rcv-id      | integer    | пользователь, который получает сообщение |
+     | msg         | varchar    | сообщение                                |
+     | ts-create   | bigint     | время создания                           |
+     | ts-delivery | bigint     | время доставки                           |
+
+   Еще сообщение может быть доставлено или недоставлено.
+
+   #+CAPTION: Состояния конечного автомата сообщения
+   #+NAME: msg_state
+     | action   | from        | to        |
+     |----------+-------------+-----------|
+     | delivery | undelivered | delivered |
+
+   Теперь сгенерируем код и определим функции, которые вызываются на переходах
+
+   #+NAME: msg_automat
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_automat("msg", "сообщения", msg_flds, msg_state)>>
+     (defun delivery ()
+       "undelivered -> delivered")
+   #+END_SRC
+
+** DONE Задачи (task)
+
+   #+CAPTION: Данные задачи
+   #+NAME: task_flds
+     | field name | field type           | note                      |
+     |------------+----------------------+---------------------------|
+     | id         | serial               | идентификатор             |
+     | name       | varchar              | название                  |
+     | blockdata  | varchar              | суть задачи или данные    |
+     | owner-id   | (or db-null integer) | идентификатор владельца   |
+     | exec-id    | (or db-null integer) | идентификатор исполнителя |
+     | ts-create  | bigint               | время регистрации         |
+
+   В нашей системе задача может существовать  в одном из
+   нескольких состояний:
+    + Создана, но еще ни разу не исполнялась (=new=).
+    + Исполняется в данный момент (=inaction=)
+    + Была исполнена но еще не завершена, возможно потребуется исполнять
+      еще раз или по расписанию (=standby=)
+    + Отменена (=cancelled=)
+    + Завершена (=terminated=)
+
+   Все эти переходы и состояния сведем в единую таблицу:
+
+   #+CAPTION: Состояния конечного автомата пользователя
+   #+NAME: task_state
+     | action               | from     | to         |
+     |----------------------+----------+------------|
+     | starttask            | new      | inaction   |
+     | stoptask             | inaction | standby    |
+     | restarttask          | standby  | inaction   |
+     | cancelnewtask        | new      | cancelled  |
+     | cancelactiontask     | inaction | cancelled  |
+     | cancelstandbytask    | standby  | cancelled  |
+     | terminateactiontask  | inaction | terminated |
+     | terminatestandbytask | standby  | terminated |
+
+   Теперь мы можем полностью описать поведение пользователя как конечный автомат:
+
+   #+NAME: task_state_graph
+   #+BEGIN_SRC emacs-lisp :var table=task_state :results output :exports none
+     (mapcar #'(lambda (x)
+                 (princ (format "%s -> %s [label =\"%s\"];\n"
+                                (second x) (third x) (first x))))
+             table)
+   #+END_SRC
+
+   #+BEGIN_SRC dot :file img/task-state.png :var input=task_state_graph :exports results
+     digraph G {
+       rankdir = LR;
+       $input
+     }
+   #+END_SRC
+
+   Для того чтобы избежать дублирования задач, следует определить
+   констрейнт на уникальность поля =name=
+
+   #+NAME: task_constraints
+   #+BEGIN_SRC lisp :exports none :padline no :comments link
+     (with-connection *db-spec*
+       (unless (table-exists-p "task")
+         (query (:alter-table "task" :add-constraint "task_name" :unique "name"))))
+   #+END_SRC
+
+   Так как в системе все пользователи тесно связаны с задачами,
+   следует определить внешний ключ на таблицу пользователей так, чтобы
+   при удалении пользователей-владельцев задач удалялись и их задачи.
+
+   #+NAME: task_constraints
+   #+BEGIN_SRC lisp :exports none :padline no :comments link
+     (in-package #:asp)
+
+     (with-connection *db-spec*
+       (unless (table-exists-p "task")
+         (query (:alter-table "task" :add-constraint "on_del_user" :foreign-key ("owner_id") ("user" "id") :cascade))))
+   #+END_SRC
+
+   Теперь сгенерируем код и определим функции, которые вызываются на
+   переходах из одного состояния в другое. Также установим ограничение
+   на колонку =name= чтобы избежать дублирования ников.
+
+   #+NAME: task_automat
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_automat("task", "задачи", task_flds, task_state)>>
+     <<task_constraints>>
+     (defun starttask ()
+       "new -> inaction")
+     (defun stoptask ()
+       "inaction -> standby")
+     (defun restarttask ()
+       "standby -> inaction")
+     (defun cancelnewtask ()
+       "new -> cancelled")
+     (defun cancelactiontask ()
+       "inaction -> cancelled")
+     (defun cancelstandbytask ()
+       "standby -> cancelled")
+     (defun terminateactiontask ()
+       "inaction -> action")
+     (defun terminatestandbytask ()
+       "standby -> terminated")
+   #+END_SRC
+
 * Тесты
 
   #+NAME: asp_test
@@ -6703,6 +7093,22 @@ toolchain="gcc_linaro_gnueabihf_4_9"
               :pathname "mod"
               :components ((:file "entity")))
    #+END_SRC
+
+** Авторизация
+
+   Опишем из чего состоит модуль, это описание станет частью asd-файла:
+
+   #+NAME: mod_auth
+   #+BEGIN_SRC lisp
+     (:module "auth"
+              :serial t
+              :pathname "mod/auth"
+              :components ((:static-file "auth-tpl.htm")
+                           (:file "auth")))
+   #+END_SRC
+
+   Как пользователь, я хочу иметь возможность ввести логин и пароль чтобы получить доступ к
+   закрытому от неавторизованных пользователей функционалу.
 
 * Сборка
 ** Утилиты
@@ -7023,6 +7429,48 @@ toolchain="gcc_linaro_gnueabihf_4_9"
      ;;         "city" "district" "metro" "deadline"))
    #+END_SRC
 
+** Страницы
+*** Главная страница
+
+    #+NAME: iface_contents
+    #+BEGIN_SRC lisp
+      (in-package #:asp)
+
+      (define-page main "/"
+        (let ((breadcrumb (breadcrumb "Последние измениния"))
+              (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+          (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+            (content-box ()
+              (heading ("Что происходит?") "Последние события:"))
+            (content-box ()
+              (show (sort (all-event) #'(lambda (a b) (> (id a) (id b))))))
+            (ps-html ((:span :class "clear"))))))
+
+      (defmethod show ((param event) &rest actions &key &allow-other-keys)
+        (let ((time-record
+               (multiple-value-bind (second minute hour date month year day daylight-p zone)
+                   (decode-universal-time (ts-create param))
+                 (format nil "~A:~A:~A ~A.~A.~A"
+                         hour minute second date month year))))
+
+        (ps-html
+         ((:li :class "article-item article-item--list" :style "height: inherit;;")
+          ((:div :class "inner")
+           ((:div :class "article-item__info" :style "width: 540px; height: inherit; float: inherit;")
+            ((:div :class "article-item__main-info")
+             ;; ((:a :class "article-item__title-link" :href (format nil "/group/~A" (id param)))
+             ;;  ((:h3 :class "article-item__title") (name param))
+             ;;  ((:h4 :class "article-item__subtitle")))
+             ((:p :class "article-item__description") (msg param)))
+            time-record
+            ;; (if (null actions)
+            ;; ""
+            ;;   (format nil "~{~A~}"
+            ;;           (loop :for action-key :in actions :by #'cddr :collect
+            ;;              (funcall (getf actions action-key) param))))
+            ((:span :class "clear"))))))))
+ #+END_SRC
+
 ** Каркас проекта
 
    Для генерации "с чистого листа" необходимы функции генерации сущностей, они лежат в
@@ -7085,11 +7533,11 @@ toolchain="gcc_linaro_gnueabihf_4_9"
                     ;; Модуль авторизации (зависит от определения сущностей в стартовом файле)
                     <<mod_auth>>
                     ;; Модуль очередей
-                    ;; <<mod_que>>
+                    <<mod_que>>
                     ;; Модуль сообщений
                     <<mod_msg>>
                     ;; (:file "events")     ;; события системы
-                    ;; (:file "iface")      ;; файл веб-интерфейса
+                    (:file "iface")      ;; файл веб-интерфейса
                     ))
    #+END_SRC
 
@@ -7225,6 +7673,62 @@ toolchain="gcc_linaro_gnueabihf_4_9"
      ;;   (restas.directory-publisher:*autoindex* t))
    #+END_SRC
 
+** Блок логина в шапке на каждой странице
+
+   #+NAME: auth_fn_contents
+   #+BEGIN_SRC lisp
+     (in-package #:asp)
+
+     (defun head-login-block ()
+       (if *current-user*
+           (ps-html
+            ((:div :class "flyout-parent user-nav__item user-nav__item--my-louis")
+             ((:div)
+              ((:a :href "#" :class "nav-button js__setFocus" :data-set-focus
+                   "email" :id "mylouis-flyout-link")
+               ((:span :class "nav-button__text") "Мой профиль")
+               ((:span :class "nav-button__icon sprite"))))
+             ((:div :class "user-nav__flyout flyout flyout--my-louis
+       flyout--my-louis--login popup")
+              ((:span :class "hover"))
+              ((:a :class "action-icon action-icon--close" :href "#") "×")
+              ((:div :class "box")
+               ((:div :class "box--title") (format nil "Привет, ~A" (name (get-user
+                                                                           ,*current-user*))))
+               ((:p) "Последний вход: недавно")
+               ((:a :class "button button--link button--secondary" :href "/reg")
+                "Профиль"
+                ((:span :class "button__icon")))))))
+           ;; else
+           (ps-html
+            ((:div :class "flyout-parent user-nav__item user-nav__item--my-louis")
+             ((:div)
+              ((:a :href "#" :class "nav-button js__setFocus" :data-set-focus
+                   "email" :id "mylouis-flyout-link")
+               ((:span :class "nav-button__text") "Мой профиль")
+               ((:span :class "nav-button__icon sprite"))))
+             ((:div :class "user-nav__flyout flyout flyout--my-louis
+       flyout--my-louis--login popup")
+              ((:span :class "hover"))
+              ((:a :class "action-icon action-icon--close" :href "#") "×")
+              (form ("loginform" nil :action "/login")
+                (fieldset "Вход:"
+                  (input ("email" "Электронная почта" :required t :type
+                                  "email" :maxlength "50" :class "input-bg"))
+                  (input ("password" "Пароль" :required t :type
+                                     "password" :autocomplete "off" :class "input-bg"))
+                  (ps-html ((:input :type "hidden" :name "act" :value "LOGIN")))
+                  (submit "Войти")
+                  (ps-html ((:p :class "forgot-pw") "Забыли " ((:a :href
+                                                                   "/lostpassword") "пароль") "?"))))
+              ((:div :class "box")
+               ((:div :class "box--title") "Впервые здесь?")
+               ((:p) "Зарегистрируйтесь и оцените преимущества!")
+               ((:a :class "button button--link button--secondary" :href "/reg")
+                "Зарегистрироваться"
+                ((:span :class "button__icon")))))))))
+   #+END_SRC
+
 ** Точка входа
 
    Отсюда все начинается
@@ -7240,6 +7744,17 @@ toolchain="gcc_linaro_gnueabihf_4_9"
 
      (restas:define-route main ("/")
        "test main page")
+
+     (define-page frp "/frp"
+       (let ((breadcrumb (breadcrumb "FRP"))
+             (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+         (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+           (content-box ()
+             (heading ("FRP")
+               "Тестируем FRP")
+             (ps-html ((:div :id "frp")))
+           (ps-html ((:span :class "clear")))))
+       ))
 
      (defun main ()
        ;; start
@@ -7266,844 +7781,4 @@ toolchain="gcc_linaro_gnueabihf_4_9"
      Copyright © 2014-2015 Glukhov Mikhail. All rights reserved.
      Licensed under the GNU AGPLv3
    #+END_SRC
-* Шаблоны
-
-  Шаблоны будем вставлять в отдельный файл =src/templates.htm=
-
-  #+NAME: templates
-  #+BEGIN_SRC closure-template-html :tangle src/templates.htm :noweb tangle :exports code :padline no :comments link
-    // <<copyright>>
-    // -*- mode: closure-template-html; fill-column: 240 -*-
-
-    {namespace tpl}
-
-    <<tpl_header>>
-
-    <<tpl_content>>
-
-    <<tpl_footer>>
-
-    {template louis}
-    <!DOCTYPE html>
-    <html data-share-domain="louis.de" lang="en">
-        <head>
-            <meta charset="utf-8" />
-            <title>{$title}</title>
-            <link href="/css/lucasa.css" media="all" rel="stylesheet" type="text/css" />
-            <link href="/css/lucas.css" media="all" rel="stylesheet" type="text/css" />
-            <link href="/css/luca.css" media="all" rel="stylesheet" type="text/css" />
-            <link href="/css/luc.css" media="all" rel="stylesheet" type="text/css" />
-            <link href="/css/sortable.css"  media="all" rel="stylesheet" type="text/css" />
-            <script type="text/javascript" src="/js/jquery-v-1.10.2.js"></script>
-            <script type="text/javascript" src="/js/jquery-ui-v-1.10.3.js"></script>
-            <script type="text/javascript" src="/js/modernizr.js"></script />
-            <script type="text/javascript" src="/js/jquery.sortable.original.js"></script>
-            <script type="text/javascript" src="/js/frp.js"></script>
-        </head>
-        <body id="louis-de" class="en" data-background-image="/img/bg-05.jpg">
-            <div style="height: 1077px; position: fixed; transform: translateY(0px);" id="js__bg" class="bg">
-                <img alt="Louis Background" src="/img/bg-05.jpg" />
-            </div>
-            {$header |noAutoescape}
-            <hr class="hidden" id="content" />
-            {$content |noAutoescape}
-            <hr class="hidden" />
-            {$footer |noAutoescape}
-            <script type="text/javascript" src="/js/scdc.js"></script>
-            <script type="text/javascript" src="/js/i18n.en_GB.utf8.js"></script>
-            <script type="text/javascript" src="/js/config.js"></script>
-        </body>
-    </html>
-    {/template}
-  #+END_SRC
-
-** Header
-
-   #+NAME: tpl_header
-   #+BEGIN_SRC closure-template-html
-     {template header}
-         <header class="header">
-             <noscript>
-                 <div class="useragent-warning">
-                     <div class="container system-message media">
-                         <span class="result-icon result-icon--caution media__item media__item--left"></span>
-                         <div class="system-message__text-container media__content">
-                             <div class="system-message__text text-container error">
-                                 <p>You have deactivated Javascript and possibly also the use of cookies. In order to make full use of the Louis Online Shop, please change your browser settings. Alternatively, we will be pleased to take your order by telephone. Our helpful staff are there to take your call personally around the clock on 0049 40 734 193 60.</p>
-                             </div>
-                         </div>
-                         <span class="clear"></span>
-                     </div>
-                 </div>
-             </noscript>
-             <span id="isMerchant" data-is-merchant=""></span>
-             <div class="container branding" itemscope="" itemtype="http://schema.org/Organization">
-                 <div class="logo">
-                     <a class="logo__link" href="/">
-                         <img src="/img/logo3.png" alt="logo" height="67" width="121" />
-                     </a>
-                 </div>
-                 <div class="branding__slogan">Europe’s No.1 in the Motorcycle &amp; Leisure world!</div>
-                 <ul class="branding__facts">
-                     <li class="branding-fact">Worldwide shipping</li>
-                     <li class="branding-fact">
-                         <span class="sprite branding-fact__phone"></span>
-                         order hotline 0049 40 734 193 60
-                     </li>
-                     <li class="branding-fact">2 year return policy</li>
-                 </ul>
-                 <ul class="meta-nav">
-                     <li class="meta-nav__item"><a href="#">Immediate contact</a></li>
-                     <li class="meta-nav__item"><a href="#">Louis stores</a></li>
-                     <li class="meta-nav__item"><a href="#">Jobs</a></li>
-                     <li class="meta-nav__item language-select" tabindex="1">
-                         <div class="helper">
-                             <span class="language-select__title">
-                                 Select language:
-                             </span>
-                             <ul>
-                                 <li class="language-select__item ">
-                                     <a href="#" title="Deutsch">
-                                         <span class="flag flag--de"></span>
-                                         <span>Deutsch</span>
-                                     </a>
-                                 </li>
-                                 <li class="language-select__item active">
-                                     <a href="#" title="English">
-                                         <span class="flag flag--en"></span>
-                                         <span>English</span>
-                                     </a>
-                                 </li>
-                                 <li class="language-select__item ">
-                                     <a href="#" title="Français">
-                                         <span class="flag flag--fr"></span>
-                                         <span>Français</span>
-                                     </a>
-                                 </li>
-                             </ul>
-                         </div>
-                     </li>
-                 </ul>
-             </div>
-             <div class="main-nav-container">
-                 <div class="helper">
-                     <div class="container">
-                         <div class="header-search-container">
-                             {$search |noAutoescape}
-                         </div>
-                         <div class="user-nav">
-                             <div class="flyout-parent user-nav__item user-nav__item--my-bike" id="mybike-flyout-parent">
-                                 <div>
-                                     <a href="#" class="nav-button">
-                                         <span class="nav-button__text">My bike</span>
-                                         <span class="nav-button__icon sprite"></span>
-                                     </a>
-                                 </div>
-                                 <div class="user-nav__flyout flyout popup bikedb-select bikedb-select-flyout js__toggleContent">
-                                     <form id="mybike-flyout-list" class="flyout--change-bike js__toggleContent-item switch-content-container js__toggleContent-item hidden" method="get" action="/" novalidate="">
-                                         <fieldset>
-                                             <legend>Your selected bike:</legend>
-                                             <div id="mybike-flyout-bikes">
-                                             </div>
-                                             <div class="text-container bikedb-select-flyout__actions">
-                                                 <p>In order to use the following function, you must first log into <a href="#mylouis-flyout-link" class="js__triggerEvent" data-trigger-event="click">My Louis</a>.</p>
-                                                 <div class="system-message media">
-                                                     <img class="media__item media__item--left" src="/img/info.png" alt="Info" height="45" width="45" />
-                                                     <div class="system-message__text-container media__content">
-                                                         <div class="system-message__text">
-                                                             <p><strong>Saving and loading in "My Louis" replaces the respective list.</strong></p>
-                                                         </div>
-                                                     </div>
-                                                     <span class="clear"></span>
-                                                 </div>
-                                                 <p class="attention" id="mybike-flyout-change-error"></p>
-                                                 <p>» <a data-prevent="true" href="#" id="save-bikes-in-mylouis">Save bikes in "My Louis"</a>
-                                                 </p>
-                                                 <p>» <a data-prevent="true" href="#" id="load-bikes-from-mylouis">Load bikes from "My Louis"</a>
-                                                 </p>
-                                             </div>
-                                         </fieldset>
-                                     </form>
-
-                                     <div id="mybike-flyout-form" class="flyout--choose-bike js__toggleContent-item">
-                                         <form action="/en/m/ajax/json/set-bike-from-overlay" method="post" novalidate="" class="js__formValidation js__handleViaAjax" id="js__requestData-header" data-select-from-list-url="/en/m/ajax/json/select-from-list" data-search-by-name-url="/en/m/ajax/json/search-by-name" name="bike-selection-overlay"><fieldset>
-                                                 <legend>Please select your bike </legend>
-                                                 <input name="bike" value="" type="hidden" />
-                                                 <ul class="numbered-list">
-                                                     <li class="choose-bike__step numbered-list__item">
-                                                         <span class="nr">1</span>
-                                                         <div class="input-container">
-                                                             <select size="1" name="bike-selection-fieldset[manufacturer]" id="bikedb-flyout-manufacturer" class="form-element" data-next="biketype" data-type="data" required="required">
-                                                                 <option value="" selected="selected" label="- Manufacturer -">- Manufacturer -</option>
-                                                                 <option value="2" label="BMW">BMW</option>
-                                                                 <option value="6" label="HONDA">HONDA</option>
-                                                                 <option value="7" label="KAWASAKI">KAWASAKI</option>
-                                                                 <option value="13" label="SUZUKI">SUZUKI</option>
-                                                                 <option value="15" label="YAMAHA">YAMAHA</option>
-                                                                 <option value="-" disabled="disabled" label="----------------">----------------</option>
-                                                                 <option value="16" label="ADLY">ADLY</option>
-                                                                 <option value="97" label="ZONGSHEN">ZONGSHEN</option>
-                                                                 <option value="165" label="ZUENDAPP">ZUENDAPP</option>
-                                                             </select>
-                                                         </div>
-                                                         <span class="clear"></span>
-                                                     </li>
-                                                     <li class="choose-bike__step numbered-list__item">
-                                                         <span class="nr">2</span>
-                                                         <div class="input-container">
-                                                             <select size="1" name="bike-selection-fieldset[biketype]" id="bikedb-flyout-biketype" data-next="capacity" class="form-element" data-type="data" required="required">
-                                                                 <option value="" selected="selected" label="- Type of vehicle -">-Type of vehicle-</option>
-                                                             </select>
-                                                         </div>
-                                                         <span class="clear"></span>
-                                                     </li>
-                                                     <li class="choose-bike__step numbered-list__item">
-                                                         <span class="nr">3</span>
-                                                         <div class="input-container">
-                                                             <select size="1" name="bike-selection-fieldset[capacity]" id="bikedb-flyout-capacity" data-next="bikes" class="form-element" data-type="data" required="required">
-                                                                 <option value="" selected="selected" label="- Engine size in cc -">-Engine size in cc-</option>
-                                                             </select>
-                                                         </div>
-                                                         <span class="clear">
-                                                         </span>
-                                                     </li>
-                                                     <li class="choose-bike__step choose-bike__step--model numbered-list__item box"><span class="nr">4</span>
-                                                         <div class="helper">
-                                                             <p class="sortby-label">Sort by:</p>
-                                                             <div class="option-container odd">
-                                                                 <input name="bike-selection-fieldset[sortby]" class="bike-selection-sortby" id="bikedb-flyout-sortby-capacity" value="capacity" checked="checked" type="radio" />
-                                                                 <label for="bikedb-flyout-sortby-capacity">Engine size </label>
-                                                             </div>
-                                                             <div class="option-container even">
-                                                                 <input name="bike-selection-fieldset[sortby]" class="bike-selection-sortby" id="bikedb-flyout-sortby-title" value="title" checked="checked" type="radio" />
-                                                                 <label for="bikedb-flyout-sortby-title">Model designation</label>
-                                                             </div>
-                                                             <span class="clear"></span>
-                                                             <div class="input-container">
-                                                                 <select size="1" name="bike-selection-fieldset[bikes]" id="bikedb-select-flyout-result" class="form-element disabled" data-empty-option-title="- Ihr Modell -" disabled="disabled" required="required">
-                                                                     <option value="" selected="selected" label="- Your model -">- Your model -</option>
-                                                                 </select>
-                                                             </div>
-                                                             <p class="attention" id="mybike-flyout-select-error"></p>
-                                                             <input class="button " name="save-bike" value="Save bike" type="submit" />
-                                                         </div>
-                                                     </li>
-                                                 </ul>
-                                             </fieldset>
-                                             <div class="text-container flyout--choose-bike__additional bikedb-select-flyout__actions">
-                                                 <p> In order to use the following function, you must first log into "My Louis". </p>
-                                                 <p> »
-                                                     <a data-prevent="true" href="#"> Save bikes in "My Louis"</a>
-                                                 </p>
-                                                 <p> »
-                                                     <a data-prevent="true" href="#">Load bikes from "My Louis"</a>
-                                                 </p>
-                                             </div>
-                                         </form>
-                                     </div>
-                                     <a class="action-icon action-icon--close" href="#">×</a>
-                                     <span class="hover"></span>
-                                 </div>
-                             </div>
-                             {$login |noAutoescape}
-                             <ul class="shopping-nav user-nav__item">
-                                 <li id="header-memo" class="shopping-nav__item shopping-nav__item--memo ">
-                                     <a class="nav-button" href="/hh">
-                                         <span class="nav-button__text">Работа</span>
-                                     </a>
-                                 </li>
-                                 <li id="header-memo" class="shopping-nav__item shopping-nav__item--memo ">
-                                     <a class="nav-button" href="/trnd">
-                                         <span class="nav-button__text">Тренд</span>
-                                     </a>
-                                 </li>
-                             </ul>
-                         </div>
-                     </div>
-                     <nav class="main-nav">
-                         <div class="container">
-                             <ul>
-                                 <li class="main-nav__item main-nav__item--mainRubricBekleidungHelme flyout-parent">
-                                     <a href="#">
-                                         <span class="nav-button">
-                                             <span class="nav-button__text">Clothing &amp; Helmets</span>
-                                         </span>
-                                         <span class="hover-arrow hover-arrow1"></span>
-                                         <span class="hover-arrow hover-arrow2"></span>
-                                     </a>
-
-                                     <div class="flyout nav-flyout popup">
-                                         <div class="nav-category">
-                                             <ul class="nav-category__list">
-                                                 <li><a title="Accessories" href="#">Accessories</a></li>
-                                                 <li><a title="Balaclavas/Neck Warmers" href="#">Balaclavas/Neck Warmers</a></li>
-                                                 <li><a title="Bike Leathers" href="#">Bike Leathers</a></li>
-                                                 <li><a title="Boots/Shoes/Socks" href="#">Boots/Shoes/Socks</a></li>
-                                                 <li><a title="Children's Clothing" href="#">Children's Clothing</a></li>
-                                                 <li><a title="Functional Underwear" href="#">Functional Underwear</a></li>
-                                                 <li><a title="Gloves" href="#">Gloves</a></li>
-                                                 <li><a title="Goggles/Sunglasses" href="#">Goggles/Sunglasses</a></li>
-                                                 <li><a title="Helmets &amp; Visors" href="#">Helmets &amp; Visors</a></li>
-                                                 <li><a title="Kidney Belts" href="#">Kidney Belts</a></li>
-                                                 <li><a title="Leisure Wear" href="#">Leisure Wear</a></li>
-                                                 <li><a title="Protectors" href="#">Protectors</a></li>
-                                                 <li><a title="Rainwear" href="#">Rainwear</a></li>
-                                                 <li><a title="Textile Clothing" href="#">Textile Clothing</a></li>
-                                                 <li><a title="T-Shirts" href="#">T-Shirts</a></li>
-                                             </ul>
-                                             <span class="clear"></span>
-                                             <a class="button link secondary" href="#">
-                                                 To helmet buyer's guide                 <span class="button-icon"></span>
-                                             </a>
-                                         </div>
-                                     </div>
-                                 </li>
-                                 <li class="main-nav__item main-nav__item--mainRubricTechnikFreizeit flyout-parent">
-                                     <a href="#">
-                                         <span class="nav-button">
-                                             <span class="nav-button__text">Equipment &amp; Leisure</span>
-                                         </span>
-                                         <span class="hover-arrow hover-arrow1"></span>
-                                         <span class="hover-arrow hover-arrow2"></span>
-                                     </a>
-                                     <div class="flyout nav-flyout popup">
-                                         <div class="nav-category">
-                                             <div class="nav-category__title"><a title="Service Parts" href="#">Service Parts</a></div>
-                                             <ul class="nav-category__list">
-                                                 <li><a title="Batteries" href="#">Batteries</a></li>
-                                                 <li><a title="Brakes" href="#">Brakes</a></li>
-                                                 <li><a title="Carburettors" href="#">Carburettors</a></li>
-                                                 <li><a title="Chain Kits &amp; Propulsion" href="#">Chain Kits &amp; Propulsion</a></li>
-                                                 <li><a title="Chassis" href="#">Chassis</a></li>
-                                                 <li><a title="Clutches" href="#">Clutches</a></li>
-                                                 <li><a title="Engine &amp; Transmission" href="#">Engine &amp; Transmission</a></li>
-                                                 <li><a title="Filters" href="#">Filters</a></li>
-                                                 <li><a title="Gaskets &amp; Seals" href="#">Gaskets &amp; Seals</a></li>
-                                                 <li><a title="Seats/-Covers/-Cushions" href="#">Seats/-Covers/-Cushions</a></li>
-                                                 <li><a title="Spark Plugs &amp; Accessories" href="#">Spark Plugs &amp; Accessories</a></li>
-                                             </ul>
-                                         </div>
-                                         <div class="nav-category">
-                                             <div class="nav-category__title"><a title="Maintenance &amp; Care" href="#">Maintenance &amp; Care</a></div>
-                                             <ul class="nav-category__list">
-                                                 <li><a title="Brake Fluid" href="#">Brake Fluid</a></li>
-                                                 <li><a title="Chain Care" href="#">Chain Care</a></li>
-                                                 <li><a title="Chargers &amp; Accessories" href="#">Chargers &amp; Accessories</a></li>
-                                                 <li><a title="Cleaners &amp; Care Products" href="#">Cleaners &amp; Care Products</a></li>
-                                                 <li><a title="Clothing &amp; Helmet Care" href="#">Clothing &amp; Helmet Care</a></li>
-                                                 <li><a title="Engine Additives" href="#">Engine Additives</a></li>
-                                                 <li><a title="Metal Repair &amp; Adhesives" href="#">Metal Repair &amp; Adhesives</a></li>
-                                                 <li><a title="Oils" href="#">Oils</a></li>
-                                                 <li><a title="Other Lubricants" href="#">Other Lubricants</a></li>
-                                                 <li><a title="Paddock Stands &amp; Accs." href="#">Paddock Stands &amp; Accs.</a></li>
-                                                 <li><a title="Paints" href="#">Paints</a></li>
-                                                 <li><a title="Repair Instructions" href="#">Repair Instructions</a></li>
-                                                 <li><a title="Sealants" href="#">Sealants</a></li>
-                                                 <li><a title="Tools" href="#">Tools</a></li>
-                                             </ul>
-                                         </div>
-                                         <div class="nav-category">
-                                             <div class="nav-category__title"><a title="Add-On Parts" href="#">Add-On Parts</a></div>
-                                             <ul class="nav-category__list">
-                                                 <li><a title="Alum. &amp; Chrome" href="#">Alum. &amp; Chrome</a></li>
-                                                 <li><a title="Centre &amp; Side Stands" href="#">Centre &amp; Side Stands</a></li>
-                                                 <li><a title="Chassis &amp; Foot Rests" href="#">Chassis &amp; Foot Rests</a></li>
-                                                 <li><a title="Enduro Accessories" href="#">Enduro Accessories</a></li>
-                                                 <li><a title="Exhaust Systems" href="#">Exhaust Systems</a></li>
-                                                 <li><a title="Handlebars/Grips/Levers" href="#">Handlebars/Grips/Levers</a></li>
-                                                 <li><a title="Instruments &amp; Accessories" href="#">Instruments &amp; Accessories</a></li>
-                                                 <li><a title="Lighting &amp; Electrics" href="#">Lighting &amp; Electrics</a></li>
-                                                 <li><a title="Mirrors" href="#">Mirrors</a></li>
-
-                                                 <li><a title="Tank &amp; Engine Crashbars" href="#">Tank &amp; Engine Crashbars</a></li>
-                                                 <li><a title="Windshields &amp; Fairings" href="#">Windshields &amp; Fairings</a></li>
-                                             </ul>
-                                         </div>
-                                         <div class="nav-category">
-                                             <div class="nav-category__title"><a title="Accessories &amp; Luggage" href="#">Accessories &amp; Luggage</a></div>
-                                             <ul class="nav-category__list">
-                                                 <li><a title="Anti-Theft Protection" href="#">Anti-Theft Protection</a></li>
-                                                 <li><a title="Cases &amp; Racks" href="#">Cases &amp; Racks</a></li>
-                                                 <li><a title="Child Seats" href="#">Child Seats</a></li>
-                                                 <li><a title="Leather Chopper Luggage" href="#">Leather Chopper Luggage</a></li>
-                                                 <li><a title="Luggage Accessories" href="#">Luggage Accessories</a></li>
-                                                 <li><a title="Motorbike Covers" href="#">Motorbike Covers</a></li>
-                                                 <li><a title="Rucksacks &amp; Handbags" href="#">Rucksacks &amp; Handbags</a></li>
-                                                 <li><a title="Saddlebags/Textile Bags" href="#">Saddlebags/Textile Bags</a></li>
-                                                 <li><a title="Safety &amp; First Aid" href="#">Safety &amp; First Aid</a></li>
-                                                 <li><a title="Tailbags &amp; Roll Bags" href="#">Tailbags &amp; Roll Bags</a></li>
-                                                 <li><a title="Tank Bags &amp; Map Pockets" href="#">Tank Bags &amp; Map Pockets</a></li>
-                                                 <li><a title="Tank &amp; Sidestand Pads" href="#">Tank &amp; Sidestand Pads</a></li>
-                                             </ul>
-                                         </div>
-                                         <div class="nav-category">
-                                             <div class="nav-category__title"><a title="Multimedia &amp; Travel" href="#">Multimedia &amp; Travel</a></div>
-                                             <ul class="nav-category__list">
-                                                 <li><a title="Cameras &amp; Accessories" href="#">Cameras &amp; Accessories</a></li>
-                                                 <li><a title="Communication" href="#">Communication</a></li>
-                                                 <li><a title="Maps &amp; Guide Books" href="#">Maps &amp; Guide Books</a></li>
-                                                 <li><a title="Navigation" href="#">Navigation</a></li>
-                                                 <li><a title="Outdoor &amp; Camping" href="#">Outdoor &amp; Camping</a></li>
-                                             </ul>
-                                         </div>
-                                         <div class="nav-category">
-                                             <div class="nav-category__title"><a title="Gift Ideas" href="#">Gift Ideas</a></div>
-                                             <ul class="nav-category__list">
-                                                 <li><a title="Books" href="#">Books</a></li>
-                                                 <li><a title="Calendars" href="#">Calendars</a></li>
-                                                 <li><a title="Clocks/Watches/Jewellery" href="#">Clocks/Watches/Jewellery</a></li>
-                                                 <li><a title="Coat/Helmet Racks" href="#">Coat/Helmet Racks</a></li>
-                                                 <li><a title="DVD &amp; Blu-Ray" href="#">DVD &amp; Blu-Ray</a></li>
-                                                 <li><a title="Gift Articles" href="#">Gift Articles</a></li>
-                                                 <li><a title="Key Rings" href="#">Key Rings</a></li>
-                                                 <li><a title="Metal Signs" href="#">Metal Signs</a></li>
-                                                 <li><a title="Models" href="#">Models</a></li>
-                                                 <li><a title="Stickers/Badges/Flags" href="#">Stickers/Badges/Flags</a></li>
-                                                 <li><a title="Toys" href="#">Toys</a></li>
-                                             </ul>
-                                         </div>
-                                     </div>
-                                 </li>
-                                 <li class="main-nav__item main-nav__item--sale">
-                                     <a href="#">
-                                         <span class="nav-button"><span class="nav-button__text">Sale</span></span>
-                                         <span class="hover-arrow hover-arrow1"></span>
-                                         <span class="hover-arrow hover-arrow2"></span>
-                                     </a>
-                                 </li>
-                                 <li class="main-nav__item main-nav__item--themenWelten flyout-parent">
-                                     <a href="#">
-                                         <span class="nav-button"><span class="nav-button__text">Special Collections</span></span>
-                                         <span class="hover-arrow hover-arrow1"></span>
-                                         <span class="hover-arrow hover-arrow2"></span>
-                                     </a>
-                                     <div style="left: 172px;" class="flyout nav-flyout popup">
-                                         <div class="nav-category"><ul class="nav-category__list"><li>
-                                                     <a href="#">
-                                                         <img src="/img/meine-werkstatt.jpg" alt="My Workshop" />
-                                                         <span>My Workshop</span>
-                                                     </a>
-                                                 </li>
-                                                 <li>
-                                                     <a href="#">
-                                                         <img src="/img/motomania.jpg" alt="Motomania" />
-                                                         <span>Motomania</span>
-                                                     </a>
-                                                 </li>
-                                                 <li>
-                                                     <a href="#">
-                                                         <img src="/img/vanucci.jpg" alt="Vanucci" />
-                                                         <span>Vanucci</span>
-                                                     </a>
-                                                 </li>
-                                             </ul>
-                                         </div>
-                                     </div>
-                                 </li>
-                                 <li class="main-nav__item main-nav__item--service flyout-parent">
-                                     <a href="#">
-                                         <span class="nav-button">
-                                             <span class="nav-button__text">Service</span>
-                                         </span>
-                                         <span class="hover-arrow hover-arrow1"></span>
-                                         <span class="hover-arrow hover-arrow2"></span>
-                                     </a>
-                                     <div class="flyout nav-flyout popup">
-                                         <div class="nav-category">
-                                             <div class="nav-category__title"><a title="All about bikes" href="#">All about bikes</a></div>
-                                             <ul class="nav-category__list">
-                                                 <li><a title="Bike database" href="#">Bike database</a></li>
-                                                 <li><a title="Bike Specials" href="#">Bike Specials</a></li>
-                                                 <li><a title="Tips for DIY mechanics" href="#">Tips for DIY mechanics</a></li>
-                                                 <li><a title="Workshop manual" href="#">Workshop manual</a></li>
-                                                 <li><a title="Tips for buying a used vehicle" href="#">Tips for buying a used vehicle</a></li>
-                                                 <li><a title="How to tell an import" href="#">How to tell an import</a></li>
-                                             </ul>
-                                             <div class="nav-category__title"><a title="For the journey" href="#">For the journey</a></div>
-                                             <ul class="nav-category__list">
-                                                 <li><a title="Touring tips" href="#">Touring tips</a></li>
-                                                 <li><a title="Country tips" href="#">Country tips</a></li>
-                                             </ul>
-                                         </div>
-                                         <div class="nav-category">
-                                             <div class="nav-category__title"><a title="Guide to purchasing &amp; shipping" href="#">Guide to purchasing &amp; shipping</a></div>
-                                             <ul class="nav-category__list">
-                                                 <li><a title="Shopping at Louis" href="#">Shopping at Louis</a></li>
-                                                 <li><a title="Shipping costs" href="#">Shipping costs</a></li>
-                                                 <li><a title="Payment options" href="#">Payment options</a></li>
-                                                 <li><a title="Flexible payment plan" href="#">Flexible payment plan</a></li>
-                                                 <li><a title="Free returns" href="#">Free returns</a></li>
-                                                 <li><a title="Guide for complaints" href="#">Guide for complaints</a></li>
-                                                 <li><a title="VAT refund" href="#">VAT refund</a></li>
-                                                 <li><a title="Foreign Customers" href="#">Foreign Customers</a></li>
-                                                 <li><a title="T&amp;Cs" href="#">T&amp;Cs</a></li>
-                                             </ul>
-                                         </div>
-                                         <div class="nav-category">
-                                             <div class="nav-category__title"><a title="All about shopping" href="#">All about shopping</a></div>
-                                             <ul class="nav-category__list">
-                                                 <li><a title="Gift vouchers" href="#">Gift vouchers</a></li>
-                                                 <li><a title="Competition" href="#">Competition</a></li>
-                                                 <li><a title="LouisFunCard" href="#">LouisFunCard</a></li>
-                                                 <li><a title="LouisMasterCard" href="#">LouisMasterCard</a></li>
-                                                 <li><a title="Catalogue" href="#">Catalogue</a></li>
-                                                 <li><a title="Material lexicon" href="#">Material lexicon</a></li>
-                                                 <li><a title="Newsletter" href="#">Newsletter</a></li>
-                                             </ul>
-                                         </div>
-                                         <div class="nav-category">
-                                             <div class="nav-category__title"><a title="Louis" href="#">Louis</a></div>
-                                             <ul class="nav-category__list">
-                                                 <li><a title="Legal notice" href="#">Legal notice</a></li>
-                                                 <li><a title="Contact" href="#">Contact</a></li>
-                                                 <li><a title="Technical query" href="#">Technical query</a></li>
-                                                 <li><a title="Presenting Louis" href="#">Presenting Louis</a></li>
-                                                 <li><a title="Awards" href="#">Awards</a></li>
-                                                 <li><a title="Jobs" href="#">Jobs</a></li>
-                                                 <li><a title="Training at Louis" href="#">Training at Louis</a></li>
-                                             </ul>
-                                         </div>
-                                         <div class="nav-category">
-                                             <div class="nav-category__title"><a title="Downloads" href="#">Downloads</a></div>
-                                             <ul class="nav-category__list">
-                                                 <li><a title="Wallpapers" href="#">Wallpapers</a></li>
-                                                 <li><a title="Colouring books for young bikers" href="#">Colouring books for young bikers</a></li>
-                                             </ul>
-                                         </div>
-                                     </div>
-                                 </li>
-                             </ul>
-                             <div id="header-cart">
-                                 <a class="header-cart " href="#">
-                                     <span class="header-cart__cart-icon sprite"></span>
-                                     <span class="header-cart__link-icon sprite"></span>
-                                     <div class="header-cart__inner">
-                                         <div class="header-cart__title">Basket</div>
-                                         <p class="header-cart__qty-articles">0 Articles</p>
-                                     </div>
-                                 </a>
-                             </div>
-                         </div>
-                     </nav>
-                 </div>
-             </div>
-         </header>
-     {/template}
-   #+END_SRC
-
-** Footer
-
-   #+NAME: tpl_footer
-   #+BEGIN_SRC closure-template-html
-     {template footer}
-         <footer class="footer footer--full-content">
-             <div class="container">
-
-                 <form novalidate="" action="#" method="post">
-                     <button class="button button--footer-toggle js__footerToggle" type="submit">
-                         <span class="button__text">
-                             Show less
-                         </span>
-                         <span class="button__icon"></span>
-                     </button>
-                 </form>
-
-                 <p class="price-note footer__price-note">
-                     {$dbg |noAutoescape}
-                 </p>
-
-                 <span class="clear"></span>
-
-                 <div class="footer-toggle">
-                     <div class="odd">
-                         <div class="content-box size-1-4">
-                             <div class="media footer-box footer-box--height-small footer-box--shopping-at-louis">
-                                 <span class="media__item media__item--left footer-box__icon"></span>
-
-                                 <div class="media__content">
-                                     <h4>Shopping at Louis</h4>
-
-                                     <p>Be it online, by telephone or in one of more than 70 stores. There are so many ways to buy our products.                 <a href="#">More...</a>
-                                     </p>
-                                 </div>
-                             </div>
-                         </div>
-                         <div class="content-box size-1-4">
-                             <div class="media footer-box footer-box--height-small footer-box--shipment-costs">
-                                 <span class="media__item media__item--left footer-box__icon"></span>
-
-                                 <div class="media__content">
-                                     <h4>Shipping costs</h4>
-
-                                     <p>Orders within Germany or from other countries, 24-hour service.                  <a href="#">More...</a>
-                                     </p>
-                                 </div>
-                             </div>
-                         </div>
-                         <span class="clear"></span>
-
-                         <div class="content-box size-1-4">
-                             <div class="media footer-box footer-box--height-small footer-box--payment">
-                                 <span class="media__item media__item--left footer-box__icon"></span>
-
-                                 <div class="media__content">
-                                     <h4>Payment</h4>
-
-                                     <p>Payment options for Germany and abroad. <a href="#">More...</a>
-                                     </p>
-                                 </div>
-                             </div>
-                         </div>
-                         <div class="content-box size-1-4">
-                             <div class="media footer-box footer-box--height-small footer-box--return">
-                                 <span class="media__item media__item--left footer-box__icon"></span>
-
-                                 <div class="media__content">
-                                     <h4>Right of return</h4>
-
-                                     <p>Right of return extended to 2 years subject to the following conditions.                 <a href="#">More...</a>
-                                     </p>
-                                 </div>
-                             </div>
-                         </div>
-                         <span class="clear"></span>
-
-                         <div class="content-box size-1-4">
-                             <div class="media footer-box footer-box--height-small footer-box--reshipment">
-                                 <span class="media__item media__item--left footer-box__icon"></span>
-
-                                 <div class="media__content">
-                                     <h4>Free returns</h4>
-
-                                     <p>Money-back guarantee – no-risk shopping. <a href="#">More...</a>
-                                     </p>
-                                 </div>
-                             </div>
-                         </div>
-                         <div class="content-box size-1-4">
-                             <div class="media footer-box footer-box--height-small footer-box--return-info">
-                                 <span class="media__item media__item--left footer-box__icon"></span>
-
-                                 <div class="media__content">
-                                     <h4>Returns advice</h4>
-
-                                     <p>If you receive a wrong or faulty item, here's what to do.                    <a href="#">More...</a>
-                                     </p>
-                                 </div>
-                             </div>
-                         </div>
-                         <span class="clear"></span>
-
-                         <div class="content-box size-1-4">
-                             <div class="media footer-box footer-box--height-small footer-box--newsletter text-container">
-                                 <span class="media__item media__item--left footer-box__icon"></span>
-
-                                 <div class="media__content">
-                                     <h4>Newsletter – subscribe now</h4>
-
-                                     <p><a href="#">Register</a> here free of charge.</p>
-                                 </div>
-                             </div>
-                         </div>
-                         <div class="content-box size-1-4">
-                             <div class="media footer-box">
-                                 <div class="media__content">
-                                     <p>More than 200,000 fans follow Louis on:</p>
-                                     <div style="width: 100%; margin-top: 5px; text-align: center;">
-                                         <div class="footer-box--facebook footer-social-link first">
-                                             <a class="footer-box__icon" target="_blank" href="#"></a>
-                                         </div>
-                                         <div class="footer-box--youtube footer-social-link">
-                                             <a class="footer-box__icon" target="_blank" href="#"></a>
-                                         </div>
-                                         <div class="footer-box--googleplus footer-social-link">
-                                             <a class="footer-box__icon" target="_blank" href="#"></a>
-                                         </div>
-                                     </div>
-                                 </div>
-                             </div>
-                         </div>
-                         <span class="clear"></span>
-                     </div>
-
-                     <div class="even">
-                         <div class="content-box size-1-4">
-                             <div class="footer-box footer-box--height-large footer-box--storefinder">
-                                 <h4>Store finder</h4>
-                                 <img class="lazy-load" src="/img/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/application/footer/images/storefinder.png" alt="Store finder" height="140" width="220" />
-
-                                 <p>You can buy motorcycle clothing and accessories off the shelf in more than 70 stores in Germany and Austria. <a href="#">More...</a>
-                                 </p>
-                                 <form action="/en/service/filialen/suche/3" method="post" novalidate="" name="storeSearch" id="searchStoreFooter">
-                                     <div class="input-bg hide-label">
-                                         <label for="footer-storefinder-q">Enter postcode or town</label><input name="search_string" id="footer-storefinder-q" class="form-element input-text" value="" type="text" />            </div>
-
-                                     <button name="search_submit" type="submit" class="button button--form" value="Shop finden">Shop finden<span class="button__icon"></span></button>
-                             </form>     </div>
-                         </div>
-                         <div class="content-box size-1-4">
-                             <div class="media footer-box footer-box--height-large footer-box--order-phone">
-                                 <span class="media__item media__item--left footer-box__icon"></span>
-
-                                 <div class="media__content">
-                                     <h4>
-                                         24h order hotline<span>0049 40 734 193 60</span>                </h4>
-                                     <img class="lazy-load" src="/img/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/application/footer/images/order-phone.png" alt="Louis Ordering Service Team" height="140" width="220" />
-                                 </div>
-                             </div>
-                         </div>
-                         <span class="clear"></span>
-
-                         <div class="odd">
-                             <div class="content-box size-1-4">
-                                 <div class="footer-box footer-box--height-small">
-                                     <h4>Tested Online Shop</h4>
-
-                                     <p class="center">
-                                         <a target="_blank" href="#">
-                                             <img class="lazy-load" src="/img/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/application/footer/images/ehi.png" alt="EHI" height="52" width="165" />
-                                         </a>
-                                     </p>
-                                 </div>
-                             </div>
-                             <div class="content-box size-1-4">
-                                 <div class="footer-box footer-box--height-small">
-                                     <h4>Excellence awards</h4>
-
-                                     <p class="center">
-                                         <a href="#">
-                                             <img class="lazy-load" src="/img/transparency.gif" data-lazy-src="https://cdn1.louis.de/content/application/footer/language/en_GB/images/BB_2014.gif" alt="Best Brand 2014" height="49" width="126" />
-                                         </a>
-                                     </p>
-                                 </div>
-                             </div>
-                         </div>
-                         <div class="content-box size-1-4">
-                             <div class="footer-box center">
-                                 <a target="_blank" href="#">
-                                     <img class="lazy-load" src="/img/transparency.gif" data-lazy-src="/en/m/redirect?url=https://www.trustedshops.com/bewertung/widget/widgets/X7A8300DB1729CB894766736632C77ECC.gif" alt="Customer rating" height="191" width="140" />
-                                 </a>
-                             </div>
-                         </div>
-                     </div>
-                     <span class="clear"></span>
-
-                     <div class="content-box size-1-2">
-                         <div class="media footer-box footer-box--request footer-box--contact text-container">
-                             <span class="media__item media__item--left footer-box__icon"></span>
-
-                             <div class="media__content">
-                                 <h4>Quick contact</h4>
-
-                                 <p>Do you have a general question or a query about your order? Do you wish to critique the site or simply have your say?<br />Please contact us.</p>
-
-                                 <a class="button button--link" href="#">
-                                     Go to Contact page              <span class="button__icon"></span>
-                                 </a>
-                             </div>
-                         </div>
-                     </div>
-                     <div class="content-box size-1-2">
-                         <div class="media footer-box footer-box--request footer-box--technical-questions text-container">
-                             <span class="media__item media__item--left footer-box__icon"></span>
-
-                             <div class="media__content">
-                                 <h4>Technical questions</h4>
-
-                                 <p>If you are having trouble getting spare parts for a Pannonia P20, or if you have a technical question, the Louis Technical Centre has no end of experience, reference books and contacts.</p>
-                                 <a class="button button--link" href="#">
-                                     Go to Technical query               <span class="button__icon"></span>
-                                 </a>
-                             </div>
-                         </div>
-                     </div>
-                     <span class="clear"></span>
-
-                     <div class="content-box">
-                         <h4>If you want to make an order, then choose louis.de</h4>
-
-                         <div class="footer-box footer-box--text text-container">
-                             <p><strong>Helmets, motorbike clothing, leisurewear, luggage systems, camping and travel accessories, tuning and add-on parts, wearing and spare parts, care and maintenance: more than 30,000 articles to do with motorcycling in one shop – Louis.de!</strong>
-                             </p><p><strong>Helmets for everybody:</strong> full-face helmets, flip-up helmets, motocross helmets, police and jet helmets – you will find helmets for every purpose to suit every budget at Louis. Our helmet brands include Shoei, Schuberth, x-lite, Nolan, roof, Shark, Scorpion and Nexx. You have 18 brand names to choose from, plus a huge range of designs and colours. And, of course, Louis carries visors, goggles, helmet accessories and intercom systems as well.
-                             </p><p><strong>Motorbike clothing to kit you out from head to toe:</strong> Louis has jackets and trousers, gloves, boots, base layers and everything else bikers could possibly need. For example, protector upgrades, neck warmers, kidney belts and, of course, rainsuits. It makes no difference whether your style is casual or sporty, or you prefer leather or textile. You will find a large selection of women's attire at Louis, too. Louis also stocks a full clothing range for children. We have all the big brands – Vanucci, rukka, Held, Büse, Probiker, Cycle Spirit, Highway 1 and many more besides.
-                             </p><p><strong>Leisurewear for bikers:</strong> T-shirts, polo shirts, sweatshirts, hoodies, fleece and softshell jackets, army jackets, cargo trousers – fashionable styles, good quality and very affordable prices. Of course, Louis also has sneakers, boots and other leisure footwear.
-                             </p><p><strong>Luggage systems, camping and travel accessories for on tour:</strong> Any motorbike can be turned into a pack horse. Louis offers not only classic case systems and top boxes from respected manufacturers such as Hepco &amp; Becker, SW-Motech, Givi and moto-detail, but also luggage systems for superbikes and enduro bikes. For example, tank bags for attachment with straps, magnets or click mechanism. Plus waterproof saddlebags, tail bags and roll bags in all shapes and sizes. Cruiser and chopper riders in particular will love the large range of leather saddlebags. To help you find the best way to get to your destination, Louis also has sat navs from Tomtom and Garmin. For those who love the freedom of camping, Louis also stocks an extensive range of camping accessories from camping mats to tents, flashlights to camping crockery.
-                             </p><p><strong>Tuning and add-on parts for more than 3,000 motorbikes:</strong> Want to improve the look, function or character of your motorbike? Louis offers a huge selection of (LED) turn signals, mirrors, license plate holders, tank pads, exhaust systems... the list goes on and on. Looking for better ergonomics? Try alternative handlebars, levers and footrests. Louis also carries practical accessories such as heated grips, headlights and the legendary Scottoiler. Of course, we also stock all the big names like Kellermann, LSL, Bos, Lazer, Puig, magazi, MRA, gilles, Abus.
-                             </p><p><strong>Wearing and spare parts, care and maintenance:</strong> Whatever it takes to maintain the value and function of your motorbike or scooter, Louis has it. Consumables like fork and engine oil, brake fluid and chain spray from renowned brands like Castrol and S100; care products for your bike as well as for leather and textile clothing. Then there's wearing parts like Champion air and oil filters, batteries from DELO and Exide, spark plugs from NGK, D.I.D. chainsets, brake pads and brake discs from TRW Lucas, and much much more. And to make light work of repair and maintenance, Louis stocks everything from paddock stands to chargers, torque wrenches to tyre repair sets for on the road. In fact, you'll find more than enough tools from Proxxon and Rothewald to kit out a professional workshop.
-                             </p><p><strong>Not only that:</strong> Because we understand your passion for the lifestyle, Louis also carries a wide range of gift items and jewellery as well as books and maps.</p><p><a href="#">Louis in Austria - www.louis.at</a> | <a href="#">Louis in the UK - www.louis-moto.co.uk</a> | <a href="#">Louis in France - www.louis-moto.fr</a> | <a href="#">Louis in Ireland - www.louis.ie</a> | <a href="#">Louis in Europe - www.louis.eu</a></p><p><a href="#" rel="nofollow" target="_blank">louis在中国的淘宝店铺：http://louis-de.taobao.com</a></p><p><strong>You will find interesting offers in the categories:</strong></p><p><a href="#">Motorcycle clothing</a>, <a href="#">Motorcycle jackets</a>, <a href="#">Motorcycle trousers</a>, <a href="#">Leather suits</a>, <a href="#">Motorcycle helmets</a>, <a href="#">Motorcycle accessories</a>, <a href="#">Motorcycle spares</a>, <a href="#">Motorcycle</a>, <a href="#">Outdoor</a></p>          </div>
-                     </div>
-                 </div>
-
-                 <div class="js__setSameHeight">
-                     <div class="content-box size-1-2">
-                         <div style="min-height: 209px;" class="footer-box footer-box--links js__setSameHeight-item">
-                             <div class="footer-box--links__list">
-                                 <h4>How things work at Louis</h4>
-                                 <ul>
-                                     <li><a href="#">Shipping costs</a></li>
-                                     <li><a href="#">Payment options</a></li>
-                                     <li><a href="#">Payment by instalments</a></li>
-                                     <li><a href="#">Complaints &amp; Returns</a></li>
-                                     <li><a href="#">VAT refund</a></li>
-                                     <li><a href="#">Customers outside Germany</a></li>
-                                 </ul>
-                             </div>
-                             <div class="footer-box--links__list">
-                                 <h4>Help &amp; Advice</h4>
-                                 <ul>
-                                     <li><a href="#">Contact</a></li>
-                                     <li><a href="#">Technical query</a></li>
-                                     <li><a href="#">Tips for DIY mechanics</a></li>
-                                     <li><a href="#">Bike database</a></li>
-                                     <li><a href="#">Touring tips</a></li>
-                                     <li><a href="#">Wallpapers</a></li>
-                                     <li><a href="#">Material lexicon</a></li>
-                                     <li><a href="#">My Louis</a></li>
-                                 </ul>
-                             </div>
-                             <div class="footer-box--links__list last">
-                                 <h4>News &amp; Info</h4>
-                                 <ul>
-                                     <li><a href="#">Catalogue</a></li>
-                                     <li><a href="#">Newsletter</a></li>
-                                     <li><a href="#">Gift vouchers</a></li>
-                                     <li><a href="#">LouisFunCard</a></li>
-                                     <li><a href="#">LouisMasterCard</a></li>
-                                     <li><a href="#">Competition</a></li>
-                                 </ul>
-                             </div>
-                         </div>
-                     </div>
-                     <div class="content-box size-1-2">
-                         <div style="min-height: 209px;" class="footer-box footer-box--links js__setSameHeight-item">
-                             <div class="footer-box--links__list">
-                                 <h4>About Louis</h4>
-                                 <ul>
-                                     <li><a href="#">Jobs</a></li>
-                                     <li><a href="#">Training</a></li>
-                                     <li><a href="#">Presenting Louis</a></li>
-                                     <li><a href="#">Stores</a></li>
-                                 </ul>
-                             </div>
-                             <div class="footer-box--links__list last">
-                                 <h4>Legal</h4>
-                                 <ul>
-                                     <li><a href="#">Legal notice</a></li>
-                                     <li><a href="#">T&amp;Cs</a></li>
-                                     <li><a href="#">Privacy Policy</a></li>
-                                     <li><a href="#">Right of cancellation</a></li>
-                                     <li><a href="#">Cancellation form</a></li>
-                                 </ul>
-                             </div>
-                         </div>
-                     </div>
-                     <span class="clear"></span>
-                 </div>
-                 <p class="copy">Copyright © 2014 Louis -<br />Europe's No.1 in the Motorcycle &amp; Leisure world.</p>
-                 <a class="button go-to-top" href="#top">To the top</a>
-             </div>
-         </footer>
-     {/template}
-   #+END_SRC
-
 * Оптимизация аппаратной части решения

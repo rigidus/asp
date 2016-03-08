@@ -44,12 +44,16 @@
                (:file "entityes")   ;; Сущности и автоматы
                (:file "start")      ;; стартовый файл
                ;; Модуль авторизации (зависит от определения сущностей в стартовом файле)
-               
+               (:module "auth"
+                        :serial t
+                        :pathname "mod/auth"
+                        :components ((:static-file "auth-tpl.htm")
+                                     (:file "auth")))
                ;; Модуль очередей
-               ;; 
+               
                ;; Модуль сообщений
                
                ;; (:file "events")     ;; события системы
-               ;; (:file "iface")      ;; файл веб-интерфейса
+               (:file "iface")      ;; файл веб-интерфейса
                ))
 ;; defsystem ends here
