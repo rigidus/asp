@@ -6479,8 +6479,8 @@ toolchain="gcc_linaro_gnueabihf_4_9"
        - номер стойки
        - номер сектора
        - таймаут забора билета (таймер 1)
-       - длина импульса открытия шлагбаума в миллисекунда (таймер 2)
-       - длина импульса закрытия шлагбаума в миллисекунда (таймер 3)
+       - длина импульса открытия шлагбаума в миллисекундах (таймер 2)
+       - длина импульса закрытия шлагбаума в миллисекундах (таймер 3)
        - время, отведенное на проезд (таймер 4)
        - ключ шифрования штрих-кода
        - кнопочка "сохранить"
@@ -6505,6 +6505,70 @@ toolchain="gcc_linaro_gnueabihf_4_9"
      - Показ текста стр. 2 "Закрытие шлагбаума"
      - ожидаем по таймеру 3
    - Возвращаемся в "нажатие кнопки"
+
+*** Страница инициализации
+
+
+    #+BEGIN_SRC lisp
+      (in-package :asp)
+
+      (defparameter *begin-ticket-id* "")
+      (defparameter *current-time* "")
+      (defparameter *checkpoint-id* "")
+      (defparameter *sector-id* "")
+      (defparameter *timer-1* "")
+      (defparameter *timer-2* "")
+      (defparameter *timer-3* "")
+      (defparameter *timer-4* "")
+      (defparameter *secret* "")
+
+      (flet ((form-section (default-email btn)
+               (content-box (:class "size-3-5 switch-content-container")
+                 (form ("demoform" "Начальные установки" :action "/demo" :class "form-section-container")
+                   ((:div :class "form-section")
+                    (fieldset ""
+                      (input ("begin-ticket-id"  "начальный ID билета" :required t :type "" :maxlength "50" :value *begin-ticket-id*))
+                      (input ("current-time"     "текущее время" :required t :type "" :maxlength "50" :value *current-time*))
+                      (input ("checkpoint-id"    "номер стойки" :required t :type "" :maxlength "50" :value *checkpoint-id*))
+                      (input ("sector-id"        "номер сектора" :required t :type "" :maxlength "50" :value *sector-id*))
+                      (input ("timer-1"          "таймаут забора билета (таймер 1)" :required t :type "" :maxlength "50" :value *timer-1*))
+                      (input ("timer-2"          "длина импульса открытия шлагбаума в миллисекундах (таймер 2)" :required t :type "" :maxlength "50" :value *timer-2*))
+                      (input ("timer-3"          "длина импульса закрытия шлагбаума в миллисекундах (таймер 3)" :required t :type "" :maxlength "50" :value *timer-3*))
+                      (input ("timer-4"          "время, отведенное на проезд (таймер 4)" :required t :type "" :maxlength "50" :value *timer-4*))
+                      (input ("secret"           "ключ шифрования штрих-кода" :required t :type "password" :maxlength "50" :autocomplete "off" :value *secret*))))
+                   btn))))
+        (define-page demo "/demo"
+          (let ((breadcrumb (breadcrumb "Демо_1"))
+                (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
+            (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+              (content-box ()
+                (heading ("Демо 1") "На этой странице можно изменять начальные установки системы"))
+              (form-section (aif (post-parameter "email") it "") %CTRL%)
+              (ps-html ((:span :class "clear")))))
+          (:CTRL (ps-html
+                   ((:input :type "hidden" :name "act" :value "CTRL"))
+                   ((:div :class "form-send-container")
+                    (submit "Сохранить" )))
+                 (progn
+                   (setf *begin-ticket-id* (getf p :begin-ticket-id))
+                   (setf *current-time* (getf p :current-time))
+                   (setf *checkpoint-id* (getf p :checkpoint-id))
+                   (setf *sector-id* (getf p :sector-id))
+                   (setf *timer-1* (getf p :timer-1))
+                   (setf *timer-2* (getf p :timer-2))
+                   (setf *timer-3* (getf p :timer-3))
+                   (setf *timer-4* (getf p :timer-4))
+                   (setf *secret* (getf p :secret))
+                   (let ((breadcrumb (breadcrumb "Демо_1"))
+                         (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
+                     (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+                       (content-box ()
+                         (heading ("Успешно")))
+                       (content-box ()
+                         (system-msg ("success")
+                           (ps-html ((:p) "Данные сохранены"))))
+                       (ps-html ((:span :class "clear")))))))))
+    #+END_SRC
 
 ** Необходимо реализовать
 [TODO:aav]
