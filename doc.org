@@ -6467,123 +6467,137 @@ toolchain="gcc_linaro_gnueabihf_4_9"
   сколько выставлен "импульс" в том же UI.
 
 ** Сценарий
-   - Включение
-     - Показ текста в стр. 1 на дисплея "DD:MM:YYYY HH:MM Стойка проезда"(он не
-       меняется далее)
-     - Показ текста на стр. 2 дисплея "Нажмите кнопку для получения билета"
-       { "txid":XX,
-         "device":"display",
-         "command":"show",
-         "parameters":{"screen":0}
-       }
+*** Включение
 
-   - Цепляемся броузером к web-интерфейсу bbb (там вводятся и сохраняются основные параметры стойки -
-     номер, сектор и т.п. + картинка + настройки сети IPv4)
-     - Отображаем:
-       - начальный ID билета
-       - текущее время
-     - Вводим:
-       - номер стойки
-       - номер сектора
-       - таймаут забора билета (таймер 1)
-       - длина импульса открытия шлагбаума в миллисекундах (таймер 2)
-       - длина импульса закрытия шлагбаума в миллисекундах (таймер 3)
-       - время, отведенное на проезд (таймер 4)
-       - ключ шифрования штрих-кода
-       - кнопочка "сохранить"
+    Показ текста в стр. 1 на дисплея "DD:MM:YYYY HH:MM Стойка проезда"(он не меняется
+    далее)
 
-   - Нажатие кнопки стойки
-     { "eventid":XX,
-       "device":"user-button",
-       "command":"press"
-     }
+    Показ текста на стр. 2 дисплея "Нажмите кнопку для получения билета"
 
-     Это событие вызывает:
-     - Печать билета со штрих-кодом и основной информацией (которую мы ввели в UI)
-       { "txid":XX,
-         "device":"printer",
-         "command":"print",
-         "parameters":{ ??? },
-       }
-     - Показ текста стр. 2 "Печать штрихкода"
-       { "txid":XX,
-         "device":"display",
-         "command":"show",
-         "parameters":{"screen":1}
-       }
+    { "txid":XX,
+      "device":"display",
+      "command":"show",
+      "parameters":{"screen":0}
+    }
 
-   - Событие конца печати / забирания билета
-       { "eventid":XX,
-         "device":"printer",
-         "command":"print"
-         "parameters":{ "result":"OK" }
-       }
+*** Начальные установки
 
-     - Показ текста стр. 2 "Заберите билет, проезжайте"
-       { "txid":XX,
-         "device":"display",
-         "command":"show",
-         "parameters":{"screen":2}
-       }
+    Цепляемся броузером к web-интерфейсу bbb (там вводятся и сохраняются основные
+    параметры стойки - номер, сектор и т.п. + картинка + настройки сети IPv4)
 
-     - Ожидаем по таймеру 1
+    - Отображаем:
+      - начальный ID билета
+      - текущее время
+    - Вводим:
+      - номер стойки
+      - номер сектора
+      - таймаут забора билета (таймер 1)
+      - длина импульса открытия шлагбаума в миллисекундах (таймер 2)
+      - длина импульса закрытия шлагбаума в миллисекундах (таймер 3)
+      - время, отведенное на проезд (таймер 4)
+      - ключ шифрования штрих-кода
+      - кнопочка "сохранить"
 
-   - Событие открытия шлагбаума
-     - замыкаем реле =relay-gate-open= (замкнуто по [[*Настройка импульса открытия шлагбаума][таймеру №2]] из UI - импульс
-       открытия)
-       { "txid":XX,
-         "device":"shlagbaum_in",
-         "command":"up",
-         "parameters":{"timeout":3000}
-       }
+*** Нажатие кнопки стойки
 
-     - Показ текста стр. 2 "Открытие шлагбаума"
-       { "txid":XX,
-         "device":"display",
-         "command":"show",
-         "parameters":{"screen":3}
-       }
+    { "eventid":XX,
+      "device":"user-button",
+      "command":"press"
+    }
 
-     - ожидаем по таймеру 2
+    Это событие вызывает:
+    - Печать билета со штрих-кодом и основной информацией (которую мы ввели в UI)
+      { "txid":XX,
+        "device":"printer",
+        "command":"print",
+        "parameters":{ ??? },
+      }
+    - Показ текста стр. 2 "Печать штрихкода"
+      { "txid":XX,
+        "device":"display",
+        "command":"show",
+        "parameters":{"screen":1}
+      }
 
-   - Событие проезда
-     - Показ текста: "Проезжайте" по таймеру 4
-       { "txid":XX,
-         "device":"display",
-         "command":"show",
-         "parameters":{"screen":4}
-       }
+*** TODO Событие конца печати / забирания билета
 
-     - Ждем таймер проезда (таймер 4)
+    { "eventid":XX,
+      "device":"printer",
+       "command":"print"
+       "parameters":{ "result":"OK" }
+    }
 
-   - Событие закрытия шлагбаума
-     - Замыкаем реле =relay-gate-close= (замкнуто по [[*Настройка импульса закрытия шлагбаума][таймеру №3]] из UI - импульс
-       закрытия)
-       { "txid":XX,
-         "device":"shlagbaum_in",
-         "command":"down",
-         "parameters":{"timeout":3000}
-       }
+    Показ текста стр. 2 "Заберите билет, проезжайте"
+    { "txid":XX,
+      "device":"display",
+      "command":"show",
+      "parameters":{"screen":2}
+    }
 
-     - Показ текста стр. 2 "Закрытие шлагбаума"
-       { "txid":XX,
-         "device":"display",
-         "command":"show",
-         "parameters":{"screen":5}
-       }
+    Ожидаем по таймеру 1
 
-     - ожидаем по таймеру 3
-   - Возвращаемся в "нажатие кнопки"
-       { "txid":XX,
-         "device":"display",
-         "command":"show",
-         "parameters":{"screen":0}
-       }
+*** TODO Событие открытия шлагбаума
 
-*** Страница инициализации
+    Замыкаем реле =relay-gate-open= (замкнуто по [[*Настройка импульса открытия шлагбаума][таймеру №2]] из UI - импульс открытия)
+
+    { "txid":XX,
+      "device":"shlagbaum_in",
+      "command":"up",
+      "parameters":{"timeout":3000}
+    }
+
+    Показ текста стр. 2 "Открытие шлагбаума"
+    { "txid":XX,
+      "device":"display",
+      "command":"show",
+      "parameters":{"screen":3}
+    }
+
+    ожидаем по таймеру 2
+
+*** TODO Событие проезда
+
+    Показ текста: "Проезжайте" по таймеру 4
+    { "txid":XX,
+      "device":"display",
+      "command":"show",
+      "parameters":{"screen":4}
+    }
+
+    Ждем таймер проезда (таймер 4)
+
+*** TODO Событие закрытия шлагбаума
+
+    Замыкаем реле =relay-gate-close= (замкнуто по [[*Настройка импульса закрытия шлагбаума][таймеру №3]] из UI - импульс закрытия)
+    { "txid":XX,
+      "device":"shlagbaum_in",
+      "command":"down",
+      "parameters":{"timeout":3000}
+    }
+
+    Показ текста стр. 2 "Закрытие шлагбаума"
+    { "txid":XX,
+      "device":"display",
+      "command":"show",
+      "parameters":{"screen":5}
+    }
+
+    ожидаем по таймеру 3
+
+*** TODO Возвращаемся в "нажатие кнопки"
+
+    { "txid":XX,
+      "device":"display",
+      "command":"show",
+      "parameters":{"screen":0}
+    }
+
+** Реализация
+*** Некоторые необходимые функции
 
     #+NAME: initpage
     #+BEGIN_SRC lisp
+
       (in-package :asp)
 
       (defun get-current-time-str ()
@@ -6602,6 +6616,29 @@ toolchain="gcc_linaro_gnueabihf_4_9"
       (defparameter *timer-3* 3000)
       (defparameter *timer-4* 3000)
       (defparameter *secret* "secret-key")
+
+      (defparameter *low-level-endpoint* "http://localhost:3999/low_level_endpoint")
+      (defparameter *tx-counter* 1)
+
+      (defun send-to-low-level (msg)
+        (multiple-value-bind (body-or-stream status-code headers uri stream must-close reason-phrase)
+            (drakma:http-request
+             ,*low-level-endpoint*
+             :method :post
+             :content (format nil "~{~A~^&~}"
+                              `(("json" . ,(drakma:url-encode (cl-json:encode-json-to-string msg) :utf-8))))
+             :content-type "application/x-www-form-urlencoded; charset=UTF-8"
+             :force-binary t)
+          (prog1
+              (flexi-streams:octets-to-string body-or-stream :external-format :utf-8)
+            (incf *tx-counter*))))
+    #+END_SRC
+
+*** Страница инициализации
+
+    #+NAME: initpage
+    #+BEGIN_SRC lisp
+      (in-package :asp)
 
       (flet ((form-section (default-email btn)
                (content-box (:class "size-3-5 switch-content-container")
@@ -6653,9 +6690,60 @@ toolchain="gcc_linaro_gnueabihf_4_9"
     #+END_SRC
 
 *** События и их обработчики
+**** Включение
+
+     #+NAME: demo_page_start
+     #+BEGIN_SRC lisp
+       (in-package :asp)
+
+       (let ((page-url  "/demo_page_start")
+             (title     "Включение стойки")
+             (msg       `((:TXID . ,*tx-counter*)
+                          (:DEVICE . "display")
+                          (:COMMAND . "show")
+                          (:PARAMETERS (:SCREEN . 0)))))
+         (define-page demo-page-start page-url
+           (let ((breadcrumb (breadcrumb title))
+                 (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
+             (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+               (content-box ()
+                 (heading (title)
+                   "На этой странице можно эмулировать включение стойки"))
+               (content-box (:class "size-3-5 switch-content-container")
+                 (form ("demoform" title :action page-url :class "form-section-container")
+                   %CTRL%))
+               (ps-html ((:span :class "clear")))))
+           (:CTRL (ps-html
+                   ((:input :type "hidden" :name "act" :value "CTRL"))
+                   ((:div :class "form-send-container")
+                    (submit "Нажать кнопку" )))
+                  (progn
+                    ;; Отправка сообщения чтобы показать текст на дисплее
+                    (let ((response (send-to-low-level msg)))
+                      (let ((breadcrumb (breadcrumb title))
+                            (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
+                        (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+                          (content-box ()
+                            (heading ("Успешно")))
+                          (content-box ()
+                            (system-msg ("success")
+                              (format nil "~{~A~}"
+                                      (list
+                                       (ps-html ((:p) "Сообщение:"))
+                                       "<pre>"
+                                       (cl-json:encode-json-to-string msg)
+                                       "</pre>"
+                                       (ps-html ((:p) "Ответ:"))
+                                       "<pre>"
+                                       (bprint response)
+                                       "</pre>"
+                                       ))))
+                          (ps-html ((:span :class "clear"))))))))))
+    #+END_SRC
+
 **** Нажатие кнопки на стойке
 
-     #+NAME: initpage
+     #+NAME: demo_page_init
      #+BEGIN_SRC lisp
        (in-package :asp)
 
@@ -6691,97 +6779,72 @@ toolchain="gcc_linaro_gnueabihf_4_9"
        (defun barcode-assembly (param)
          "1A B4 C5 DE 35")
 
-       (defparameter *low-level-endpoint* "http://localhost:3999/low_level_endpoint")
+       ;; {
+       ;;   "eventid":XX,
+       ;;   "device":"user-button",
+       ;;   "command":"press"
+       ;; }
 
-       (define-page event_checkpoint_button "/event_checkpoint_button"
-         (let ((breadcrumb (breadcrumb "Нажатие кнопки на стойке"))
-               (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
-           (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
-             (content-box ()
-               (heading ("Нажатие кнопки на стойке")
-                 "На этой странице можно эмулировать нажатие кнопки на стойке"))
-             (content-box (:class "size-3-5 switch-content-container")
-               (form ("demoform" "Нажатие кнопки на стойке"
-                                 :action "/event_checkpoint_button"
-                                 :class "form-section-container")
-                 %CTRL%))
-             (ps-html ((:span :class "clear")))))
-         (:CTRL (ps-html
-                 ((:input :type "hidden" :name "act" :value "CTRL"))
-                 ((:div :class "form-send-container")
-                  (submit "Нажать кнопку" )))
-                (progn
-                  ;; Отправка сообщения чтобы напечатать билет со штрихкодом
-                  (multiple-value-bind (body-or-stream status-code headers uri stream must-close reason-phrase)
-                      (drakma:http-request
-                       ,*low-level-endpoint*
-                       :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"
-                       :method :post
-                       :content (format nil "~{~A~^&~}"
-                                        (mapcar #'(lambda (x)
-                                                    (format nil "~A=~A" (car x) (cdr x)))
-                                                (append
-                                                 (mapcar #'(lambda (x)
-                                                             `("ticket[]" . ,(drakma:url-encode x :utf-8)))
-                                                         (ticket-assembly
-                                                          ,*begin-ticket-id*
-                                                          (get-current-time-str)
-                                                          ,*checkpoint-id*
-                                                          ,*sector-id*))
-                                                 `(("barcode" . ,(barcode-assembly "1A B4 C5 DE 35"))))))
-                       :content-type "application/x-www-form-urlencoded; charset=UTF-8"
-                       :additional-headers `(("Accept" . "*/*")
-                                             ("Accept-Language" . "en-US,en;q=0.5"))
-                       :force-binary t)
-                    (let ((response-1 (flexi-streams:octets-to-string body-or-stream :external-format :utf-8)))
-                      ;; Отправка сообщения чтобы показать текст на дисплее
-                      (multiple-value-bind (body-or-stream status-code headers uri stream must-close reason-phrase)
-                          (drakma:http-request
-                           ,*low-level-endpoint*
-                           :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"
-                           :method :post
-                           :content (format nil "~{~A~^&~}"
-                                            (mapcar #'(lambda (x)
-                                                        (format nil "~A=~A" (car x) (cdr x)))
-                                                    `(("text" . ,(drakma:url-encode "Печать штрихкода..." :utf-8)))))
-                           :content-type "application/x-www-form-urlencoded; charset=UTF-8"
-                           :additional-headers `(("Accept" . "*/*")
-                                                 ("Accept-Language" . "en-US,en;q=0.5"))
-                           :force-binary t)
-                        (let ((response-2 (flexi-streams:octets-to-string body-or-stream :external-format :utf-8)))
-                          ;; TODO : Непонятно кто должен установить таймер, который вызовет событие окончания печати
-                          (let ((breadcrumb (breadcrumb "Нажатие кнопки на стойке"))
-                                (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
-                            (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
-                              (content-box ()
-                                (heading ("Успешно")))
-                              (content-box ()
-                                (system-msg ("success")
-                                  (format nil "~{~A~}"
-                                          (list
-                                           (ps-html ((:p) "Печать билета со штрихкодом"))
-                                           "<pre>"
-                                           (format nil "~{~A<br />~}"
-                                                   (ticket-assembly
-                                                    ,*begin-ticket-id*
-                                                    (get-current-time-str)
-                                                    ,*checkpoint-id*
-                                                    ,*sector-id*))
-                                           "</pre>"
-                                           (ps-html ((:p) "Вывод на дисплей"))
-                                           (ps-html ((:p) "Печать штрихкода"))
-                                           (ps-html ((:p) "response-1"))
-                                           "<pre>"
-                                           (bprint response-1)
-                                           "</pre>"
-                                           (ps-html ((:p) "response-2"))
-                                           "<pre>"
-                                           (bprint response-1)
-                                           "</pre>"
-                                           ))))
-                              (ps-html ((:span :class "clear"))))))))))))
+       (let* ((page-url    "demo_page_init")
+              (title       "Нажатие кнопки на стойке")
+              (ticket      (ticket-assembly
+                            ,*begin-ticket-id*
+                            (get-current-time-str)
+                            ,*checkpoint-id*
+                            ,*sector-id*))
+              (barcode     (barcode-assembly ""))
+              (msg-ticket  `((:TXID . ,*tx-counter*)
+                             (:DEVICE . "display")
+                             (:COMMAND . "print")
+                             (:PARAMETERS ((:TICKET . ,ticket) (:BARCODE . ,barcode)))))
+              (msg-display `((:TXID . ,*tx-counter*)
+                             (:DEVICE . "display")
+                             (:COMMAND . "show")
+                             (:PARAMETERS (:SCREEN . 1)))))
+         (define-page demo-page-init page-url
+           (let ((breadcrumb (breadcrumb title))
+                 (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
+             (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+               (content-box ()
+                 (heading (title)
+                   "На этой странице можно эмулировать нажатие кнопки на стойке"))
+               (content-box (:class "size-3-5 switch-content-container")
+                 (form ("demoform" title :action page-url :class "form-section-container")
+                   %CTRL%))
+               (ps-html ((:span :class "clear")))))
+           (:CTRL (ps-html
+                   ((:input :type "hidden" :name "act" :value "CTRL"))
+                   ((:div :class "form-send-container")
+                    (submit "Нажать кнопку" )))
+                  (progn
+                    ;; Отправка сообщения чтобы напечатать билет со штрихкодом
+                    (let ((response-ticket  (send-to-low-level msg-ticket))
+                          (response-display (send-to-low-level msg-display)))
+                      ;; TODO : Непонятно кто должен установить таймер, который вызовет событие окончания печати
+                      (let ((breadcrumb (breadcrumb "Нажатие кнопки на стойке"))
+                            (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
+                        (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+                          (content-box ()
+                            (heading ("Успешно")))
+                          (content-box ()
+                            (system-msg ("success")
+                              (format nil "~{~A~}"
+                                      (list
+                                       (ps-html ((:p) "Печать билета со штрихкодом"))
+                                       "<pre>"
+                                       (format nil "~{~A<br />~}" ticket)
+                                       "</pre>"
+                                       (ps-html ((:p) "Печать штрихкода"))
+                                       "<pre>"
+                                       (bprint response-ticket)
+                                       "</pre>"
+                                       (ps-html ((:p) "Вывод на дисплей"))
+                                       "<pre>"
+                                       (bprint response-ticket)
+                                       "</pre>"
+                                       ))))
+                          (ps-html ((:span :class "clear"))))))))))
     #+END_SRC
-
 
 **** Конец печати / забирание билета
 **** Открытие шлагбаума
