@@ -6508,19 +6508,26 @@ toolchain="gcc_linaro_gnueabihf_4_9"
 
 *** Страница инициализации
 
-
+    #+NAME: initpage
     #+BEGIN_SRC lisp
       (in-package :asp)
 
-      (defparameter *begin-ticket-id* "")
-      (defparameter *current-time* "")
-      (defparameter *checkpoint-id* "")
-      (defparameter *sector-id* "")
-      (defparameter *timer-1* "")
-      (defparameter *timer-2* "")
-      (defparameter *timer-3* "")
-      (defparameter *timer-4* "")
-      (defparameter *secret* "")
+      (defun get-current-time-str ()
+        (format nil "~A"
+                (multiple-value-bind (second minute hour date month year day daylight-p zone)
+                    (decode-universal-time (get-universal-time))
+                  (format nil "~2,'0d:~2,'0d:~2,'0d ~2,'0d.~2,'0d.~2,'0d"
+                          hour minute second date month year))))
+
+      (defparameter *begin-ticket-id* 1)
+      (defparameter *current-time* (get-current-time-str))
+      (defparameter *checkpoint-id* 1)
+      (defparameter *sector-id* 1)
+      (defparameter *timer-1* 3000)
+      (defparameter *timer-2* 3000)
+      (defparameter *timer-3* 3000)
+      (defparameter *timer-4* 3000)
+      (defparameter *secret* "secret-key")
 
       (flet ((form-section (default-email btn)
                (content-box (:class "size-3-5 switch-content-container")
@@ -6528,7 +6535,7 @@ toolchain="gcc_linaro_gnueabihf_4_9"
                    ((:div :class "form-section")
                     (fieldset ""
                       (input ("begin-ticket-id"  "начальный ID билета" :required t :type "" :maxlength "50" :value *begin-ticket-id*))
-                      (input ("current-time"     "текущее время" :required t :type "" :maxlength "50" :value *current-time*))
+                      (input ("current-time"     "текущее время" :required t :type "" :maxlength "50" :value  (get-current-time-str)))
                       (input ("checkpoint-id"    "номер стойки" :required t :type "" :maxlength "50" :value *checkpoint-id*))
                       (input ("sector-id"        "номер сектора" :required t :type "" :maxlength "50" :value *sector-id*))
                       (input ("timer-1"          "таймаут забора билета (таймер 1)" :required t :type "" :maxlength "50" :value *timer-1*))
@@ -6550,14 +6557,14 @@ toolchain="gcc_linaro_gnueabihf_4_9"
                    ((:div :class "form-send-container")
                     (submit "Сохранить" )))
                  (progn
-                   (setf *begin-ticket-id* (getf p :begin-ticket-id))
+                   (setf *begin-ticket-id* (parse-integer (getf p :begin-ticket-id)))
                    (setf *current-time* (getf p :current-time))
-                   (setf *checkpoint-id* (getf p :checkpoint-id))
-                   (setf *sector-id* (getf p :sector-id))
-                   (setf *timer-1* (getf p :timer-1))
-                   (setf *timer-2* (getf p :timer-2))
-                   (setf *timer-3* (getf p :timer-3))
-                   (setf *timer-4* (getf p :timer-4))
+                   (setf *checkpoint-id* (parse-integer (getf p :checkpoint-id)))
+                   (setf *sector-id* (parse-integer (getf p :sector-id)))
+                   (setf *timer-1* (parse-integer (getf p :timer-1)))
+                   (setf *timer-2* (parse-integer (getf p :timer-2)))
+                   (setf *timer-3* (parse-integer (getf p :timer-3)))
+                   (setf *timer-4* (parse-integer (getf p :timer-4)))
                    (setf *secret* (getf p :secret))
                    (let ((breadcrumb (breadcrumb "Демо_1"))
                          (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
@@ -6566,9 +6573,146 @@ toolchain="gcc_linaro_gnueabihf_4_9"
                          (heading ("Успешно")))
                        (content-box ()
                          (system-msg ("success")
-                           (ps-html ((:p) "Данные сохранены"))))
+                           (ps-html ((:p) "Данные сохранены")
+                                    ((:a :href "/event_checkpoint_button") "Следующий шаг - нажатие кнопки на стойке"))))
                        (ps-html ((:span :class "clear")))))))))
     #+END_SRC
+
+*** События и их обработчики
+**** Нажатие кнопки на стойке
+
+     #+NAME: initpage
+     #+BEGIN_SRC lisp
+       (in-package :asp)
+
+       (defun ticket-assembly (ticket-id time-str checkpoint-id sector-id)
+         `("========================="
+           "ДОБРО ПОЖАЛОВАТЬ!"
+           "========================="
+           ,(format nil "~8,'0d" *begin-ticket-id*)
+           ,(format nil "Въезд: ~A" (get-current-time-str))
+           "Тип т/с: легковой"
+           "Гос. знак: А0000АА 78RUS"
+           ,(format nil "Стойка ~A, сектор ~A" *checkpoint-id* *sector-id*)
+           "========================="
+           "проследуйте на место"
+           "МЕСТО 0201"
+           "в секторе 2"
+           "========================="
+           "Выезд 1 работает:"
+           "с 09:00 до 22:00"
+           "Выезд 2 работает:"
+           "круглосуточно"
+           "В тарифной зоне 1:"
+           "20 минут - бесплатно"
+           "1 час - 100 руб."
+           "более 3 часов - 50 руб."
+           "В тарифной зоне 2:"
+           "1 час - 100 руб."
+           "после 22:00 - 200 руб."
+           "========================="
+           "Телефон для справок:"
+           "8(812)000-00-00"))
+
+       (defun barcode-assembly (param)
+         "1A B4 C5 DE 35")
+
+       (defparameter *low-level-endpoint* "http://localhost:3999/low_level_endpoint")
+
+       (define-page event_checkpoint_button "/event_checkpoint_button"
+         (let ((breadcrumb (breadcrumb "Нажатие кнопки на стойке"))
+               (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
+           (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+             (content-box ()
+               (heading ("Нажатие кнопки на стойке")
+                 "На этой странице можно эмулировать нажатие кнопки на стойке"))
+             (content-box (:class "size-3-5 switch-content-container")
+               (form ("demoform" "Нажатие кнопки на стойке"
+                                 :action "/event_checkpoint_button"
+                                 :class "form-section-container")
+                 %CTRL%))
+             (ps-html ((:span :class "clear")))))
+         (:CTRL (ps-html
+                 ((:input :type "hidden" :name "act" :value "CTRL"))
+                 ((:div :class "form-send-container")
+                  (submit "Нажать кнопку" )))
+                (progn
+                  ;; Отправка сообщения чтобы напечатать билет со штрихкодом
+                  (multiple-value-bind (body-or-stream status-code headers uri stream must-close reason-phrase)
+                      (drakma:http-request
+                       ,*low-level-endpoint*
+                       :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"
+                       :method :post
+                       :content (format nil "~{~A~^&~}"
+                                        (mapcar #'(lambda (x)
+                                                    (format nil "~A=~A" (car x) (cdr x)))
+                                                (append
+                                                 (mapcar #'(lambda (x)
+                                                             `("ticket[]" . ,(drakma:url-encode x :utf-8)))
+                                                         (ticket-assembly
+                                                          ,*begin-ticket-id*
+                                                          (get-current-time-str)
+                                                          ,*checkpoint-id*
+                                                          ,*sector-id*))
+                                                 `(("barcode" . ,(barcode-assembly "1A B4 C5 DE 35"))))))
+                       :content-type "application/x-www-form-urlencoded; charset=UTF-8"
+                       :additional-headers `(("Accept" . "*/*")
+                                             ("Accept-Language" . "en-US,en;q=0.5"))
+                       :force-binary t)
+                    (let ((response-1 (flexi-streams:octets-to-string body-or-stream :external-format :utf-8)))
+                      ;; Отправка сообщения чтобы показать текст на дисплее
+                      (multiple-value-bind (body-or-stream status-code headers uri stream must-close reason-phrase)
+                          (drakma:http-request
+                           ,*low-level-endpoint*
+                           :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"
+                           :method :post
+                           :content (format nil "~{~A~^&~}"
+                                            (mapcar #'(lambda (x)
+                                                        (format nil "~A=~A" (car x) (cdr x)))
+                                                    `(("text" . ,(drakma:url-encode "Печать штрихкода..." :utf-8)))))
+                           :content-type "application/x-www-form-urlencoded; charset=UTF-8"
+                           :additional-headers `(("Accept" . "*/*")
+                                                 ("Accept-Language" . "en-US,en;q=0.5"))
+                           :force-binary t)
+                        (let ((response-2 (flexi-streams:octets-to-string body-or-stream :external-format :utf-8)))
+                          (let ((breadcrumb (breadcrumb "Нажатие кнопки на стойке"))
+                                (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
+                            (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+                              (content-box ()
+                                (heading ("Успешно")))
+                              (content-box ()
+                                (system-msg ("success")
+                                  (format nil "~{~A~}"
+                                          (list
+                                           (ps-html ((:p) "Печать билета со штрихкодом"))
+                                           "<pre>"
+                                           (format nil "~{~A<br />~}"
+                                                   (ticket-assembly
+                                                    ,*begin-ticket-id*
+                                                    (get-current-time-str)
+                                                    ,*checkpoint-id*
+                                                    ,*sector-id*))
+                                           "</pre>"
+                                           (ps-html ((:p) "Вывод на дисплей"))
+                                           (ps-html ((:p) "Печать штрихкода"))
+                                           (ps-html ((:p) "response-1"))
+                                           "<pre>"
+                                           (bprint response-1)
+                                           "</pre>"
+                                           (ps-html ((:p) "response-2"))
+                                           "<pre>"
+                                           (bprint response-1)
+                                           "</pre>"
+                                           ))))
+                              (ps-html ((:span :class "clear"))))))))))))
+    #+END_SRC
+
+
+**** Конец печати / забирание билета
+**** Открытие шлагбаума
+**** Проезд
+**** Закрытие шлагбаума
+
 
 ** Необходимо реализовать
 [TODO:aav]
