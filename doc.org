@@ -6614,10 +6614,6 @@ toolchain="gcc_linaro_gnueabihf_4_9"
            "Телефон для справок:"
            "8(812)000-00-00"))
 
-       (defun barcode-assembly (param)
-         "1A B4 C5 DE 35")
-
-       (defparameter *low-level-endpoint* "http://localhost:3999/low_level_endpoint")
 
        (define-page event_checkpoint_button "/event_checkpoint_button"
          (let ((breadcrumb (breadcrumb "Нажатие кнопки на стойке"))
@@ -6640,71 +6636,44 @@ toolchain="gcc_linaro_gnueabihf_4_9"
                   ;; Отправка сообщения чтобы напечатать билет со штрихкодом
                   (multiple-value-bind (body-or-stream status-code headers uri stream must-close reason-phrase)
                       (drakma:http-request
-                       ,*low-level-endpoint*
+                       personal-url
                        :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"
                        :method :post
                        :content (format nil "~{~A~^&~}"
                                         (mapcar #'(lambda (x)
                                                     (format nil "~A=~A" (car x) (cdr x)))
-                                                (append
-                                                 (mapcar #'(lambda (x)
-                                                             `("ticket[]" . ,(drakma:url-encode x :utf-8)))
-                                                         (ticket-assembly
-                                                          ,*begin-ticket-id*
-                                                          (get-current-time-str)
-                                                          ,*checkpoint-id*
-                                                          ,*sector-id*))
-                                                 `(("barcode" . ,(barcode-assembly "1A B4 C5 DE 35"))))))
+                                                ticket))
                        :content-type "application/x-www-form-urlencoded; charset=UTF-8"
                        :additional-headers `(("Accept" . "*/*")
                                              ("Accept-Language" . "en-US,en;q=0.5"))
                        :force-binary t)
-                    (let ((response-1 (flexi-streams:octets-to-string body-or-stream :external-format :utf-8)))
-                      ;; Отправка сообщения чтобы показать текст на дисплее
-                      (multiple-value-bind (body-or-stream status-code headers uri stream must-close reason-phrase)
-                          (drakma:http-request
-                           ,*low-level-endpoint*
-                           :user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:42.0) Gecko/20100101 Firefox/42.0"
-                           :method :post
-                           :content (format nil "~{~A~^&~}"
-                                            (mapcar #'(lambda (x)
-                                                        (format nil "~A=~A" (car x) (cdr x)))
-                                                    `(("text" . ,(drakma:url-encode "Печать штрихкода..." :utf-8)))))
-                           :content-type "application/x-www-form-urlencoded; charset=UTF-8"
-                           :additional-headers `(("Accept" . "*/*")
-                                                 ("Accept-Language" . "en-US,en;q=0.5"))
-                           :force-binary t)
-                        (let ((response-2 (flexi-streams:octets-to-string body-or-stream :external-format :utf-8)))
-                          (let ((breadcrumb (breadcrumb "Нажатие кнопки на стойке"))
-                                (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
-                            (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
-                              (content-box ()
-                                (heading ("Успешно")))
-                              (content-box ()
-                                (system-msg ("success")
-                                  (format nil "~{~A~}"
-                                          (list
-                                           (ps-html ((:p) "Печать билета со штрихкодом"))
-                                           "<pre>"
-                                           (format nil "~{~A<br />~}"
-                                                   (ticket-assembly
-                                                    ,*begin-ticket-id*
-                                                    (get-current-time-str)
-                                                    ,*checkpoint-id*
-                                                    ,*sector-id*))
-                                           "</pre>"
-                                           (ps-html ((:p) "Вывод на дисплей"))
-                                           (ps-html ((:p) "Печать штрихкода"))
-                                           (ps-html ((:p) "response-1"))
-                                           "<pre>"
-                                           (bprint response-1)
-                                           "</pre>"
-                                           (ps-html ((:p) "response-2"))
-                                           "<pre>"
-                                           (bprint response-1)
-                                           "</pre>"
-                                           ))))
-                              (ps-html ((:span :class "clear"))))))))))))
+                    (flexi-streams:octets-to-string body-or-stream :external-format :utf-8))
+
+                  ;; Отправка сообщения чтобы показать текст на дисплее
+                  ;; ..
+                  (let ((breadcrumb (breadcrumb "Нажатие кнопки на стойке"))
+                        (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
+                    (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+                      (content-box ()
+                        (heading ("Успешно")))
+                      (content-box ()
+                        (system-msg ("success")
+                          (format nil "~{~A~}"
+                                  (list
+                                   (ps-html ((:p) "Печать билета со штрихкодом"))
+                                   "<pre>"
+                                   (format nil "~{~A<br />~}"
+
+                                           (ticket-assembly
+                                            ,*begin-ticket-id*
+                                            (get-current-time-str)
+                                            ,*checkpoint-id*
+                                            ,*sector-id*))
+                                   "</pre>"
+                                   (ps-html ((:p) "Вывод на дисплей"))
+                                   (ps-html ((:p) "Печать штрихкода"))
+                                   ))))
+                      (ps-html ((:span :class "clear"))))))))
     #+END_SRC
 
 
