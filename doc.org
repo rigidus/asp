@@ -6978,7 +6978,6 @@ toolchain="gcc_linaro_gnueabihf_4_9"
                         ))))))
     #+END_SRC
 
-
 ** Необходимо реализовать
 [TODO:aav]
    - Контроллер пинов (inotify)
