@@ -232,14 +232,11 @@ void CTcpClient::check_deadline(const boost::system::error_code& ec)
 {
 	CFileLog::cfilelog() << "CTcpClient::check_deadline: " << ec.message() << std::endl;
 
-<<<<<<< HEAD
 	// Check whether the deadline has passed. We compare the deadline against
 	// the current time since a new asynchronous operation may have moved the
 	// deadline before this actor had a chance to run.
-	if (m_deadline.expires_at() <= boost::asio::deadline_timer::traits_type::now())
-=======
+//	if (m_deadline.expires_at() <= boost::asio::deadline_timer::traits_type::now())
 	if (stopped_)
->>>>>>> cd3106afab09186c21cb48559d9d8fd6892931cd
 	{
 		handle_stop();
 		return;

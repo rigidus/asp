@@ -26,8 +26,8 @@
                #:fare-quasiquote-extras
                #:fare-quasiquote-optima
                )
-  :description "aspp"
-  :author "rigidus"
+  :description "asp"
+  :author "Glukhov Mikhail"
   :version "0.0.3"
   :license "GNU AGPLv3"
   :components ((:file "package")    ;; файл пакетов
@@ -37,22 +37,23 @@
                (:file "globals")    ;; файл с глобальными определеями
                (:file "bricks")     ;; компоненты для создания интерфейсов
                ;; Модуль сущностей, автоматов и их тестов
-               
+               (:module "entity"
+                        :serial t
+                        :pathname "mod"
+                        :components ((:file "entity")))
                (:file "entityes")   ;; Сущности и автоматы
                (:file "start")      ;; стартовый файл
                ;; Модуль авторизации (зависит от определения сущностей в стартовом файле)
-               
+               (:module "auth"
+                        :serial t
+                        :pathname "mod/auth"
+                        :components ((:static-file "auth-tpl.htm")
+                                     (:file "auth")))
                ;; Модуль очередей
-               ;; 
+               
                ;; Модуль сообщений
                
-               ;; Модуль trend
-               
-               ;; Модуль мотобратан
-               ;; 
-               ;; Модуль HeadHunter
-               
-               (:file "events")     ;; события системы
+               ;; (:file "events")     ;; события системы
                (:file "iface")      ;; файл веб-интерфейса
                ))
 ;; defsystem ends here

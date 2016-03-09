@@ -1,6 +1,6 @@
 #include "TcpServerTests.h"
 
-void CTestTcpIpMultiServer::DoReceive(
+void CTcpIpMultiServerTest::DoReceive(
 		asio::ip::tcp::socket& socket,
 		uint8_t* data,
 		std::size_t rcvSize,
@@ -19,7 +19,7 @@ void CTestTcpIpMultiServer::DoReceive(
 }
 
 
-void CTestTcpIpMultiServer::DoConnect(asio::ip::tcp::socket& socket, std::string& clientName) {
+void CTcpIpMultiServerTest::DoConnect(asio::ip::tcp::socket& socket, std::string& clientName) {
 
 	CFileLog::cfilelog() << "CTestTcpIpMultiServer::DoConnect" << std::endl;
 
@@ -28,7 +28,7 @@ void CTestTcpIpMultiServer::DoConnect(asio::ip::tcp::socket& socket, std::string
 }
 
 
-void CTestTcpIpMultiServer::DoDisconnect(std::string& clientName) {
+void CTcpIpMultiServerTest::DoDisconnect(std::string& clientName) {
 
 	CFileLog::cfilelog() << "CTestTcpIpMultiServer::DoDisconnect" << std::endl;
 
@@ -44,7 +44,7 @@ static void send_message(CTcpClient* client, std::vector<uint8_t>& data)
 	client->send_message(data);
 }
 
-char CTestTcpIpMultiServer::s_testData[] = {
+char CTcpIpMultiServerTest::s_testData[] = {
 						(char) 0x00, (char) 0x01, (char) 0x02, (char) 0x03, (char) 0x04, (char) 0x05, (char) 0x06,
 						(char) 0x07, (char) 0x08, (char) 0x09, (char) 0x0a, (char) 0x0b, (char) 0x0c, (char) 0x0d, (char) 0x0e,
 						(char) 0x0f, (char) 0x00, (char) 0x01, (char) 0x02, (char) 0x03, (char) 0x04, (char) 0x05, (char) 0x06,
@@ -84,13 +84,13 @@ char CTestTcpIpMultiServer::s_testData[] = {
 						(char) 0x0f
 };
 
-std::vector<uint8_t> CTestTcpIpMultiServer::s_resultData;
-condition_variable CTestTcpIpMultiServer::s_connect;
-condition_variable CTestTcpIpMultiServer::s_read;
-mutex CTestTcpIpMultiServer::s_mutex;
-mutex CTestTcpIpMultiServer::s_mutex2;
+std::vector<uint8_t> CTcpIpMultiServerTest::s_resultData;
+condition_variable CTcpIpMultiServerTest::s_connect;
+condition_variable CTcpIpMultiServerTest::s_read;
+mutex CTcpIpMultiServerTest::s_mutex;
+mutex CTcpIpMultiServerTest::s_mutex2;
 
-void CTestTcpIpMultiServer::CTestConnection::runTest() {
+void CTcpIpMultiServerTest::CTestConnection::runTest() {
 
 	CFileLog::cfilelog() << "---" << std::endl;
 	CFileLog::cfilelog() << "CTestTcpIpMultiServer::CTestConnection started" << std::endl;
@@ -99,9 +99,9 @@ void CTestTcpIpMultiServer::CTestConnection::runTest() {
 
 	CTcpConnectionListener listener;
 	listener.setListenerFunctions(
-		CTestTcpIpMultiServer::DoReceive,
-		CTestTcpIpMultiServer::DoConnect,
-		CTestTcpIpMultiServer::DoDisconnect);
+		CTcpIpMultiServerTest::DoReceive,
+		CTcpIpMultiServerTest::DoConnect,
+		CTcpIpMultiServerTest::DoDisconnect);
 
 	serverMgr.createServer("127.0.0.1", 20500, listener);
 
@@ -126,10 +126,10 @@ void CTestTcpIpMultiServer::CTestConnection::runTest() {
 	clientThr.join();
 	delete client;
 
-	client.Disconnect();
+//	client.Disconnect();
 }
 
-void CTestTcpIpMultiServer::CTestSendReceive::runTest() {
+void CTcpIpMultiServerTest::CTestSendReceive::runTest() {
 
 	CFileLog::cfilelog() << "---" << std::endl;
 	CFileLog::cfilelog() << "CTestTcpIpMultiServer::CTestSendReceive started " << std::endl;
@@ -138,9 +138,9 @@ void CTestTcpIpMultiServer::CTestSendReceive::runTest() {
 
 	CTcpConnectionListener listener;
 	listener.setListenerFunctions(
-		CTestTcpIpMultiServer::DoReceive,
-		CTestTcpIpMultiServer::DoConnect,
-		CTestTcpIpMultiServer::DoDisconnect);
+		CTcpIpMultiServerTest::DoReceive,
+		CTcpIpMultiServerTest::DoConnect,
+		CTcpIpMultiServerTest::DoDisconnect);
 
 	CTcpServer* server = serverMgr.createServer("127.0.0.1", 20500, listener);
 
@@ -179,12 +179,12 @@ void CTestTcpIpMultiServer::CTestSendReceive::runTest() {
 		sendthr.join();
 
 		CPPUNIT_ASSERT_EQUAL_MESSAGE("CTestTcpIpMultiServer::CTestSendReceive expected length != result length",
-				expectedData.size(), CTestTcpIpMultiServer::s_resultData.size());
+				expectedData.size(), CTcpIpMultiServerTest::s_resultData.size());
 
 		uint32_t size = expectedData.size();
 		for (uint32_t i = 0; i < size; ++i) {
 			CPPUNIT_ASSERT_EQUAL_MESSAGE("CTestTcpIpMultiServer::CTestSendReceive receive data WRONG",
-				expectedData[i], CTestTcpIpMultiServer::s_resultData[i]);
+				expectedData[i], CTcpIpMultiServerTest::s_resultData[i]);
 		}
 
 		std::list<std::vector<uint8_t> > sendData;

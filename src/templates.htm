@@ -1,0 +1,66 @@
+/* [[file:louis.org::*Шаблоны][templates]] */
+// 
+// -*- mode: closure-template-html; fill-column: 240 -*-
+
+{namespace tpl}
+
+{template header}
+    <header class="header">
+        <noscript>
+            <div class="useragent-warning">
+                <div class="container system-message media">
+                    <span class="result-icon result-icon--caution media__item media__item--left"></span>
+                    <div class="system-message__text-container media__content">
+                        <div class="system-message__text text-container error">
+                            <p>You have deactivated Javascript and possibly also the use of cookies.</p>
+                        </div>
+                    </div>
+                    <span class="clear"></span>
+                </div>
+            </div>
+        </noscript>
+    </header>
+{/template}
+
+
+
+{template footer}
+    <footer class="footer footer--full-content">
+        <div class="container">
+        </div>
+    </footer>
+{/template}
+
+{template louis}
+<!DOCTYPE html>
+<html data-share-domain="louis.de" lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>{$title}</title>
+        <link href="/css/lucasa.css" media="all" rel="stylesheet" type="text/css" />
+        <link href="/css/lucas.css" media="all" rel="stylesheet" type="text/css" />
+        <link href="/css/luca.css" media="all" rel="stylesheet" type="text/css" />
+        <link href="/css/luc.css" media="all" rel="stylesheet" type="text/css" />
+        <link href="/css/sortable.css"  media="all" rel="stylesheet" type="text/css" />
+        <script type="text/javascript" src="/js/jquery-v-1.10.2.js"></script>
+        <script type="text/javascript" src="/js/jquery-ui-v-1.10.3.js"></script>
+        <script type="text/javascript" src="/js/modernizr.js"></script />
+        <script type="text/javascript" src="/js/jquery.sortable.original.js"></script>
+        <script type="text/javascript" src="/js/frp.js"></script>
+    </head>
+    <body class="en" data-background-image="/img/bg-05.jpg">
+        <div style="height: 1077px; position: fixed; transform: translateY(0px);" id="js__bg" class="bg">
+            <img src="/img/bg-05.jpg" />
+        </div>
+        {$header |noAutoescape}
+        <hr class="hidden" id="content" />
+        {$content |noAutoescape}
+        <hr class="hidden" />
+        {$footer |noAutoescape}
+        <script type="text/javascript" src="/js/scdc.js"></script>
+        <script type="text/javascript" src="/js/i18n.en_GB.utf8.js"></script>
+        <script type="text/javascript" src="/js/config.js"></script>
+    </body>
+</html>
+{/template}
+/* templates ends here */

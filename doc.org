@@ -1,4 +1,4 @@
-+HTML_HEAD: <!-- -*- fill-column: 87 -*- -->
+#+HTML_HEAD: <!-- -*- fill-column: 87 -*- -->
 #+HTML_HEAD: <!-- org-toggle-inline-images -->
 
 #+TITLE: Техническое задание и спецификация на разработку АСПП
@@ -1500,7 +1500,6 @@
 
      См. [[*%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0%20%d0%b8%d0%bc%d0%bf%d1%83%d0%bb%d1%8c%d1%81%d0%b0%20%d0%b7%d0%b0%d0%ba%d1%80%d1%8b%d1%82%d0%b8%d1%8f%20%d1%88%d0%bb%d0%b0%d0%b3%d0%b1%d0%b0%d1%83%d0%bc%d0%b0][настройка импульса закрытия шлагбаума]]
 
-
 **** TODO Настройка импульса открытия шлагбаума                         :gmm:
 
      [TODO:gmm] описать проверку в виде кода.
@@ -1751,7 +1750,6 @@
 
 невозможность перевода в процессе исполнения задачи /
       автомата или перехода между состояниями
-
 
 ** TODO Некорректные действия посетителя                                :all:
 
@@ -3470,6 +3468,9 @@
 
 **** DONE Стандартное назначение подключения датчиков                   :bvl:
 
+[TODO:bvl] Вписать в таблицы в этих трех разделах конкретные названия пинов в виде
+PX.XX и соответствующие им GPIO_XX.
+
      #+CAPTION: Сенсорный ввод
       |    |                                 |                       | Ввод      | Домен       | Типичный    | max U при      |
       |    | Тип / описание назначения       | Название в системе    | по умолч. | развязки    | ур. сигнала | ошибке монтажа |
@@ -4190,8 +4191,6 @@
 
 *** Архитектура классов нижнего уровня
 
-    [TODO:aav] [TODO:bvl] Написать описание архитектуры нижнего уровня
-
     Нижний уровень управляет следующими типами устройств:
     - Display
     - Sensor panel
@@ -4200,25 +4199,32 @@
     - Schlagbaum
     - Hardware buttons
 
-    Нижний уровень с точки зрения реализации представляет собой иерархию классов,
-    снабженную:
-    - менеджером динамического создания и удаления представлений устройств
-    - менеджером проходящих транзакций
-    - представлениями абстрактных и конкретных устройств
-    - подключениями к физическим устройствам через коммуникационное оборудование
-    - инфраструктурой поддержки: CSettings, GlobalThreadPool.
+    В основе реализации нижнего уровня находится менеджер устройств и транзакций.
+    Он содержит указатели на имплементации каждого конкретного устройства и его
+    индивидуальной очереди транзакций. По отношению к устройствам менеджер позволяет
+    динамически создавать и удалять набор устройств для реализации возможности гибкой
+    смены конфигурации в рантайме. Подключениями к физическим устройствам через
+    коммуникационное оборудование управляет сам объект конкретного устройства.
+
+    Асинхронный обмен сообщениями между клиентом и устройством основан на принципах
+    Bulk Synchronous Parallelism (BSP) и реализован на пуле потоков, исполняющего
+    задачи из собственной очереди с приоритетами.
+
+    Источником задач являются внешние и внутренние клиенты нижнего уровня, сами устройства
+    и менеджер транзакций. Клиенты и устройства ставят задачи только для менеджера
+    транзакций, соблюдая таки образом строгую очередность исполнения команд.
 
     Возможны два сценария работы: =транзакция= и =событие=
-    В первом сценарии инициатором обмена является клиент уровня представления
+    В первом сценарии инициатором обмена является клиент нижнего уровня.
     Во втором сценарии инициатором обмена является устройство: физическое или его
-    представление -  неважно.
+    представление - неважно.
 
-    Клиент уровня представления это ПО, которое может быть внешним или внутренним
-    по отношению к уровню представления.
+    Клиент нижнего уровня это ПО, которое может быть внешним или внутренним
+    по отношению к этому уровню.
     Список текущих клиентов:
-    что-то, подключающееся через http. Механизм идентификации отсутствует.
+    клиент, подключающийся через http. Механизм идентификации отсутствует.
     встроенный пингер
-    встроенный в каждый класс конкретного устройства инициализатор
+    инициализатор устройства, встроенный в каждый класс конкретного устройства
 
 **** Создание представлений устройств
 
@@ -4238,9 +4244,9 @@
        }
      #+END_EXAMPLE
 
-     [COMMENT:pyub] Откуда мы берем айдишник сообщения
+     [COMMENT:pyub] Откуда мы берем айдишник сообщения?
 
-     [COMMENT:aav] Из PostgreSQL
+     [COMMENT:aav] id сообщения выдает бизнес-логика по собственным правилам
 
      =Нижний уровень= принимает сообщение и осуществляет диспетчеризацию, отправляя
      сообщение классу конкретного дисплея, например =DisplayWinstar1602A=.
@@ -4357,7 +4363,11 @@
 
      Абстрактное устройство без привязанного к нему конкретного лишено смысла.
 
-     Интеграция с кодом производится в CDeviceFactory::deviceFactory, фабрике абстрактных устройств.
+     Интеграция с кодом производится в CDeviceFactory::deviceFactory, фабрике
+     абстрактных устройств.
+
+     ! Место для интеграции абстрактного устройства в код помечено как // INTEGRATE
+     ABSTRACT SECTION: <comment>
 
 **** Интеграция кода нового конкретного устройства
 
@@ -4374,6 +4384,8 @@
      Интеграция с кодом производится в реализации <CAbstractDevice>::createDevice, фабрике конкретных
      устройств данного абстрактного устройства.
 
+     ! Место для интеграции помечено как // INTEGRATE DEVICE SECTION: <comment>
+
 **** Интеграция кода нового вида коммуникационных устройств
 
      Класс коммуникационного устройства поддерживает все коммуникационные устройства
@@ -4384,31 +4396,31 @@
      каждого комм. устройства инстанцируется только один объект класса и
      ведется список занятых устройств.
 
-     Класс должен
-     наследоваться от CBaseCommCtl
-     переопределять чисто виртуальные функции receive, send, setSettings
-     в функции setSettings самостоятельно определять настройки каждого комм. устройства из БД.
-     в функции send проксировать сериализованные данные из класса конкретного устройства
-     в комм. устройство
-     в функции receive проксировать принятые данные от комм. устройства на конкретное устройство.
+     Класс должен: наследоваться от CBaseCommCtl, переопределять чисто виртуальные
+     функции receive, send, setSettings
 
-     <TODO:aav> Добавить функции для старта/стопа кода прослушки устройств.
+     в функции setSettings самостоятельно определять настройки каждого комм. устройства
+     из БД.
 
-     Интеграция с кодом производится в реализации CBaseDevice::connectToCommCtl или
-     в переопределении этой функции.
+     в функции send проксировать сериализованные данные из класса конкретного
+     устройства в комм. устройство
 
-*** Архитектура уровня представления                                   :man:
+     в функции receive проксировать принятые данные от комм. устройства на конкретное
+     устройство.
 
-    [COMMENT:bvl] Этот раздел приводится для справки, т. к. предполагаются существенные
-    упрощения в реализации. По мере реализации будет правильным вносить исправления в
-    этот раздел.
+     в функции takeCommDevice - производить захват комм. устройства и возвращать инстанс
+     на класс управления им.
+     в функции freeCommDevice - освобождать устройство.
 
-    [COMMENT:aav] Существенных упрощений реализации здесь не вижу, но конечно все
-    готов обсуждать в разумных пределах.
+     в функциях startNotifier и stopNotifier - запускать и останавливать тред
+     получения событий от устройства.
+     ! Добавить вызов функции startNotifier в конструкторе CDeviceManager
+     ! Добавить вызов функции stopNotifier в деструктор менеджера устройств
 
-    Чем отличается этот раздел и Архитектура классов нижнего уровня?
+     Все места для внедрения в коде помечены как // INTEGRATE COMMDEVICE SECTION:
+     <comment>
 
-**** COMMENT Абстрактный базовый класс CBaseDevice
+**** Абстрактный базовый класс CBaseDevice
 
      Является базовым классом для классов устройств.
      Реализует паттерн Strategy для конкретных классов от базовых CBaseCodec
@@ -4468,13 +4480,154 @@
        останавливаться. Я бы уже посмотрел бы пример кода, например так:
      #+END_COMMENT
 
-     #+BEGIN_SRC cpp
-       class CBaseDevice {
-       public:
-           CBaseDevice() {
-               ...
-           };
-       };
+     #+BEGIN_COMMENT gmm
+     Смотри. Но я уверен, что этому коду место не тут.
+     #+END_COMMENT
+
+     #+BEGIN_SRC header_cpp
+#include <boost/noncopyable.hpp>
+#include <boost/thread/thread.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/smart_ptr.hpp>
+
+using namespace boost;
+
+#include <CBaseCodec.h>
+#include <CBaseCommCtl.h>
+#include <Settings.h>
+#include <CPinCtl.h>
+#include <CSerialPortCtl.h>
+#include <SetCommandTo.h>
+
+class CBaseDevice: private noncopyable
+{
+
+public:
+	const std::string c_name;
+
+	CBaseDevice(const std::string& deviceName);
+	virtual ~CBaseDevice();
+	CBaseDevice(const CBaseDevice& theCBaseDevice);
+
+	virtual void sendCommand(const std::string command, const std::string pars)=0;
+	virtual bool connectToCommCtl()=0;
+
+	const std::vector< shared_ptr<CBaseCommCtl> >& getCommCtl();
+
+	void performEvent(std::vector<uint8_t>& rcvData);
+
+protected:
+
+	std::vector< shared_ptr<CBaseCommCtl> > m_commCtl;
+
+	void addCommDevice(shared_ptr<CBaseCommCtl> commCtl);
+
+	virtual void disconnectFromCommCtl();
+
+	/*** Templates ***/
+
+	template<class T>
+	shared_ptr<CBaseCommCtl> takeCommDevice(const std::string& commName)
+	{
+
+		if ( commName.find(T::s_name) != std::string::npos)
+		{
+			std::cout << "CBaseDevice::takeCommDevice: Take communication device: " << commName << std::endl;
+
+			return T::takeCommCtl(this, commName);
+		}
+
+		return nullptr;
+	}
+
+};
+
+
+#endif // !defined(EA_AAF6E551_FF21_4908_B83B_A548A70782BC__INCLUDED_)
+
+     #+END_SRC
+
+     #+BEGIN_SRC source_cpp
+
+#include "CBaseDevice.h"
+
+
+CBaseDevice::CBaseDevice(const std::string& str):
+	c_name(str)
+{
+
+}
+
+
+
+CBaseDevice::~CBaseDevice(){
+
+}
+
+
+const std::vector< shared_ptr<CBaseCommCtl> >& CBaseDevice::getCommCtl(){
+
+	return m_commCtl;
+}
+
+
+void CBaseDevice::performEvent(std::vector<uint8_t>& rcvData)
+{
+	std::cout << "CBaseDevice::performEvent: performs Event from device: " << c_name << ": ";
+	for (auto v: rcvData) std::cout << v << " ";
+	std::cout << std::endl;
+
+	// Вызвать установку задачи для клиента по имени абстрактного девайса
+	std::string answer;
+	for(uint8_t v: rcvData)
+		answer += v;
+
+	setCommandTo::Client( setCommandTo::Transaction, c_name, "answer: ", answer);
+}
+
+
+void CBaseDevice::addCommDevice(shared_ptr<CBaseCommCtl> commCtl)
+{
+	if (commCtl != nullptr)
+	{
+		m_commCtl.push_back(commCtl);
+
+		std::cout << "CBaseDevice::addCommDevice: " << commCtl->m_commName << " was added to " << c_name << std::endl;
+	}
+}
+
+
+bool CBaseDevice::connectToCommCtl()
+{
+
+	std::vector<std::string> commNames = settings::getCommNamesByDevice(c_name);
+
+	if (commNames.size() == 0)
+		return false;
+
+	for (auto comm: commNames)
+	{
+		std::cout << "CBaseDevice::connectToCommCtl: " << c_name << " connected to " << comm << std::endl;
+
+		addCommDevice( takeCommDevice<CPinCtl>(comm) );
+		addCommDevice( takeCommDevice<CSerialPortCtl>(comm) );
+
+	}
+
+	return m_commCtl.size() == commNames.size();
+}
+
+
+void CBaseDevice::disconnectFromCommCtl()
+{
+
+	for (auto comm: m_commCtl)
+	{
+		CPinCtl::freeCommCtl(this, comm->m_commName);
+		CSerialPortCtl::freeCommCtl(this, comm->m_commName);
+	}
+}
+
      #+END_SRC
 
 **** Класс абстрактного устройства CAbstractDevice
@@ -5277,6 +5430,91 @@ zlib1g_1.2.8.dfsg-2+b1_armel.deb
 ****** WAIT Работа через собственный драйвер
 
 **** TODO Дисплеи
+***** TODO Winstar 16x2 и другие на чипе HD44780			:bvl:
+      Для работы с подобными дисплеями мы пользуемся прекрасным драйвером с гитхаба
+      https://github.com/hsm5xw/Linux-Device-Driver-for-Character-LCD-Kernel-Level
+      Как идёт с ним работа - прекрасно видно на видео
+      https://www.youtube.com/watch?v=icP9ckrTLKc
+      Этот модуль реализует в системе символьное устройство /dev/klcd, которое принимает
+      в себя простые и понятные команды, отрабатывая вывод на подключенный известным способом
+      дисплей.
+
+      Чтобы у нас заработала "вся фигня", нужно проделать два шага:
+
+****** Маленький шаг: правильно собрать klcd.ko
+       git clone https://github.com/hsm5xw/Linux-Device-Driver-for-Character-LCD-Kernel-Level
+       (делаем это не на ВВВ, а на хост-машине под Linux, см. следующий большой шаг)
+       Дальше лезем в исходник klcd.h и меняем константы в разделах LCD Pin Configuration и
+       LCD Constants, руководствуясь таблицами Дерека Моллоя (см. devices/BBB_itself).
+
+       Далее открываем Makefile и поправляем ссылки в переменных KDIR и CROSS_COMPILE. Я
+       менять ничего не стал, просто создал в /root символьные ссылки на нужные мне адреса
+       в системе. KDIR должен указывать на место расположения исходника Linux в нужной
+       конфигурации (3.8.13-bone47), с актуальным файлом Module.symvers. Как его получить:
+
+****** Большой шаг: собираем ядро Linux в нашей частной конфигурации 3.8.13-bone47
+       git clone https://github.com/RobertCNelson/bb-kernel.git
+       git checkout 3.8.13-bone47
+       Это скрипты, которые собирают ядро нужной версии за нас. Перед запуском скрипты
+       потребуют некоторой правки:
+       =version.sh=
+       #+BEGIN_SRC
+#toolchain="gcc_linaro_gnueabi_4_6"
+#toolchain="gcc_linaro_gnueabihf_4_7"
+#toolchain="gcc_linaro_gnueabihf_4_8"
+toolchain="gcc_linaro_gnueabihf_4_9"
+       #+END_SRC
+
+       =scripts/gcc.sh=
+       По образцу gcc_linaro_gnueabihf_4_8) добавляем:
+       #+BEGIN_SRC
+       gcc_linaro_gnueabihf_4_9)
+       #http://releases.linaro.org/14.09/components/toolchain/binaries/gcc-linaro-arm-linux-gnueabihf-4.9-2014.09_linux.tar.xz
+       gcc_version="4.9"
+       release="2014.09"
+       toolchain_name="gcc-linaro-arm-linux-gnueabihf"
+       site="https://releases.linaro.org"
+       version="14.09/components/toolchain/binaries"
+       directory="${toolchain_name}-${gcc_version}-${release}_linux"
+       filename="${directory}.tar.xz"
+       datestamp="${release}-${toolchain_name}"
+
+       binary="bin/arm-linux-gnueabihf-"
+       ;;
+
+       #+END_SRC
+
+       Скрещиваем пальцы на удачу, запускаем =sudo build_kernel.sh=. Что происходит:
+       1. Определяется хост-система
+       2. Скачивается указанный выше хост-компилятор. 4.8 потом выдает ошибки, нужен 4.9
+       3. Скачивается километр исходников Linux из git.kernel.org. Это не лезет в ВВВ, даже
+не пытайтесь.
+       4. Патчатся исходники ядра в соответствии с меткой 3.8.13-bone47.
+       5. Вылезает окно дополнительной конфигурации. Делаем =Exit=.
+       6. По команде "СОБЕРИСЬ, ТРЯПКА" - собирается полное ведро исходников Linux с заголовками.
+       7. Отрабатывают какие-то дополнительные скрипты, собирающие dtbs.
+
+       У нас получается свежий каталог bb-kernel/KERNEL, в котором индикатором готовности выступает
+       файл Module.symvers. На каталог стараемся не дышать - он нам еще не раз пригодится именно
+       в этом виде.
+
+****** Конечный шаг - собираем, проверяем.
+       В каталоге =code/klcd= делаем =make=. KDIR можно перенаправить на появившийся в предыдущем
+       шаге =bb-kernel/dl/gcc-linaro-arm-linux-gnueabihf-4.9-2014.09_linux=, должно сработать.
+
+       Идем в =code/klcd/ioctl_testDir=, там делаем =gcc driver.c -o ioctl_test=. Копируем получившиеся
+       klcd.ko и ioctl_test на ВВВ.
+
+       Загружаем модуль ядра: =insmod klcd.ko=, проверяем через =lsmod=. Если klcd не появился в списке,
+       ошибка может быть видна в =dmesg=. Также можно увидеть появившийся /dev/klcd - это успех.
+       Отправляем команды на экран через ioctl_test, список команд можно увидеть во второй части видео
+       или из исходника driver.c.
+
+****** TODO Интеграция в код ASPP.
+       Для каждого дисплея может быть (и будет) свой драйвер - свои ножки, свои параметры длины
+       строки и т. д. Kernel Object должен выбираться и загружаться нашим софтом исходя из настроек
+       при старте.
+
 **** TODO Сканеры штрихкодов
 
 ** TODO Работа с библиотеками                                      :bvl:aav:
@@ -5490,7 +5728,6 @@ zlib1g_1.2.8.dfsg-2+b1_armel.deb
     - вместо батарейки RTC можно попробовать ставить ионистор, но удержим мы время только до 2х суток, устроит ли это нас?
       проверили тему, но вариант не очень
     - предлагается использовать маленькую батарейку CR1025
-
 
 *** WAIT Оптимизация программной части                                  :all:
 
@@ -6225,58 +6462,551 @@ zlib1g_1.2.8.dfsg-2+b1_armel.deb
 
   [COMMENT:pyub] Хотелки тут в первую очередь мои. О хотелках начальства вам лучше не
   думать. В первую очередь нужно сделать UI для настройки контроллера и "фишечку" в
-  виде печати каhтинки на чеке - этого мы раньше не умели, а теперь уже умеем. Во
+  виде печати картинки на чеке - этого мы раньше не умели, а теперь уже умеем. Во
   вторую - чтобы у нас замыкались щёлкая две релюшки и были замкнуты ровно столько мс,
   сколько выставлен "импульс" в том же UI.
 
 ** Сценарий
-   - Включение
-     - Показ текста в стр. 1 на дисплея "DD:MM:YYYY HH:MM Стойка проезда"(он не меняется далее)
-     - Показ текста на стр. 2 дисплея "Нажмите кнопку для получения билета"
-   - Цепляемся броузером к web-интерфейсу bbb (там вводятся и сохраняются основные параметры стойки -
-     номер, сектор и т.п. + картинка + настройки сети IPv4)
-     - Отображаем:
-       - начальный ID билета
-       - текущее время
-     - Вводим:
-       - номер стойки
-       - номер сектора
-       - таймаут забора билета (таймер 1)
-       - длина импульса открытия шлагбаума в миллисекунда (таймер 2)
-       - длина импульса закрытия шлагбаума в миллисекунда (таймер 3)
-       - время, отведенное на проезд (таймер 4)
-       - ключ шифрования штрих-кода
-       - кнопочка "сохранить"
-   - Нажатие кнопки стойки
-     Это событие вызывает:
-     - Печать билета со штрих-кодом и основной информацией (которую мы ввели в UI)
-     - Показ текста стр. 2 "Печать штрихкода"
-   - Событие конца печати / забирания билета
-     - Показ текста стр. 2 "Заберите билет, проезжайте"
-     - Ожидаем по таймеру 1
-   - Событие открытия шлагбаума
-     - замыкаем реле =relay-gate-open= (замкнуто по [[*Настройка импульса открытия шлагбаума][таймеру №2]] из UI - импульс
-       открытия)
-     - Показ текста стр. 2 "Открытие шлагбаума"
-     - ожидаем по таймеру 2
-   - Событие проезда
-     - Показ текста: "Проезжайте" по таймеру 4
-     - Ждем таймер проезда (таймер 4)
-   - Событие закрытия шлагбаума
-     - Замыкаем реле =relay-gate-close= (замкнуто по [[*Настройка импульса закрытия шлагбаума][таймеру №3]] из UI - импульс
-       закрытия)
-     - Показ текста стр. 2 "Закрытие шлагбаума"
-     - ожидаем по таймеру 3
-   - Возвращаемся в "нажатие кнопки"
+*** Включение
+
+    Показ текста в стр. 1 на дисплея "DD:MM:YYYY HH:MM Стойка проезда"(он не меняется
+    далее)
+
+    Показ текста на стр. 2 дисплея "Нажмите кнопку для получения билета"
+
+    { "txid":XX,
+      "device":"display",
+      "command":"show",
+      "parameters":{"screen":0}
+    }
+
+*** Начальные установки
+
+    Цепляемся броузером к web-интерфейсу bbb (там вводятся и сохраняются основные
+    параметры стойки - номер, сектор и т.п. + картинка + настройки сети IPv4)
+
+    - Отображаем:
+      - начальный ID билета
+      - текущее время
+    - Вводим:
+      - номер стойки
+      - номер сектора
+      - таймаут забора билета (таймер 1)
+      - длина импульса открытия шлагбаума в миллисекундах (таймер 2)
+      - длина импульса закрытия шлагбаума в миллисекундах (таймер 3)
+      - время, отведенное на проезд (таймер 4)
+      - ключ шифрования штрих-кода
+      - кнопочка "сохранить"
+
+*** Нажатие кнопки стойки
+
+    {
+      "eventid":XX,
+      "device":"user-button",
+      "command":"press"
+    }
+
+    Это событие вызывает:
+
+    - Печать билета со штрих-кодом и основной информацией (которую мы ввели в UI)
+
+      {
+        "txid":XX,
+        "device":"printer",
+        "command":"print",
+        "parameters":{ ??? },
+      }
+
+    - Показ текста стр. 2 "Печать штрихкода"
+
+      {
+        "txid":XX,
+        "device":"display",
+        "command":"show",
+        "parameters":{"screen":1}
+      }
+
+*** Событие конца печати / забирания билета
+
+    {
+      "eventid":XX,
+      "device":"printer",
+      "command":"print"
+      "parameters":{ "result":"OK" }
+    }
+
+    Показ текста стр. 2 "Заберите билет, проезжайте"
+
+    {
+      "txid":XX,
+      "device":"display",
+      "command":"show",
+      "parameters":{"screen":2}
+    }
+
+    [TODO:gmm] [TODO:aav] [TODO:bvl] Ожидаем по таймеру 1
+
+*** Событие открытия шлагбаума
+
+    Замыкаем реле =relay-gate-open= (замкнуто по [[*Настройка импульса открытия шлагбаума][таймеру №2]] из UI - импульс открытия)
+
+    { "txid":XX,
+      "device":"shlagbaum_in",
+      "command":"up",
+      "parameters":{"timeout":3000}
+    }
+
+    Показ текста стр. 2 "Открытие шлагбаума"
+
+    { "txid":XX,
+      "device":"display",
+      "command":"show",
+      "parameters":{"screen":3}
+    }
+
+    [TODO:gmm] [TODO:aav] [TODO:bvl] Ожидаем по таймеру 2
+
+*** Событие проезда
+
+    Показ текста: "Проезжайте" по таймеру 4
+    {
+      "txid":XX,
+      "device":"display",
+      "command":"show",
+      "parameters":{"screen":4}
+    }
+
+    [TODO:gmm] [TODO:aav] [TODO:bvl] Ожидаем по таймеру 4
+
+*** Событие закрытия шлагбаума
+
+    Замыкаем реле =relay-gate-close= (замкнуто по [[*Настройка импульса закрытия шлагбаума][таймеру №3]] из UI - импульс закрытия)
+    { "txid":XX,
+      "device":"shlagbaum_in",
+      "command":"down",
+      "parameters":{"timeout":3000}
+    }
+
+    Показ текста стр. 2 "Закрытие шлагбаума"
+    { "txid":XX,
+      "device":"display",
+      "command":"show",
+      "parameters":{"screen":5}
+    }
+
+    [TODO:gmm] [TODO:aav] [TODO:bvl] Ожидаем по таймеру 3
+
+*** Возвращаемся в "нажатие кнопки"
+
+    { "txid":XX,
+      "device":"display",
+      "command":"show",
+      "parameters":{"screen":0}
+    }
+
+** Реализация
+*** Некоторые необходимые функции
+
+    #+NAME: initpage
+    #+BEGIN_SRC lisp
+      (in-package :asp)
+
+      (defun get-current-time-str ()
+        (format nil "~A"
+                (multiple-value-bind (second minute hour date month year day daylight-p zone)
+                    (decode-universal-time (get-universal-time))
+                  (format nil "~2,'0d:~2,'0d:~2,'0d ~2,'0d.~2,'0d.~2,'0d"
+                          hour minute second date month year))))
+
+      (defparameter *begin-ticket-id* 1)
+      (defparameter *current-time* (get-current-time-str))
+      (defparameter *checkpoint-id* 1)
+      (defparameter *sector-id* 1)
+      (defparameter *timer-1* 3000)
+      (defparameter *timer-2* 3000)
+      (defparameter *timer-3* 3000)
+      (defparameter *timer-4* 3000)
+      (defparameter *secret* "secret-key")
+
+      (defparameter *low-level-endpoint* "http://localhost:3999/low_level_endpoint")
+      (defparameter *tx-counter* 1)
+
+      (defun send-to-low-level (msg)
+        (multiple-value-bind (body-or-stream status-code headers uri stream must-close reason-phrase)
+            (drakma:http-request
+             ,*low-level-endpoint*
+             :method :post
+             :content (format nil "~{~A~^&~}"
+                              `(("json" . ,(drakma:url-encode (cl-json:encode-json-to-string msg) :utf-8))))
+             :content-type "application/x-www-form-urlencoded; charset=UTF-8"
+             :force-binary t)
+          (prog1
+              (flexi-streams:octets-to-string body-or-stream :external-format :utf-8)
+            (incf *tx-counter*))))
+
+      (defmacro define-demo-page ((name page-url title note btn) &body body)
+        `(define-page ,name ,page-url
+          (let ((breadcrumb (breadcrumb ,title))
+                (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
+            (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+              (content-box () (heading (,title) ,note))
+              (content-box (:class "size-3-5 switch-content-container")
+                (form ("demoform" ,title :action ,page-url :class "form-section-container")
+                  %CTRL%))
+              (ps-html ((:span :class "clear")))))
+          (:CTRL (ps-html
+                  ((:input :type "hidden" :name "act" :value "CTRL"))
+                  ((:div :class "form-send-container")
+                   (submit ,btn)))
+                 (let ((breadcrumb (breadcrumb ,title))
+                       (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
+                   (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+                     (content-box () (heading ("Успешно")))
+                     (content-box () (system-msg ("success")
+                                       ,@body))
+                     (ps-html ((:span :class "clear"))))))))
+    #+END_SRC
+
+*** Страница инициализации
+
+    #+NAME: initpage
+    #+BEGIN_SRC lisp
+      (in-package :asp)
+
+      (flet ((form-section (default-email btn)
+               (content-box (:class "size-3-5 switch-content-container")
+                 (form ("demoform" "Начальные установки" :action "/demo" :class "form-section-container")
+                   ((:div :class "form-section")
+                    (fieldset ""
+                      (input ("begin-ticket-id"  "начальный ID билета" :required t :type "" :maxlength "50" :value *begin-ticket-id*))
+                      (input ("current-time"     "текущее время" :required t :type "" :maxlength "50" :value  (get-current-time-str)))
+                      (input ("checkpoint-id"    "номер стойки" :required t :type "" :maxlength "50" :value *checkpoint-id*))
+                      (input ("sector-id"        "номер сектора" :required t :type "" :maxlength "50" :value *sector-id*))
+                      (input ("timer-1"          "таймаут забора билета (таймер 1)" :required t :type "" :maxlength "50" :value *timer-1*))
+                      (input ("timer-2"          "длина импульса открытия шлагбаума в миллисекундах (таймер 2)" :required t :type "" :maxlength "50" :value *timer-2*))
+                      (input ("timer-3"          "длина импульса закрытия шлагбаума в миллисекундах (таймер 3)" :required t :type "" :maxlength "50" :value *timer-3*))
+                      (input ("timer-4"          "время, отведенное на проезд (таймер 4)" :required t :type "" :maxlength "50" :value *timer-4*))
+                      (input ("secret"           "ключ шифрования штрих-кода" :required t :type "password" :maxlength "50" :autocomplete "off" :value *secret*))))
+                   btn))))
+        (define-page demo "/demo"
+          (let ((breadcrumb (breadcrumb "Демо_1"))
+                (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
+            (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+              (content-box ()
+                (heading ("Демо 1") "На этой странице можно изменять начальные установки системы"))
+              (form-section (aif (post-parameter "email") it "") %CTRL%)
+              (ps-html ((:span :class "clear")))))
+          (:CTRL (ps-html
+                   ((:input :type "hidden" :name "act" :value "CTRL"))
+                   ((:div :class "form-send-container")
+                    (submit "Сохранить" )))
+                 (progn
+                   (setf *begin-ticket-id* (parse-integer (getf p :begin-ticket-id)))
+                   (setf *current-time* (getf p :current-time))
+                   (setf *checkpoint-id* (parse-integer (getf p :checkpoint-id)))
+                   (setf *sector-id* (parse-integer (getf p :sector-id)))
+                   (setf *timer-1* (parse-integer (getf p :timer-1)))
+                   (setf *timer-2* (parse-integer (getf p :timer-2)))
+                   (setf *timer-3* (parse-integer (getf p :timer-3)))
+                   (setf *timer-4* (parse-integer (getf p :timer-4)))
+                   (setf *secret* (getf p :secret))
+                   (let ((breadcrumb (breadcrumb "Демо_1"))
+                         (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
+                     (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+                       (content-box ()
+                         (heading ("Успешно")))
+                       (content-box ()
+                         (system-msg ("success")
+                           (ps-html ((:p) "Данные сохранены")
+                                    ((:a :href "/event_checkpoint_button") "Следующий шаг - нажатие кнопки на стойке"))))
+                       (ps-html ((:span :class "clear")))))))))
+    #+END_SRC
+
+*** События и их обработчики
+**** Включение
+
+     #+NAME: demo_page_start
+     #+BEGIN_SRC lisp
+       (in-package :asp)
+
+       (let ((msg `((:TXID . ,*tx-counter*)
+                    (:DEVICE . "display")
+                    (:COMMAND . "show")
+                    (:PARAMETERS (:SCREEN . 0)))))
+         (define-demo-page (demo-page-start "/demo_page_start" "Включение стойки"
+                                            "На этой странице можно эмулировать включение стойки"
+                                            "Включить стойку")
+           (progn
+             ;; Отправка сообщения чтобы показать текст на дисплее
+             (let ((response (send-to-low-level msg)))
+               (format nil "~{~A~}"
+                       (list
+                        (ps-html ((:p) "Сообщение:"))
+                        "<pre>"
+                        (cl-json:encode-json-to-string msg)
+                        "</pre>"
+                        (ps-html ((:p) "Ответ:"))
+                        "<pre>"
+                        (bprint response)
+                        "</pre>"
+                        ))))))
+    #+END_SRC
+
+**** Нажатие кнопки на стойке
+
+     #+NAME: demo_page_init
+     #+BEGIN_SRC lisp
+       (in-package :asp)
+
+       (defun ticket-assembly (ticket-id time-str checkpoint-id sector-id)
+         `("========================="
+           "ДОБРО ПОЖАЛОВАТЬ!"
+           "========================="
+           ,(format nil "~8,'0d" *begin-ticket-id*)
+           ,(format nil "Въезд: ~A" (get-current-time-str))
+           "Тип т/с: легковой"
+           "Гос. знак: А0000АА 78RUS"
+           ,(format nil "Стойка ~A, сектор ~A" *checkpoint-id* *sector-id*)
+           "========================="
+           "проследуйте на место"
+           "МЕСТО 0201"
+           "в секторе 2"
+           "========================="
+           "Выезд 1 работает:"
+           "с 09:00 до 22:00"
+           "Выезд 2 работает:"
+           "круглосуточно"
+           "В тарифной зоне 1:"
+           "20 минут - бесплатно"
+           "1 час - 100 руб."
+           "более 3 часов - 50 руб."
+           "В тарифной зоне 2:"
+           "1 час - 100 руб."
+           "после 22:00 - 200 руб."
+           "========================="
+           "Телефон для справок:"
+           "8(812)000-00-00"))
+
+       (defun barcode-assembly (param)
+         "1A B4 C5 DE 35")
+
+       ;; {
+       ;;   "eventid":XX,
+       ;;   "device":"user-button",
+       ;;   "command":"press"
+       ;; }
+
+       (let* ((ticket      (ticket-assembly
+                            ,*begin-ticket-id*
+                            (get-current-time-str)
+                            ,*checkpoint-id*
+                            ,*sector-id*))
+              (barcode     (barcode-assembly ""))
+              (msg-ticket  `((:TXID . ,*tx-counter*)
+                             (:DEVICE . "display")
+                             (:COMMAND . "print")
+                             (:PARAMETERS ((:TICKET . ,ticket) (:BARCODE . ,barcode)))))
+              (msg-display `((:TXID . ,*tx-counter*)
+                             (:DEVICE . "display")
+                             (:COMMAND . "show")
+                             (:PARAMETERS (:SCREEN . 1)))))
+         (define-demo-page (demo-page-init "/demo_page_init" "Нажатие кнопки на стойке"
+                                           "На этой странице можно эмулировать нажатие кнопки на стойке"
+                                           "Нажать кнопку")
+           (progn
+             ;; Отправка сообщения чтобы напечатать билет со штрихкодом
+             (let ((response-ticket  (send-to-low-level msg-ticket))
+                   (response-display (send-to-low-level msg-display)))
+               ;; TODO : Непонятно кто должен установить таймер, который вызовет событие окончания печати
+               (format nil "~{~A~}"
+                       (list
+                        (ps-html ((:p) "Печать билета со штрихкодом"))
+                        "<pre>"
+                        (format nil "~{~A<br />~}" ticket)
+                        "</pre>"
+                        (ps-html ((:p) "Печать штрихкода"))
+                        "<pre>"
+                        (bprint response-ticket)
+                        "</pre>"
+                        (ps-html ((:p) "Вывод на дисплей"))
+                        "<pre>"
+                        (bprint response-ticket)
+                        "</pre>"
+                        ))))))
+    #+END_SRC
+
+**** Конец печати / забирание билета
+
+     #+NAME: demo_page_printout
+     #+BEGIN_SRC lisp
+       (in-package :asp)
+
+       ;; {
+       ;;   "eventid":XX,
+       ;;   "device":"printer",
+       ;;   "command":"print"
+       ;;   "parameters":{ "result":"OK" }
+       ;; }
+
+       (let* ((msg `((:TXID . ,*tx-counter*)
+                     (:DEVICE . "display")
+                     (:COMMAND . "show")
+                     (:PARAMETERS (:SCREEN . 2)))))
+         (define-demo-page (demo-page-printout "/demo_page_printout" "Конец печати, пользователь забирает билет"
+                                               "На этой странице можно эмулировать забирание билета пользователем"
+                                               "Забрать билет")
+           (progn
+             ;; Отправка сообщения чтобы показать текст "Заберите билет"
+             (let ((response (send-to-low-level msg)))
+               (format nil "~{~A~}"
+                       (list
+                        (ps-html ((:p) "Сообщение"))
+                        "<pre>"
+                        (cl-json:encode-json-to-string msg)
+                        "</pre>"
+                        (ps-html ((:p) "Response"))
+                        "<pre>"
+                        (bprint response)
+                        "</pre>"
+                        ))))))
+    #+END_SRC
+
+**** Открытие шлагбаума
+
+     #+NAME: demo_page_open
+     #+BEGIN_SRC lisp
+       (in-package :asp)
+
+       (let* ((msg-shlag   `((:TXID . ,*tx-counter*)
+                             (:DEVICE . "shlagbaum_in")
+                             (:COMMAND . "up")
+                             (:PARAMETERS (:TIMEOUT . 3000))))
+              (msg-display `((:TXID . ,*tx-counter*)
+                             (:DEVICE . "display")
+                             (:COMMAND . "show")
+                             (:PARAMETERS (:SCREEN . 3)))))
+         (define-demo-page  (demo-page-open "/demo_page_open" "Открытие шлагбаума"
+                                            "На этой странице можно открыть шлагбаум" "Открыть шлагбаум")
+           (progn
+             (let ((response-shlag   (send-to-low-level msg-shlag))
+                   (response-display (send-to-low-level msg-display)))
+               (format nil "~{~A~}"
+                       (list
+                        (ps-html ((:p) "Сообщение шлагбауму"))
+                        "<pre>"
+                        (cl-json:encode-json-to-string msg-shlag)
+                        "</pre>"
+                        (ps-html ((:p) "Response"))
+                        "<pre>"
+                        (bprint response-shlag)
+                        "</pre>"
+                        (ps-html ((:p) "Сообщение дисплею"))
+                        "<pre>"
+                        (cl-json:encode-json-to-string msg-display)
+                        "</pre>"
+                        (ps-html ((:p) "Response"))
+                        "<pre>"
+                        (bprint response-display)
+                        "</pre>"
+                        ))))))
+    #+END_SRC
+
+**** Проезд
+
+     #+NAME: demo_page_goon
+     #+BEGIN_SRC lisp
+       (in-package :asp)
+
+       (let* ((msg-display `((:TXID . ,*tx-counter*)
+                             (:DEVICE . "display")
+                             (:COMMAND . "show")
+                             (:PARAMETERS (:SCREEN . 4)))))
+         (define-demo-page  (demo-page-goon "/demo_page_goon" "Проезд"
+                                            "На этой странице можно эмулировать проезд" "Проезжайте")
+           (progn
+             (let ((response-display (send-to-low-level msg-display)))
+               (format nil "~{~A~}"
+                       (list
+                        (ps-html ((:p) "Сообщение дисплею"))
+                        "<pre>"
+                        (cl-json:encode-json-to-string msg-display)
+                        "</pre>"
+                        (ps-html ((:p) "Response"))
+                        "<pre>"
+                        (bprint response-display)
+                        "</pre>"
+                        ))))))
+    #+END_SRC
+
+**** Закрытие шлагбаума
+
+     #+NAME: demo_page_close
+     #+BEGIN_SRC lisp
+       (in-package :asp)
+
+       (let* ((msg-shlag   `((:TXID . ,*tx-counter*)
+                             (:DEVICE . "shlagbaum_in")
+                             (:COMMAND . "down")
+                             (:PARAMETERS (:TIMEOUT . 3000))))
+              (msg-display `((:TXID . ,*tx-counter*)
+                             (:DEVICE . "display")
+                             (:COMMAND . "show")
+                             (:PARAMETERS (:SCREEN . 5)))))
+         (define-demo-page  (demo-page-close "/demo_page_close" "Закрытие шлагбаума"
+                                            "На этой странице можно закрыть шлагбаум" "Закрыть шлагбаум")
+           (progn
+             (let ((response-shlag   (send-to-low-level msg-shlag))
+                   (response-display (send-to-low-level msg-display)))
+               (format nil "~{~A~}"
+                       (list
+                        (ps-html ((:p) "Сообщение шлагбауму"))
+                        "<pre>"
+                        (cl-json:encode-json-to-string msg-shlag)
+                        "</pre>"
+                        (ps-html ((:p) "Response"))
+                        "<pre>"
+                        (bprint response-shlag)
+                        "</pre>"
+                        (ps-html ((:p) "Сообщение дисплею"))
+                        "<pre>"
+                        (cl-json:encode-json-to-string msg-display)
+                        "</pre>"
+                        (ps-html ((:p) "Response"))
+                        "<pre>"
+                        (bprint response-display)
+                        "</pre>"
+                        ))))))
+    #+END_SRC
 
 ** Необходимо реализовать
+[TODO:aav]
    - Контроллер пинов (inotify)
+   - юнит-тесты к менеджеру девайсов
+   - менеджер девайсов и транзакций допилить
+   - чтение конфига девайсов из БД
+   - логика шлагбаума и обработка его команд
+[TODO:bvl]
    - Вывод на дисплей
      - трех подготовленных паттернов
      - Надо сделать класс дисплея
+     - обработка команд дисплея
    - Вывод на принтер подготовленного паттерна
      - Надо сделать класс принтера
-   - Составить цепочку тасков
+     - обработка команд принтера
+   - Интеграционная отладка
+[TODO:gmm]
+   - Вебморда с возможностью изменения БД
+   - Схема БД, описать в доке
+   - Списки команд для всех устройств по утвержденному шаблону
+   - Машина состояний для демо
+
+[TODO:aav]
+[TODO:bvl]
+[TODO:gmm]
+   - описать в доке схему БД
+   - описать в доке списки команд на устройства
+   - описать в доке списки ошибок для нижнего и верхнего уровней
+   - описать в доке логику и алгоритмы работы с каждым устройством
 
 * Сущности
 
@@ -6285,6 +7015,7 @@ zlib1g_1.2.8.dfsg-2+b1_armel.deb
   #+NAME: entity_and_automates
   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
     ;;;; <<copyright>>
+    (in-package #:asp)
 
     <<gen_automat("checkpoint", "стойки", checkpoint_flds, checkpoint_state)>>
 
@@ -6409,6 +7140,401 @@ zlib1g_1.2.8.dfsg-2+b1_armel.deb
        (mapconcat 'identity (reverse result) ""))
    #+END_SRC
 
+** DONE События
+
+   События протоколируют все что происходит в системе. Каждое создание
+   сущности, каждое изменение состояния автомата регистрируется
+   здесь. Роботы используют эти события для своей работы. Также
+   информация о событиях попадает на главную страницу.
+
+   Событие является простой сущностью и не имеет состояния.
+
+   #+CAPTION: Данные события
+   #+NAME: event_flds
+     | field name | field type           | note                   |
+     |------------+----------------------+------------------------|
+     | id         | serial               | идентификатор          |
+     | name       | (or db-null varchar) | имя события            |
+     | tag        | (or db-null varchar) | тег события            |
+     | msg        | (or db-null varchar) | сообщение или описание |
+     | author-id  | (or db-null varchar) | инициатор события      |
+     | ts-create  | bigint               | время события          |
+
+   Теперь сгенерируем код:
+
+   #+NAME: event_entity
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_entity("event", "события", event_flds)>>
+   #+END_SRC
+
+** DONE Роли (role)
+
+   Роли определяют набор сценариев, которые пользователь выполняет на
+   сайте. Функционал, который выполняют сценарии запрашивает
+   разрешение на выполнение действий, которое опирается на роль,
+   присвоенную пользователю. Пользователь может иметь только одну роль
+   или не иметь ее вовсе.
+
+   Роль является простой сущностью и не имеет состояния.
+
+   #+CAPTION: Данные роли
+   #+NAME: role_flds
+     | field name | field type           | note          |
+     |------------+----------------------+---------------|
+     | id         | serial               | идентификатор |
+     | name       | varchar              | имя           |
+     | descr      | (or db-null varchar) | описание      |
+
+   Теперь сгенерируем код и cоздадим необходимые роли:
+
+   #+NAME: role_entity
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     (in-package #:asp)
+     <<gen_entity("role", "роли", role_flds)>>
+     ;; (make-role :name "webuser")
+     ;; (make-role :name "timebot")
+     ;; (make-role :name "autotester")
+     ;; (make-role :name "system")
+
+     ;; (upd-role (get-role 1) (list :descr "Пользователи сайта. Они могут выполнять все пользовательские сценарии, (начиная с \"регистрации\" и \"логина\") и использовать все функциональные элементы на страницах сайта. Некоторые из пользователей, имеющих эту роль имеют дополнительные права, например на редактирование групп"))
+
+     ;; (upd-role (get-role 2) (list :descr "Роботы, выполняющие задачи по расписанию. Могут подключаться к таймерам и использовать низкоуровневое API сайта для сбора и обработки данных. Они представляют собой код, который работает прямо внутри системы"))
+
+     ;; (upd-role (get-role 3) (list :descr "Роботы, выполняющие тестирование внешних API сайта. Могу подключаться к таймерам и использовать внешнее REST-API сайта по протоколам взаимодейтствия, определенным для внешних агентов. Они представляют собой код, который работает как сторонняя программа, возможно даже на другой машине"))
+
+     ;; (upd-role (get-role 4) (list :name "agent" :descr "Сторонние программы и агенты (такие, как мобильные приложения), которые могут только использовать только внешнее REST-API системы"))
+   #+END_SRC
+
+** DONE Пользователи (user)
+
+   Для начала надо определиться, какие данные мы собираемся хранить о пользователях, и
+   какого типа будут эти данные. Типы данных задаем в формате =Postmodern= чтобы потом
+   сохранить данные в =PostgreSQL=
+
+   #+CAPTION: Данные пользователя
+   #+NAME: user_flds
+     | field name  | field type           | note                      |
+     |-------------+----------------------+---------------------------|
+     | id          | serial               | идентификатор             |
+     | name        | varchar              | никнейм пользователя      |
+     | password    | varchar              | пароль                    |
+     | email       | varchar              | емейл                     |
+     | firstname   | (or db-null varchar) | имя                       |
+     | lastname    | (or db-null varchar) | фамилия                   |
+     | phone       | (or db-null varchar) | телефон                   |
+     | mobilephone | (or db-null varchar) | мобильный телефон         |
+     | sex         | (or db-null varchar) | пол                       |
+     | birth-day   | (or db-null varchar) | день рождения             |
+     | birth-month | (or db-null varchar) | месяц рождения            |
+     | birth-year  | (or db-null varchar) | год рождения              |
+     | ts-create   | bigint               | время регистрации         |
+     | ts-last     | bigint               | время последнего действия |
+     | role-id     | (or db-null integer) | идентификатор роли        |
+
+   В нашей системе пользователь может существовать (или не существовать) в одном из
+   нескольких состояний:
+    + Когда пользователь еще не зарегистрирован на сайте мы можем считать его
+      незарегистрированным (=unregistred=)
+    + После регистрации он автоматически становится залогиненным (=logged=)
+    + Пользователь может покинуть сайт и перейти в состояние =unlogged=
+    + Пользователь может забыть свой пароль, тогда мы должны выслать ему ссылку для
+      восстановления пароля (=sended=)
+    + И наконец, после восстановления пароля пользователь вновь становится залогиненным
+      (=logged=)
+
+   Все эти переходы и состояния сведем в единую таблицу:
+
+   #+CAPTION: Состояния конечного автомата пользователя
+   #+NAME: user_state
+     | action         | from        | to          |
+     |----------------+-------------+-------------|
+     | registration   | unregistred | logged      |
+     | unregistration | logged      | unregistred |
+     | enter          | unlogged    | logged      |
+     | leave          | logged      | unlogged    |
+     | forgot         | unlogged    | sended      |
+     | remember       | sended      | logged      |
+
+   Теперь мы можем полностью описать поведение пользователя как конечный автомат:
+
+   #+NAME: user_state_graph
+   #+BEGIN_SRC emacs-lisp :var table=user_state :results output :exports none
+     (mapcar #'(lambda (x)
+                 (princ (format "%s -> %s [label =\"%s\"];\n"
+                                (second x) (third x) (first x))))
+             table)
+   #+END_SRC
+
+   #+BEGIN_SRC dot :file img/user-state.png :var input=user_state_graph :exports results
+     digraph G {
+       rankdir = LR;
+       $input
+     }
+   #+END_SRC
+
+   Для того чтобы избежать дублирования ников и связанной с этим
+   ситуации, когда один пользователь выдает себя за другого, следует
+   определить констрейнт на уникальность поля =name= и =email=
+
+   #+NAME: user_constraints
+   #+BEGIN_SRC lisp :exports none :padline no :comments link
+     (with-connection *db-spec*
+       (unless (table-exists-p "user")
+         (query (:alter-table "user" :add-constraint "uniq_email" :unique "email"))
+         (query (:alter-table "user" :add-constraint "uniq_name" :unique "name"))))
+   #+END_SRC
+
+   Так как в системе все пользователи тесно связаны с ролями, следует
+   определить внешний ключ на таблицу ролей:
+
+   #+NAME: user_constraints
+   #+BEGIN_SRC lisp :exports none :padline no :comments link
+     (with-connection *db-spec*
+       (unless (table-exists-p "user")
+         (query (:alter-table "user" :add-constraint "foreign_role" :foreign-key ("role_id") ("role" "id")))))
+   #+END_SRC
+
+   Теперь сгенерируем код и определим функции, которые вызываются на
+   переходах из одного состояния в другое. Также установим ограничение
+   на колонку =name= чтобы избежать дублирования ников.
+
+   #+NAME: user_automat
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_automat("user", "пользователя", user_flds, user_state)>>
+     <<user_constraints>>
+     (defun registration ()
+       "unregistred -> logged")
+     (defun unregistration ()
+       "logged -> unregistred")
+     (defun enter ()
+       "unlogged -> logged")
+     (defun leave ()
+       "logged -> unlogged")
+     (defun forgot ()
+       "unlogged -> sended")
+     (defun remember ()
+       "sended -> logged")
+   #+END_SRC
+
+** DONE Группы (group, user2group)
+
+   Группы пользователей определяют набор операций, которые
+   пользователь может выполнять над объектами системы. В отличие от
+   ролей, один пользователь может входить в несколько групп или не
+   входить ни в одну из них.
+
+   Группа является простой сущностью и не имеет состояния.
+
+   #+CAPTION: Данные группы
+   #+NAME: group_flds
+     | field name | field type           | note                           |
+     |------------+----------------------+--------------------------------|
+     | id         | serial               | идентификатор                  |
+     | name       | varchar              | имя группы                     |
+     | descr      | (or db-null varchar) | описание группы                |
+     | ts-create  | bigint               | время создания группы          |
+     | author-id  | (or db-null integer) | идентификатор создателя группы |
+
+   Сгенерируем код и создадим необходимые группы:
+
+   #+NAME: group_entity
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_entity("group", "группы", group_flds)>>
+     ;; (make-group
+     ;;  :name "Исполнитель желаний"
+     ;;  :descr "Создатель штук, которых еще нет. Исправлятель штук, которые неправильно работают."
+     ;;  :ts-create (get-universal-time)
+     ;;  :author-id 1)
+     ;; (make-group
+     ;;  :name "Пропускать везде"
+     ;;  :descr "Для этого пользователя нет запретных мест"
+     ;;  :ts-create (get-universal-time)
+     ;;  :author-id 1)
+     ;; (make-group
+     ;;  :name "Острый глаз"
+     ;;  :descr "Обладает способностью замечать недоработки"
+     ;;  :ts-create (get-universal-time)
+     ;;  :author-id 1)
+     ;; (make-group
+     ;;  :name "Основатель"
+     ;;  :descr "Был с нами еще до того как это стало мейнстримом"
+     ;;  :ts-create (get-universal-time)
+     ;;  :author-id 1)
+     ;; (make-group
+     ;;  :name "Рулевой"
+     ;;  :descr "Управляет пользователями и назначает права доступа"
+     ;;  :ts-create (get-universal-time)
+     ;;  :author-id 1)
+   #+END_SRC
+
+   Теперь создадим таблицу связи, которая свяжет пользователей и группы:
+
+   #+CAPTION: Данные таблицы связи пользователя и группы
+   #+NAME: user2group_flds
+     | field name | field type | note                       |
+     |------------+------------+----------------------------|
+     | id         | serial     | идентификатор              |
+     | user-id    | integer    | идентификатор пользователя |
+     | group-id   | integer    | идентификатор группы       |
+
+   Чтобы пары в таблице связи удалялись при удалении связанных групп и
+   пользователей следует установить on-delete foreigh keys.
+
+   #+NAME: user2group_constraints
+   #+BEGIN_SRC lisp :exports none :padline no :comments link
+     (with-connection *db-spec*
+       (unless (table-exists-p "user2group")
+         (query (:alter-table "user2group" :add-constraint "on_del_user"  :foreign-key ("user_id") ("user" "id") :cascade))
+         (query (:alter-table "user2group" :add-constraint "on_del_group" :foreign-key ("group_id") ("group" "id") :cascade))))
+   #+END_SRC
+
+
+   И сгенерируем код для нее:
+
+   #+NAME: user2group_entity
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_entity("user2group", "связи пользователя и группы", user2group_flds)>>
+     <<user2group_constraints>>
+   #+END_SRC
+
+** DONE Сообщения (msg)
+
+   О сообщениях мы знаем только от кого они посылаются, кому и собственно текст
+   сообщения. Его наверно не стоит ограничивать. По идее как посылающий, так и принимающий
+   может удалить сообщение (пометить как удаленное), для этого мы используем отдельные
+   флаги.
+
+   #+CAPTION: Данные сообщения
+   #+NAME: msg_flds
+     | field name  | field type | note                                     |
+     |-------------+------------+------------------------------------------|
+     | id          | serial     | идентификатор                            |
+     | snd-id      | integer    | пользователь, который послал сообщение   |
+     | rcv-id      | integer    | пользователь, который получает сообщение |
+     | msg         | varchar    | сообщение                                |
+     | ts-create   | bigint     | время создания                           |
+     | ts-delivery | bigint     | время доставки                           |
+
+   Еще сообщение может быть доставлено или недоставлено.
+
+   #+CAPTION: Состояния конечного автомата сообщения
+   #+NAME: msg_state
+     | action   | from        | to        |
+     |----------+-------------+-----------|
+     | delivery | undelivered | delivered |
+
+   Теперь сгенерируем код и определим функции, которые вызываются на переходах
+
+   #+NAME: msg_automat
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_automat("msg", "сообщения", msg_flds, msg_state)>>
+     (defun delivery ()
+       "undelivered -> delivered")
+   #+END_SRC
+
+** DONE Задачи (task)
+
+   #+CAPTION: Данные задачи
+   #+NAME: task_flds
+     | field name | field type           | note                      |
+     |------------+----------------------+---------------------------|
+     | id         | serial               | идентификатор             |
+     | name       | varchar              | название                  |
+     | blockdata  | varchar              | суть задачи или данные    |
+     | owner-id   | (or db-null integer) | идентификатор владельца   |
+     | exec-id    | (or db-null integer) | идентификатор исполнителя |
+     | ts-create  | bigint               | время регистрации         |
+
+   В нашей системе задача может существовать  в одном из
+   нескольких состояний:
+    + Создана, но еще ни разу не исполнялась (=new=).
+    + Исполняется в данный момент (=inaction=)
+    + Была исполнена но еще не завершена, возможно потребуется исполнять
+      еще раз или по расписанию (=standby=)
+    + Отменена (=cancelled=)
+    + Завершена (=terminated=)
+
+   Все эти переходы и состояния сведем в единую таблицу:
+
+   #+CAPTION: Состояния конечного автомата пользователя
+   #+NAME: task_state
+     | action               | from     | to         |
+     |----------------------+----------+------------|
+     | starttask            | new      | inaction   |
+     | stoptask             | inaction | standby    |
+     | restarttask          | standby  | inaction   |
+     | cancelnewtask        | new      | cancelled  |
+     | cancelactiontask     | inaction | cancelled  |
+     | cancelstandbytask    | standby  | cancelled  |
+     | terminateactiontask  | inaction | terminated |
+     | terminatestandbytask | standby  | terminated |
+
+   Теперь мы можем полностью описать поведение пользователя как конечный автомат:
+
+   #+NAME: task_state_graph
+   #+BEGIN_SRC emacs-lisp :var table=task_state :results output :exports none
+     (mapcar #'(lambda (x)
+                 (princ (format "%s -> %s [label =\"%s\"];\n"
+                                (second x) (third x) (first x))))
+             table)
+   #+END_SRC
+
+   #+BEGIN_SRC dot :file img/task-state.png :var input=task_state_graph :exports results
+     digraph G {
+       rankdir = LR;
+       $input
+     }
+   #+END_SRC
+
+   Для того чтобы избежать дублирования задач, следует определить
+   констрейнт на уникальность поля =name=
+
+   #+NAME: task_constraints
+   #+BEGIN_SRC lisp :exports none :padline no :comments link
+     (with-connection *db-spec*
+       (unless (table-exists-p "task")
+         (query (:alter-table "task" :add-constraint "task_name" :unique "name"))))
+   #+END_SRC
+
+   Так как в системе все пользователи тесно связаны с задачами,
+   следует определить внешний ключ на таблицу пользователей так, чтобы
+   при удалении пользователей-владельцев задач удалялись и их задачи.
+
+   #+NAME: task_constraints
+   #+BEGIN_SRC lisp :exports none :padline no :comments link
+     (in-package #:asp)
+
+     (with-connection *db-spec*
+       (unless (table-exists-p "task")
+         (query (:alter-table "task" :add-constraint "on_del_user" :foreign-key ("owner_id") ("user" "id") :cascade))))
+   #+END_SRC
+
+   Теперь сгенерируем код и определим функции, которые вызываются на
+   переходах из одного состояния в другое. Также установим ограничение
+   на колонку =name= чтобы избежать дублирования ников.
+
+   #+NAME: task_automat
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_automat("task", "задачи", task_flds, task_state)>>
+     <<task_constraints>>
+     (defun starttask ()
+       "new -> inaction")
+     (defun stoptask ()
+       "inaction -> standby")
+     (defun restarttask ()
+       "standby -> inaction")
+     (defun cancelnewtask ()
+       "new -> cancelled")
+     (defun cancelactiontask ()
+       "inaction -> cancelled")
+     (defun cancelstandbytask ()
+       "standby -> cancelled")
+     (defun terminateactiontask ()
+       "inaction -> action")
+     (defun terminatestandbytask ()
+       "standby -> terminated")
+   #+END_SRC
+
 * Тесты
 
   #+NAME: asp_test
@@ -6427,7 +7553,407 @@ zlib1g_1.2.8.dfsg-2+b1_armel.deb
 
   #+END_SRC
 
+* Модули
+** Cущности, автоматы и их тесты
+
+   Опишем из чего состоит модуль, это описание станет частью asd-файла:
+
+   #+NAME: mod_entity
+   #+BEGIN_SRC lisp
+     (:module "entity"
+              :serial t
+              :pathname "mod"
+              :components ((:file "entity")))
+   #+END_SRC
+
+** Авторизация
+
+   Опишем из чего состоит модуль, это описание станет частью asd-файла:
+
+   #+NAME: mod_auth
+   #+BEGIN_SRC lisp
+     (:module "auth"
+              :serial t
+              :pathname "mod/auth"
+              :components ((:static-file "auth-tpl.htm")
+                           (:file "auth")))
+   #+END_SRC
+
+   Как пользователь, я хочу иметь возможность ввести логин и пароль чтобы получить доступ к
+   закрытому от неавторизованных пользователей функционалу.
+
 * Сборка
+** Утилиты
+   #+NAME: utility_file
+   #+BEGIN_SRC lisp :tangle src/util.lisp :noweb tangle :exports code  :padline no :comments link
+        ;;;; <<copyright>>
+        ;;;; util.lisp
+
+     (in-package #:asp)
+
+     ;; Превращает инициализированные поля объекта в plist
+     (defun get-obj-data (obj)
+       (let ((class (find-class (type-of obj)))
+             (result))
+         (loop :for slot :in (closer-mop:class-direct-slots class) :collect
+            (let ((slot-name (closer-mop:slot-definition-name slot)))
+              (when (slot-boundp obj slot-name)
+                (setf result
+                      (append result (list (intern (symbol-name slot-name) :keyword)
+                                           (funcall slot-name obj)))))))
+         result))
+
+     ;; Assembly WHERE clause
+     (defun make-clause-list (glob-rel rel args)
+       (append (list glob-rel)
+               (loop
+                  :for i
+                  :in args
+                  :when (and (symbolp i)
+                             (getf args i)
+                             (not (symbolp (getf args i))))
+                  :collect (list rel i (getf args i)))))
+
+     ;; Макросы для корректного вывода ошибок
+     (defmacro bprint (var)
+       `(subseq (with-output-to-string (*standard-output*)  (pprint ,var)) 1))
+
+     (defmacro err (var)
+       `(error (format nil "ERR:[~A]" (bprint ,var))))
+
+     ;; Отладочный вывод
+     (defparameter *dbg-enable* t)
+     (defparameter *dbg-indent* 1)
+
+     (defun dbgout (out)
+       (when *dbg-enable*
+         (format t (format nil "~~%~~~AT~~A" *dbg-indent*) out)))
+
+     (defmacro dbg (frmt &rest params)
+       `(dbgout (format nil ,frmt ,@params)))
+
+     ;; (macroexpand-1 '(dbg "~A~A~{~A~^,~}" "zzz" "34234" '(1 2 3 4)))
+
+     (defun anything-to-keyword (item)
+       (intern (string-upcase (format nil "~a" item)) :keyword))
+
+     (defun alist-to-plist (alist)
+       (if (not (equal (type-of alist) 'cons))
+           alist
+           ;;else
+           (loop
+              :for (key . value)
+              :in alist
+              :nconc (list (anything-to-keyword key) value))))
+
+     ;; Враппер управляет сесииями и выводит все в основной (root-овый) шаблон
+     ;; Если необходимо вывести ajax-данные, использует специальный тип ошибки
+
+     (define-condition ajax (error)
+       ((output :initarg :output :reader output)))
+
+     (defmacro with-wrapper (&body body)
+       `(progn
+          (hunchentoot:start-session)
+          (let* ((*current-user* (hunchentoot:session-value 'current-user))
+                 (retval))
+            (declare (special *current-user*))
+            (handler-case
+                (let ((output (with-output-to-string (*standard-output*)
+                                (setf retval ,@body))))
+                  (tpl:louis
+                   (list :title ""
+                         :header (tpl:header (list :login (head-login-block)
+                                                   :search
+                                                   (ps-html
+                                                   ((:form :action "/hh/search" :method "get" :novalidate "" :name "article-search" :class "header-search" :id="article-search")
+                                                    ((:fieldset)
+                                                     ((:legend :class "hidden") "search")
+                                                     ((:div :class "input-container hide-label")
+                                                      ((:label :for "header-search-q") "Поиск вакансий и фирм")
+                                                      ((:input :name "q" :id "header-search-q" :class "input-text form-element header-search__input"
+                                                               :maxlength "50" :required "required" :autocomplete "off" :value (aif (get-parameter "q") it "") :type "text")))
+                                                     ((:button :type "submit" :class "button button--header-search" :value "")
+                                                      ((:span :class "button__icon sprite") "Search")))))))
+                         :content retval
+                         :footer (tpl:footer (list :dbg (format nil "<pre>~A</pre>" output))))))
+              (ajax (ajax) (output ajax))))))
+
+     ;; Для того чтобы генерировать и выводить элементы форм, напишем хелперы:
+
+     ;; (defun input (type &key name value other)
+     ;;   (format nil "~%<input type=\"~A\"~A~A~A/>" type
+     ;;           (if name  (format nil " name=\"~A\"" name) "")
+     ;;           (if value (format nil " value=\"~A\"" value) "")
+     ;;           (if other (format nil " ~A" other) "")))
+
+     ;; ;; (input "text" :name "zzz" :value 111)
+     ;; ;; (input "submit" :name "submit-btn" :value "send")
+
+     ;; (defmacro select ((name &optional attrs) &body options)
+     ;;   `(format nil "~%<select name=\"~A\"~A>~{~%~A~}~%</select>"
+     ;;            ,name
+     ;;            (aif ,attrs (format nil " ~A" it) "")
+     ;;            (loop :for (name value selected) :in ,@options :collect
+     ;;               (format nil "<option value=\"~A\"~A>~A</option>"
+     ;;                       value
+     ;;                       (if selected (format nil " ~A" selected) "")
+     ;;                       name))))
+
+     ;; (defun fld (name &optional (value ""))
+     ;;   (input "text" :name name :value value))
+
+     ;; (defun btn (name &optional (value ""))
+     ;;   (input "button" :name name :value value))
+
+     ;; (defun hid (name &optional (value ""))
+     ;;   (input "hidden" :name name :value value))
+
+     ;; (defun submit (&optional value)
+     ;;   (if value
+     ;;       (input "submit" :value value)
+     ;;       (input "submit")))
+
+     ;; (defun act-btn (act data title)
+     ;;   (format nil "~%~{~%~A~}"
+     ;;           (list
+     ;;            (hid "act"  act)
+     ;;            (hid "data" data)
+     ;;            (submit title))))
+
+     ;; (defmacro row (title &body body)
+     ;;   `(format nil "~%<tr>~%<td>~A</td>~%<td>~A~%</td>~%</tr>"
+     ;;            ,title
+     ;;            ,@body))
+
+     ;; ;; (row "thetitrle" (submit))
+
+     ;; (defun td (dat)
+     ;;   (format nil "~%<td>~%~A~%</td>" dat))
+
+     ;; (defun tr (&rest dat)
+     ;;   (format nil "~%<tr>~%~{~A~}~%</tr>"
+     ;;           dat))
+
+     ;; ;; (tr "wfewf")
+     ;; ;; (tr "wfewf" 1111)
+
+     ;; (defun frm (contents &key name (method "POST") action)
+     ;;   (format nil "~%<form method=\"~A\"~A~A>~{~A~}~%</form>"
+     ;;           method
+     ;;           (if name (format nil " name=\"~A\"" name) "")
+     ;;           (if action (format nil " action=\"~A\"" action) "")
+     ;;           (if (consp contents)
+     ;;               contents
+     ;;               (list contents))))
+
+     ;; ;; (frm "form-content" :name "nnnnn")
+
+     ;; (defun tbl (contents &key name border)
+     ;;   (format nil "~%<table~A~A>~{~A~}~%</table>"
+     ;;           (if name (format nil " name=\"~A\"" name) "")
+     ;;           (if border (format nil " border=\"~A\"" border) "")
+     ;;           (if (consp contents)
+     ;;               contents
+     ;;               (list contents))))
+
+     ;; ;; (tbl (list "zzz") :name "table")
+
+     ;; ;; (frm (tbl (list (row "username" (fld "user")))))
+
+     ;; Макрос создает маршрут и маршрут-контроллер, таким образом,
+     ;; чтобы связать действия контроллера и кнопки
+     (defmacro define-page (name url (&body body) &rest rest)
+       (let ((name-ctrl (intern (format nil "~A-CTRL" (symbol-name name)))))
+         `(symbol-macrolet (,@(loop :for (act exp body) :in rest :collect
+                                 `(,(intern (format nil "%~A%" (symbol-name act))) ,exp)))
+            (restas:define-route ,name (,url)
+              (with-wrapper
+                ,body))
+            (restas:define-route ,name-ctrl (,url :method :post)
+              (with-wrapper
+                (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
+                  (cond
+                    ,@(append
+                       (loop :for (act exp body) :in rest :collect
+                          `((string= ,(symbol-name act) (getf p :act))
+                            ,body))
+                       `((t (format nil "unk act : ~A" (bprint p))))))))))))
+
+     ;; Чтобы выводить коллекции напишем макрос
+
+     (defmacro with-collection ((item collection) &body body)
+       `(loop :for ,item :in ,collection :collect
+           ,@body))
+
+     ;; Чтобы выводить элемент коллекции напишем макрос
+
+     (defmacro with-element ((item elt) &body body)
+       `(let ((,item ,elt))
+          (list
+           ,@body)))
+
+     (defun replace-all (string part replacement &key (test #'char=))
+       "Returns a new string in which all the occurences of the part
+           is replaced with replacement."
+       (with-output-to-string (out)
+         (loop with part-length = (length part)
+            for old-pos = 0 then (+ pos part-length)
+            for pos = (search part string
+                              :start2 old-pos
+                              :test test)
+            do (write-string string out
+                             :start old-pos
+                             :end (or pos (length string)))
+            when pos do (write-string replacement out)
+            while pos)))
+
+     (defun explore-dir (path)
+       (let ((raw (directory path))
+             (dirs)
+             (files))
+         (mapcar #'(lambda (x)
+                     (if (cl-fad:directory-pathname-p x)
+                         (push x dirs)
+                         (push x files)))
+                 raw)
+         (values dirs files raw)))
+
+     ;; clear-db
+     (defun drop (tbl-lst)
+       (let ((tables tbl-lst))
+         (flet ((rmtbl (tblname)
+                  (when (with-connection *db-spec*
+                          (query (:select 'table_name :from 'information_schema.tables :where
+                                          (:and (:= 'table_schema "public")
+                                                (:= 'table_name tblname)))))
+                    (with-connection *db-spec*
+                      (query (:drop-table (intern (string-upcase tblname))))))))
+           (loop :for tblname :in tables :collect
+              (rmtbl tblname)))))
+
+     ;; contains
+     (defun contains (string pattern)
+       (if (search pattern string)
+           t))
+
+     ;; empty
+     (defun empty (string)
+       (if (or (null string)
+               (equal "" string))
+           t))
+   #+END_SRC
+
+** Глобальные определения
+
+   Создание базы данных проекта:
+
+   #+BEGIN_EXAMPLE
+     postgres=# CREATE USER asp_admin WITH PASSWORD 'qwe123';
+     CREATE ROLE
+     postgres=# CREATE DATABASE asp OWNER asp_admin;
+     CREATE DATABASE
+     postgres=# GRANT ALL privileges ON DATABASE asp TO asp_admin;
+     GRANT
+   #+END_EXAMPLE
+
+   #+NAME: globals
+   #+BEGIN_SRC lisp :tangle src/globals.lisp :noweb tangle :exports code :padline no :comments link
+     ;;;; <<copyright>>
+     (in-package #:asp)
+
+     ;; One thing we have to do is make sure that CL-WHO and Parenscript
+     ;; use different string delimiters so that literal strings will
+     ;; work as intended in JavaScript code inlined in HTML element properties.
+     (setf *js-string-delimiter* #\")
+
+     ;; без этого происходит ошибка при компиляции в js
+     (defparameter PARENSCRIPT::SUPPRESS-VALUES nil)
+
+     ;; Подключение к базе данных PostgreSQL
+     (defvar *db-name* "asp")
+     (defvar *db-user* "asp_admin")
+     (defvar *db-pass* "qwe123")
+     (defvar *db-serv* "localhost")
+
+     (defvar *db-spec* (list "asp" "asp_admin" "qwe123" "localhost"))
+
+     ;; Подключение к базе данных Mysql
+     ;; (defvar *mysql-db-host* "bkn.ru")
+     ;; (defvar *mysql-db-database* "bkn_base")
+     ;; (defvar *mysql-db-user* "root")
+     ;; (defvar *mysql-db-password* "YGAhBawd1j~SANlw\"Y#l")
+     ;; (defvar *mysql-db-port* 3306)
+
+     ;; ;; Макрос для подключения к mysql
+     ;; (defmacro with-mysql-conn (spec &body body)
+     ;;   `(let ((*mysql-conn-pool* (apply #'cl-mysql:connect ',spec)))
+     ;;      (unwind-protect (progn
+     ;;                        (cl-mysql:query  "SET NAMES 'utf8'")
+     ;;                        ,@body)
+     ;;        (cl-mysql:disconnect))))
+
+     ;; (defmacro with-mysql (&body body)
+     ;;   `(with-mysql-conn (:host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306)
+     ;;      ,@body))
+
+     ;; (defparameter *mysql-conn-pool*
+     ;;   (cl-mysql:connect :host "bkn.ru" :database "bkn_base" :user "root" :password "YGAhBawd1j~SANlw\"Y#l" :port 3306))
+
+     ;; (cl-mysql:query  "SET NAMES 'utf8'")
+
+     ;; (defmacro with-mysql (&body body)
+     ;;   `(progn ,@body))
+
+     ;; clear db
+     ;; (drop '("resume"))
+     ;; (drop '("user" "role" "group" "user2group" "msg"
+     ;;         "que" "quelt" "bratan" "cmpx" "plex" "crps" "flat"
+     ;;         "city" "district" "metro" "deadline"))
+   #+END_SRC
+
+** Страницы
+*** Главная страница
+
+    #+NAME: iface_contents
+    #+BEGIN_SRC lisp
+      (in-package #:asp)
+
+      (define-page main "/"
+        (let ((breadcrumb (breadcrumb "Последние измениния"))
+              (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+          (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+            (content-box ()
+              (heading ("Что происходит?") "Последние события:"))
+            (content-box ()
+              (show (sort (all-event) #'(lambda (a b) (> (id a) (id b))))))
+            (ps-html ((:span :class "clear"))))))
+
+      (defmethod show ((param event) &rest actions &key &allow-other-keys)
+        (let ((time-record
+               (multiple-value-bind (second minute hour date month year day daylight-p zone)
+                   (decode-universal-time (ts-create param))
+                 (format nil "~A:~A:~A ~A.~A.~A"
+                         hour minute second date month year))))
+
+        (ps-html
+         ((:li :class "article-item article-item--list" :style "height: inherit;;")
+          ((:div :class "inner")
+           ((:div :class "article-item__info" :style "width: 540px; height: inherit; float: inherit;")
+            ((:div :class "article-item__main-info")
+             ;; ((:a :class "article-item__title-link" :href (format nil "/group/~A" (id param)))
+             ;;  ((:h3 :class "article-item__title") (name param))
+             ;;  ((:h4 :class "article-item__subtitle")))
+             ((:p :class "article-item__description") (msg param)))
+            time-record
+            ;; (if (null actions)
+            ;; ""
+            ;;   (format nil "~{~A~}"
+            ;;           (loop :for action-key :in actions :by #'cddr :collect
+            ;;              (funcall (getf actions action-key) param))))
+            ((:span :class "clear"))))))))
+ #+END_SRC
+
 ** Каркас проекта
 
    Для генерации "с чистого листа" необходимы функции генерации сущностей, они лежат в
@@ -6490,16 +8016,10 @@ zlib1g_1.2.8.dfsg-2+b1_armel.deb
                     ;; Модуль авторизации (зависит от определения сущностей в стартовом файле)
                     <<mod_auth>>
                     ;; Модуль очередей
-                    ;; <<mod_que>>
+                    <<mod_que>>
                     ;; Модуль сообщений
                     <<mod_msg>>
-                    ;; Модуль trend
-                    <<mod_trend>>
-                    ;; Модуль мотобратан
-                    ;; <<mod_bratan>>
-                    ;; Модуль HeadHunter
-                    <<mod_hh>>
-                    (:file "events")     ;; события системы
+                    ;; (:file "events")     ;; события системы
                     (:file "iface")      ;; файл веб-интерфейса
                     ))
    #+END_SRC
@@ -6636,6 +8156,62 @@ zlib1g_1.2.8.dfsg-2+b1_armel.deb
      ;;   (restas.directory-publisher:*autoindex* t))
    #+END_SRC
 
+** Блок логина в шапке на каждой странице
+
+   #+NAME: auth_fn_contents
+   #+BEGIN_SRC lisp
+     (in-package #:asp)
+
+     (defun head-login-block ()
+       (if *current-user*
+           (ps-html
+            ((:div :class "flyout-parent user-nav__item user-nav__item--my-louis")
+             ((:div)
+              ((:a :href "#" :class "nav-button js__setFocus" :data-set-focus
+                   "email" :id "mylouis-flyout-link")
+               ((:span :class "nav-button__text") "Мой профиль")
+               ((:span :class "nav-button__icon sprite"))))
+             ((:div :class "user-nav__flyout flyout flyout--my-louis
+       flyout--my-louis--login popup")
+              ((:span :class "hover"))
+              ((:a :class "action-icon action-icon--close" :href "#") "×")
+              ((:div :class "box")
+               ((:div :class "box--title") (format nil "Привет, ~A" (name (get-user
+                                                                           ,*current-user*))))
+               ((:p) "Последний вход: недавно")
+               ((:a :class "button button--link button--secondary" :href "/reg")
+                "Профиль"
+                ((:span :class "button__icon")))))))
+           ;; else
+           (ps-html
+            ((:div :class "flyout-parent user-nav__item user-nav__item--my-louis")
+             ((:div)
+              ((:a :href "#" :class "nav-button js__setFocus" :data-set-focus
+                   "email" :id "mylouis-flyout-link")
+               ((:span :class "nav-button__text") "Мой профиль")
+               ((:span :class "nav-button__icon sprite"))))
+             ((:div :class "user-nav__flyout flyout flyout--my-louis
+       flyout--my-louis--login popup")
+              ((:span :class "hover"))
+              ((:a :class "action-icon action-icon--close" :href "#") "×")
+              (form ("loginform" nil :action "/login")
+                (fieldset "Вход:"
+                  (input ("email" "Электронная почта" :required t :type
+                                  "email" :maxlength "50" :class "input-bg"))
+                  (input ("password" "Пароль" :required t :type
+                                     "password" :autocomplete "off" :class "input-bg"))
+                  (ps-html ((:input :type "hidden" :name "act" :value "LOGIN")))
+                  (submit "Войти")
+                  (ps-html ((:p :class "forgot-pw") "Забыли " ((:a :href
+                                                                   "/lostpassword") "пароль") "?"))))
+              ((:div :class "box")
+               ((:div :class "box--title") "Впервые здесь?")
+               ((:p) "Зарегистрируйтесь и оцените преимущества!")
+               ((:a :class "button button--link button--secondary" :href "/reg")
+                "Зарегистрироваться"
+                ((:span :class "button__icon")))))))))
+   #+END_SRC
+
 ** Точка входа
 
    Отсюда все начинается
@@ -6647,17 +8223,34 @@ zlib1g_1.2.8.dfsg-2+b1_armel.deb
 
      (in-package #:asp)
 
+     (defclass asp-render () ())
+
+     (restas:define-route main ("/")
+       "test main page")
+
+     (define-page frp "/frp"
+       (let ((breadcrumb (breadcrumb "FRP"))
+             (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+         (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+           (content-box ()
+             (heading ("FRP")
+               "Тестируем FRP")
+             (ps-html ((:div :id "frp")))
+           (ps-html ((:span :class "clear")))))
+       ))
+
      (defun main ()
        ;; start
        (restas:start '#:asp :port 3999)
        (restas:debug-mode-on)
        ;; (restas:debugg-mode-off)
        (setf hunchentoot:*catch-errors-p* t)
-       (make-event :name "restart"
-                   :tag "restart"
-                   :msg (format nil "Сервер перезапущен")
-                   :author-id 0
-                   :ts-create (get-universal-time)))
+       ;; (make-event :name "restart"
+       ;;             :tag "restart"
+       ;;             :msg (format nil "Сервер перезапущен")
+       ;;             :author-id 0
+       ;;             :ts-create (get-universal-time))
+       )
 
      (main)
 
