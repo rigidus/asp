@@ -6544,9 +6544,9 @@ toolchain="gcc_linaro_gnueabihf_4_9"
       "parameters":{"screen":2}
     }
 
-    Ожидаем по таймеру 1
+    [TODO:gmm] [TODO:aav] [TODO:bvl] Ожидаем по таймеру 1
 
-*** TODO Событие открытия шлагбаума
+*** Событие открытия шлагбаума
 
     Замыкаем реле =relay-gate-open= (замкнуто по [[*Настройка импульса открытия шлагбаума][таймеру №2]] из UI - импульс открытия)
 
@@ -6557,13 +6557,14 @@ toolchain="gcc_linaro_gnueabihf_4_9"
     }
 
     Показ текста стр. 2 "Открытие шлагбаума"
+
     { "txid":XX,
       "device":"display",
       "command":"show",
       "parameters":{"screen":3}
     }
 
-    ожидаем по таймеру 2
+    [TODO:gmm] [TODO:aav] [TODO:bvl] Ожидаем по таймеру 2
 
 *** TODO Событие проезда
 
@@ -6603,7 +6604,7 @@ toolchain="gcc_linaro_gnueabihf_4_9"
     }
 
 ** Реализация
-*** Некоторые необходимые функции
+*** COMMENT Некоторые необходимые функции
 
     #+NAME: initpage
     #+BEGIN_SRC lisp
@@ -6642,6 +6643,28 @@ toolchain="gcc_linaro_gnueabihf_4_9"
           (prog1
               (flexi-streams:octets-to-string body-or-stream :external-format :utf-8)
             (incf *tx-counter*))))
+
+      (defmacro define-demo-page ((name page-url title note btn) &body body)
+        `(define-page ,name ,page-url
+          (let ((breadcrumb (breadcrumb ,title))
+                (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
+            (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+              (content-box () (heading (,title) ,note))
+              (content-box (:class "size-3-5 switch-content-container")
+                (form ("demoform" ,title :action ,page-url :class "form-section-container")
+                  %CTRL%))
+              (ps-html ((:span :class "clear")))))
+          (:CTRL (ps-html
+                  ((:input :type "hidden" :name "act" :value "CTRL"))
+                  ((:div :class "form-send-container")
+                   (submit ,btn)))
+                 (let ((breadcrumb (breadcrumb ,title))
+                       (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
+                   (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+                     (content-box () (heading ("Успешно")))
+                     (content-box () (system-msg ("success")
+                                       ,@body))
+                     (ps-html ((:span :class "clear"))))))))
     #+END_SRC
 
 *** Страница инициализации
@@ -6795,9 +6818,7 @@ toolchain="gcc_linaro_gnueabihf_4_9"
        ;;   "command":"press"
        ;; }
 
-       (let* ((page-url    "demo_page_init")
-              (title       "Нажатие кнопки на стойке")
-              (ticket      (ticket-assembly
+       (let* ((ticket      (ticket-assembly
                             ,*begin-ticket-id*
                             (get-current-time-str)
                             ,*checkpoint-id*
@@ -6811,49 +6832,29 @@ toolchain="gcc_linaro_gnueabihf_4_9"
                              (:DEVICE . "display")
                              (:COMMAND . "show")
                              (:PARAMETERS (:SCREEN . 1)))))
-         (define-page demo-page-init page-url
-           (let ((breadcrumb (breadcrumb title))
-                 (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
-             (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
-               (content-box ()
-                 (heading (title)
-                   "На этой странице можно эмулировать нажатие кнопки на стойке"))
-               (content-box (:class "size-3-5 switch-content-container")
-                 (form ("demoform" title :action page-url :class "form-section-container")
-                   %CTRL%))
-               (ps-html ((:span :class "clear")))))
-           (:CTRL (ps-html
-                   ((:input :type "hidden" :name "act" :value "CTRL"))
-                   ((:div :class "form-send-container")
-                    (submit "Нажать кнопку" )))
-                  (progn
-                    ;; Отправка сообщения чтобы напечатать билет со штрихкодом
-                    (let ((response-ticket  (send-to-low-level msg-ticket))
-                          (response-display (send-to-low-level msg-display)))
-                      ;; TODO : Непонятно кто должен установить таймер, который вызовет событие окончания печати
-                      (let ((breadcrumb (breadcrumb "Нажатие кнопки на стойке"))
-                            (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
-                        (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
-                          (content-box ()
-                            (heading ("Успешно")))
-                          (content-box ()
-                            (system-msg ("success")
-                              (format nil "~{~A~}"
-                                      (list
-                                       (ps-html ((:p) "Печать билета со штрихкодом"))
-                                       "<pre>"
-                                       (format nil "~{~A<br />~}" ticket)
-                                       "</pre>"
-                                       (ps-html ((:p) "Печать штрихкода"))
-                                       "<pre>"
-                                       (bprint response-ticket)
-                                       "</pre>"
-                                       (ps-html ((:p) "Вывод на дисплей"))
-                                       "<pre>"
-                                       (bprint response-ticket)
-                                       "</pre>"
-                                       ))))
-                          (ps-html ((:span :class "clear"))))))))))
+         (define-demo-page (demo-page-init "/demo_page_init" "Нажатие кнопки на стойке"
+                                           "На этой странице можно эмулировать нажатие кнопки на стойке"
+                                           "Нажать кнопку")
+           (progn
+             ;; Отправка сообщения чтобы напечатать билет со штрихкодом
+             (let ((response-ticket  (send-to-low-level msg-ticket))
+                   (response-display (send-to-low-level msg-display)))
+               ;; TODO : Непонятно кто должен установить таймер, который вызовет событие окончания печати
+               (format nil "~{~A~}"
+                       (list
+                        (ps-html ((:p) "Печать билета со штрихкодом"))
+                        "<pre>"
+                        (format nil "~{~A<br />~}" ticket)
+                        "</pre>"
+                        (ps-html ((:p) "Печать штрихкода"))
+                        "<pre>"
+                        (bprint response-ticket)
+                        "</pre>"
+                        (ps-html ((:p) "Вывод на дисплей"))
+                        "<pre>"
+                        (bprint response-ticket)
+                        "</pre>"
+                        ))))))
     #+END_SRC
 
 **** Конец печати / забирание билета
@@ -6869,53 +6870,70 @@ toolchain="gcc_linaro_gnueabihf_4_9"
        ;;   "parameters":{ "result":"OK" }
        ;; }
 
-       (let* ((page-url    "demo_page_printout")
-              (title       "Конец печати, пользователь забирает билет")
-              (msg         `((:TXID . ,*tx-counter*)
+       (let* ((msg `((:TXID . ,*tx-counter*)
+                     (:DEVICE . "display")
+                     (:COMMAND . "show")
+                     (:PARAMETERS (:SCREEN . 2)))))
+         (define-demo-page (demo-page-printout "/demo_page_printout" "Конец печати, пользователь забирает билет"
+                                               "На этой странице можно эмулировать забирание билета пользователем"
+                                               "Забрать билет")
+           (progn
+             ;; Отправка сообщения чтобы показать текст "Заберите билет"
+             (let ((response (send-to-low-level msg)))
+               (format nil "~{~A~}"
+                       (list
+                        (ps-html ((:p) "Сообщение"))
+                        "<pre>"
+                        (cl-json:encode-json-to-string msg)
+                        "</pre>"
+                        (ps-html ((:p) "Response"))
+                        "<pre>"
+                        (bprint response)
+                        "</pre>"
+                        ))))))
+    #+END_SRC
+
+**** Открытие шлагбаума
+
+     #+NAME: demo_page_open
+     #+BEGIN_SRC lisp
+       (in-package :asp)
+
+       (let* ((msg-shlag   `((:TXID . ,*tx-counter*)
+                             (:DEVICE . "shlagbaum_in")
+                             (:COMMAND . "up")
+                             (:PARAMETERS (:TIMEOUT . 3000))))
+              (msg-display `((:TXID . ,*tx-counter*)
                              (:DEVICE . "display")
                              (:COMMAND . "show")
-                             (:PARAMETERS (:SCREEN . 2)))))
-         (define-page demo-page-init page-url
-           (let ((breadcrumb (breadcrumb title))
-                 (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
-             (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
-               (content-box ()
-                 (heading (title)
-                   "На этой странице можно эмулировать нажатие кнопки на стойке"))
-               (content-box (:class "size-3-5 switch-content-container")
-                 (form ("demoform" title :action page-url :class "form-section-container")
-                   %CTRL%))
-               (ps-html ((:span :class "clear")))))
-           (:CTRL (ps-html
-                   ((:input :type "hidden" :name "act" :value "CTRL"))
-                   ((:div :class "form-send-container")
-                    (submit "Забрать билет" )))
-                  (progn
-                    ;; Отправка сообщения чтобы показать текст "Заберите билет"
-                    (let ((response (send-to-low-level msg)))
-                      (let ((breadcrumb (breadcrumb title))
-                            (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
-                        (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
-                          (content-box ()
-                            (heading ("Успешно")))
-                          (content-box ()
-                            (system-msg ("success")
-                              (format nil "~{~A~}"
-                                      (list
-                                       (ps-html ((:p) "Сообщение"))
-                                       "<pre>"
-                                       (cl-json:encode-json-to-string msg)
-                                       "</pre>"
-                                       (ps-html ((:p) "Response"))
-                                       "<pre>"
-                                       (bprint response)
-                                       "</pre>"
-                                       ))))
-                          (ps-html ((:span :class "clear"))))))))))
+                             (:PARAMETERS (:SCREEN . 3)))))
+         (define-demo-page  (demo-page-open "/demo_page_open" "Открытие шлагбаума"
+                                            "На этой странице можно открыть шлагбаум" "Открыть шлагбаум")
+           (progn
+             (let ((response-shlag   (send-to-low-level msg-shlag))
+                   (response-display (send-to-low-level msg-display)))
+               (format nil "~{~A~}"
+                       (list
+                        (ps-html ((:p) "Сообщение шлагбауму"))
+                        "<pre>"
+                        (cl-json:encode-json-to-string msg-shlag)
+                        "</pre>"
+                        (ps-html ((:p) "Response"))
+                        "<pre>"
+                        (bprint response-shlag)
+                        "</pre>"
+                        (ps-html ((:p) "Сообщение дисплею"))
+                        "<pre>"
+                        (cl-json:encode-json-to-string msg-display)
+                        "</pre>"
+                        (ps-html ((:p) "Response"))
+                        "<pre>"
+                        (bprint response-display)
+                        "</pre>"
+                        ))))))
     #+END_SRC
 
 
-**** Открытие шлагбаума
 **** Проезд
 **** Закрытие шлагбаума
 
