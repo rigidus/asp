@@ -6500,35 +6500,45 @@ toolchain="gcc_linaro_gnueabihf_4_9"
 
 *** Нажатие кнопки стойки
 
-    { "eventid":XX,
+    {
+      "eventid":XX,
       "device":"user-button",
       "command":"press"
     }
 
     Это событие вызывает:
+
     - Печать билета со штрих-кодом и основной информацией (которую мы ввели в UI)
-      { "txid":XX,
+
+      {
+        "txid":XX,
         "device":"printer",
         "command":"print",
         "parameters":{ ??? },
       }
+
     - Показ текста стр. 2 "Печать штрихкода"
-      { "txid":XX,
+
+      {
+        "txid":XX,
         "device":"display",
         "command":"show",
         "parameters":{"screen":1}
       }
 
-*** TODO Событие конца печати / забирания билета
+*** Событие конца печати / забирания билета
 
-    { "eventid":XX,
+    {
+      "eventid":XX,
       "device":"printer",
-       "command":"print"
-       "parameters":{ "result":"OK" }
+      "command":"print"
+      "parameters":{ "result":"OK" }
     }
 
     Показ текста стр. 2 "Заберите билет, проезжайте"
-    { "txid":XX,
+
+    {
+      "txid":XX,
       "device":"display",
       "command":"show",
       "parameters":{"screen":2}
@@ -6847,6 +6857,64 @@ toolchain="gcc_linaro_gnueabihf_4_9"
     #+END_SRC
 
 **** Конец печати / забирание билета
+
+     #+NAME: demo_page_printout
+     #+BEGIN_SRC lisp
+       (in-package :asp)
+
+       ;; {
+       ;;   "eventid":XX,
+       ;;   "device":"printer",
+       ;;   "command":"print"
+       ;;   "parameters":{ "result":"OK" }
+       ;; }
+
+       (let* ((page-url    "demo_page_printout")
+              (title       "Конец печати, пользователь забирает билет")
+              (msg         `((:TXID . ,*tx-counter*)
+                             (:DEVICE . "display")
+                             (:COMMAND . "show")
+                             (:PARAMETERS (:SCREEN . 2)))))
+         (define-page demo-page-init page-url
+           (let ((breadcrumb (breadcrumb title))
+                 (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
+             (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+               (content-box ()
+                 (heading (title)
+                   "На этой странице можно эмулировать нажатие кнопки на стойке"))
+               (content-box (:class "size-3-5 switch-content-container")
+                 (form ("demoform" title :action page-url :class "form-section-container")
+                   %CTRL%))
+               (ps-html ((:span :class "clear")))))
+           (:CTRL (ps-html
+                   ((:input :type "hidden" :name "act" :value "CTRL"))
+                   ((:div :class "form-send-container")
+                    (submit "Забрать билет" )))
+                  (progn
+                    ;; Отправка сообщения чтобы показать текст "Заберите билет"
+                    (let ((response (send-to-low-level msg)))
+                      (let ((breadcrumb (breadcrumb title))
+                            (user       (if (null *current-user*) "" (name (get-user *current-user*)))))
+                        (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+                          (content-box ()
+                            (heading ("Успешно")))
+                          (content-box ()
+                            (system-msg ("success")
+                              (format nil "~{~A~}"
+                                      (list
+                                       (ps-html ((:p) "Сообщение"))
+                                       "<pre>"
+                                       (cl-json:encode-json-to-string msg)
+                                       "</pre>"
+                                       (ps-html ((:p) "Response"))
+                                       "<pre>"
+                                       (bprint response)
+                                       "</pre>"
+                                       ))))
+                          (ps-html ((:span :class "clear"))))))))))
+    #+END_SRC
+
+
 **** Открытие шлагбаума
 **** Проезд
 **** Закрытие шлагбаума
