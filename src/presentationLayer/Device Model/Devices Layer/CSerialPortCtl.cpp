@@ -61,7 +61,8 @@ shared_ptr<CBaseCommCtl> CSerialPortCtl::takeCommCtl(CBaseDevice* device, const 
 
 		// create CPinCtl for pinNum
 		shared_ptr<CBaseCommCtl> uartCtl((CBaseCommCtl*) new CSerialPortCtl(device, uartName));
-		busyUarts.emplace(std::make_pair(uartName, uartCtl));
+		std::pair<std::string, shared_ptr<CBaseCommCtl> > pr(uartName, uartCtl);
+		busyUarts.insert(pr);
 		// OK! pin is made as busied and stored
 
 		std::cout << "CSerialPortCtl::takeCommCtl take " << uartName << " successfully" << std::endl;

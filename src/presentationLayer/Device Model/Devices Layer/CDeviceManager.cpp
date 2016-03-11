@@ -31,7 +31,8 @@ CDeviceManager::CDeviceManager(std::vector<settings::DeviceConfig> devConfig) {
 
 		if (sPtr.get() != nullptr)
 		{
-			devices.emplace( std::make_pair(v.abstractName, devCtl) );
+			std::pair< std::string, DeviceCtl > pr(v.abstractName, devCtl);
+			devices.insert(pr);
 		}
 	}
 

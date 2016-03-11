@@ -68,7 +68,8 @@ shared_ptr<CBaseCommCtl> CPinCtl::takeCommCtl(CBaseDevice* device, const std::st
 
 		// create CPinCtl for pinNum
 		shared_ptr<CBaseCommCtl> pinCtl( (CBaseCommCtl*) new CPinCtl(device, gpioName) );
-		busyPins.emplace(std::make_pair(gpioName, pinCtl));
+		std::pair<std::string, shared_ptr<CBaseCommCtl> > pr(gpioName, pinCtl);
+		busyPins.insert(pr);
 		// OK! pin is made as busied and stored
 
 		std::cout << "CPinCtl::takeCommCtl: take " << gpioName << " successfully" << std::endl;
