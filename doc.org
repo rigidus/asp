@@ -8405,7 +8405,57 @@ toolchain="gcc_linaro_gnueabihf_4_9"
        в этом виде.
 
 ** Установка cmake
+   Cmake нам понадобится, чтобы собрать Boost
+   apt-get install cmake, собственно
+
 ** Установка Boost
+   Boost мы берем отсюда:
+   http://www.boost.org/users/history/version_1_57_0.html
+   Укачиваем с SourceForge, распаковываем, смотрим на каталог.
+
+   Собираем, устанавливаем:
+   $ sudo ./buutstrap.sh
+   $ sudo ./b2 install
+
+   Это должно канать для сборки и тестирования на хост-машине.
+
+   Настраиваем кросс-компиляцию. Мануал: http://www.boost.org/build/doc/html/bbv2/tasks/crosscompile.html
+   Находим файл ./tools/build/example/user-config.jam, тащим его к себе в "~", добавляем строчку
+   #+BEGIN_SRC
+using gcc : arm : arm-linux-gnueabihf-g++ ;
+   #+END_SRC
+   Пересобираем с параметром:
+   $ sudo ./b2 toolset=gcc-arm
+
+   На ВВВ у нас тоже должен быть установлен и собран Boost, иначе не взлетим. Процесс тот же (кроме
+   настройки кросс-компиляции).
+
 ** Установка cppunit
+   Это набор инструментов автотестирования. Его тоже тащим с SourceForge:
+   https://sourceforge.net/projects/cppunit/
+
+   Распаковываем, запускаем
+   $ ./configure
+   $ sudo make
+   $ sudo make install   
+
+   Обычно на этом всё.
+
 ** Установка rapidjson
+   Его тащим с гитхаба:
+   $ git clone https://github.com/miloyip/rapidjson.git
+   
+   После чего производим настройку, сборку и установку:
+
+   $ cmake .
+   $ sudo make
+   $ sudo make install
+
+   На последнем шаге мне не хватило каталога ./include/rapidjson в существующем ./include. Создал ручками,
+   прокатило, установилось.
+
+** Единая конфигурация Eclipse                                      :bvl:aav:
+   Надо бы по возможности проработать непротиворечивую конфигурацию, чтобы .cproject был единым.
+
+
 * Оптимизация аппаратной части решения
