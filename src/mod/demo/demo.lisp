@@ -19,7 +19,7 @@
 (defparameter *timer-4* 3000)
 (defparameter *secret* "secret-key")
 
-(defparameter *low-level-endpoint* "http://localhost:3999/low_level_endpoint")
+(defparameter *low-level-endpoint* "http://localhost:8000/")
 (defparameter *tx-counter* 1)
 
 (defun send-to-low-level (msg)
