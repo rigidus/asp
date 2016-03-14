@@ -31,6 +31,8 @@
  * http://localhost:8000
  */
 
+// curl -v -H "Content-Type: application/json" -X POST -d '{"txid":12, "device":"shlagbaum_in", "command":"down", "parameters":{"state":"open", "car":"present"} }' http://localhost:8000
+
 namespace httpserver
 {
 

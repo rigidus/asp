@@ -38,6 +38,21 @@ void CBaseDevice::performEvent(std::vector<uint8_t>& rcvData)
 	for(uint8_t v: rcvData)
 		answer += v;
 
+	setCommandTo::Client( setCommandTo::Event, c_name, "answer: ", answer);
+}
+
+
+void CBaseDevice::performTransaction(std::vector<uint8_t>& rcvData)
+{
+	std::cout << "CBaseDevice::performTransaction: performs Transaction from device: " << c_name << ": ";
+	for (auto v: rcvData) std::cout << v << " ";
+	std::cout << std::endl;
+
+	// Вызвать установку задачи для клиента по имени абстрактного девайса
+	std::string answer;
+	for(uint8_t v: rcvData)
+		answer += v;
+
 	setCommandTo::Client( setCommandTo::Transaction, c_name, "answer: ", answer);
 }
 

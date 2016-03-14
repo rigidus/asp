@@ -12,6 +12,7 @@ CBaseCommCtl::CBaseCommCtl(CBaseDevice* device, const std::string& commName): m_
 {
 	m_deviceName = m_device->c_name;
 	m_commName = commName;
+	m_device = device;
 }
 
 

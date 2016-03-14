@@ -42,17 +42,9 @@ settings::DeviceConfig shlagbaum1 =
 		"shlagbaum_gpio",
 		"shlagbaum_in",
 		"",
-		{ "gpio12", "gpio18", "gpio8", "uart2" },
+		// (in, out) - UP, (in. out) - DOWN, in - car present
+		{ "gpio66", "gpio67", "gpio68", "gpio69", "gpio45" },
 		enabled_device
-};
-
-settings::DeviceConfig shlagbaum2 =
-{
-		"shlagbaum_gpio",
-		"shlagbaum_out",
-		"",
-		{ "gpio13", "gpio19", "gpio9", "gpio3" },
-		disabled_device
 };
 
 settings::DeviceConfig printer =
@@ -64,39 +56,21 @@ settings::DeviceConfig printer =
 		disabled_device
 };
 
-settings::DeviceConfig presentSensor =
-{
-		"i_am_here",
-		"present sensor",
-		"",
-		{ "gpio5", "gpio6" },
-		disabled_device
-};
-
-settings::DeviceConfig passSensor =
-{
-		"get_out_from",
-		"pass sensor",
-		"",
-		{ "gpio7", "gpio1" },
-		disabled_device
-};
-
 settings::DeviceConfig display =
 {
-		"winstar16x2",
-		"textdisplay16x2",
-		"winstar",
-		{ "gpio20", "gpio21", "gpio22", "gpio23", "gpio24", "gpio25", "gpio26" },
+		"display_ru",
+		"display_winstar_4x16",
+		"",
+		{ },
 		disabled_device
 };
 
-settings::DeviceConfig kkm =
+settings::DeviceConfig userbutton =
 {
-		"poluchalka",
-		"kkm",
-		"proto_kkm",
-		{ "uart1" },
+		"shlagbaum_gpio",
+		"shlagbaum_button",
+		"",
+		{ "gpio44" },
 		disabled_device
 };
 
@@ -106,34 +80,55 @@ settings::DeviceConfig* devices[] =
 		&client_http_dev_layer,
 		&test_device,
 		&shlagbaum1,
-//		&shlagbaum2,
-//		&printer,
-//		&presentSensor,
-//		&passSensor,
-//		&display,
-//		&kkm
+		&printer,
+		&display,
+		&userbutton
 };
 
-settings::CommGPIOConfig gpio12 =
+settings::CommGPIOConfig gpio66 =
 {
-		"gpio12",
-		true,	// out
+		"gpio66",
+		false,	// in, UP
 		false,	// value = 0
 		3000	// default pulse value, ms
 };
 
-settings::CommGPIOConfig gpio18 =
+settings::CommGPIOConfig gpio67 =
 {
-		"gpio18",
-		true,	// out
+		"gpio67",
+		true,	// out, UP
 		false,	// value = 0
 		3000	// default pulse value, ms
 };
 
-settings::CommGPIOConfig gpio8 =
+settings::CommGPIOConfig gpio68 =
 {
-		"gpio8",
+		"gpio68",
+		false,	// in, DOWN
+		false,	// value = 1
+		300		// check delay, ms
+};
+
+settings::CommGPIOConfig gpio69 =
+{
+		"gpio69",
+		true,	// out, DOWN
+		false,	// value = 1
+		300		// check delay, ms
+};
+
+settings::CommGPIOConfig gpio45 =
+{
+		"gpio45",
 		false,	// in, signal from car present
+		true,	// value = 1
+		300		// check delay, ms
+};
+
+settings::CommGPIOConfig gpio44 =
+{
+		"gpio44",
+		false,	// in, signal from user button
 		true,	// value = 1
 		300		// check delay, ms
 };
@@ -147,9 +142,12 @@ settings::CommUARTConfig uart2 =
 
 settings::CommGPIOConfig* gpioConfigs[] =
 {
-		&gpio8,
-		&gpio12,
-		&gpio18
+		&gpio66,
+		&gpio67,
+		&gpio68,
+		&gpio69,
+		&gpio45,
+		&gpio44
 };
 
 settings::CommUARTConfig* uartConfigs[] =

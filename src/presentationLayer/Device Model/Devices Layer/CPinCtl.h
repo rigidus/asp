@@ -76,9 +76,11 @@ private:
 
 	struct TPinData{
 		std::string name;
+		std::string filename;
 		int32_t fd;
 		int32_t events;
 		int32_t watch;
+		int32_t oldvalue;
 	};
 
 	static std::vector<TPinData> PinData;

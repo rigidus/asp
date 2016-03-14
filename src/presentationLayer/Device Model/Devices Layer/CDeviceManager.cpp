@@ -85,6 +85,14 @@ void CDeviceManager::destroyDeviceManager()
 
 void CDeviceManager::sendCommand(CAbstractDevice* abstractDevice, std::string command, std::string pars)
 {
+	if (abstractDevice == nullptr)
+	{
+		std::cout << "CDeviceManager::sendCommand: abstractDevice is null" << std::endl;
+		return;
+	}
+
+	std::cout << "CDeviceManager::sendCommand: Start Task for '" << abstractDevice->device()->c_name << "'" << std::endl;
+
 	abstractDevice->sendCommand(command, pars);
 }
 
@@ -248,15 +256,15 @@ void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std
 		auto itAdresat = devices.find("logic_bsns_layer");
 		if ( itAdresat != devices.end() )
 		{
-			std::cout << "CDeviceManager::setCommandToClient: Set event to '" << BsnsLogic::s_abstractName <<"' from " << concreteDevice << " as Event." << std::endl;
-
 			DeviceCtl::Task clientTask;
 			clientTask.txId = 0;
 			clientTask.adresat = "";
-			clientTask.abstract = BsnsLogic::s_abstractName;
-			clientTask.concrete = HttpClient::s_concreteName;
+			clientTask.abstract = "logic_bsns_layer";
+			clientTask.concrete = "logic_http";
 
-			clientTask.taskFn = boost::bind(sendCommand, devices[BsnsLogic::s_abstractName].devInstance.get(), command, parameters);
+			std::cout << "CDeviceManager::setCommandToClient: Set event to '" << clientTask.abstract <<"' from " << concreteDevice << " as Event." << std::endl;
+
+			clientTask.taskFn = boost::bind(sendCommand, devices[clientTask.abstract].devInstance.get(), command, parameters);
 
 			itAdresat->second.taskQue.push(clientTask);
 
