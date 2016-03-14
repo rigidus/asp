@@ -50,10 +50,18 @@
                         :components ((:static-file "auth-tpl.htm")
                                      (:file "auth")))
                ;; Модуль очередей
-               
+               (:module "que"
+                        :serial t
+                        :pathname "mod/que"
+                        :components ((:file "que")))
                ;; Модуль сообщений
                
                ;; (:file "events")     ;; события системы
                (:file "iface")      ;; файл веб-интерфейса
+               ;; Модуль демонстрации
+               (:module "demo"
+                        :serial t
+                        :pathname "mod/demo"
+                        :components ((:file "demo")))
                ))
 ;; defsystem ends here

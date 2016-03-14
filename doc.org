@@ -7623,6 +7623,46 @@ zlib1g_1.2.8.dfsg-2+b1_armel.deb
        "standby -> terminated")
    #+END_SRC
 
+** DONE Очереди (que, quelt)
+
+   Очереди используются для фолловинга и прочей подписки на обновления.
+
+   Нам нужна некоторая инфраструктура чтобы абстрагироваться от операций управления
+   очередями, подписчиками и посылки сообщений. Потом ее можно будет изменить для поддержки
+   RabbitMQ, Mbus или ZMQ или даже использовать все их одновременно для разных целей.
+
+   Очередь является простой сущностью и не имеет состояния.
+
+   #+CAPTION: Данные очереди
+   #+NAME: que_flds
+     | field name | field type | note          |
+     |------------+------------+---------------|
+     | id         | serial     | идентификатор |
+     | name       | varchar    | имя очереди   |
+
+   Нам понадобится сущность элемента очереди, назовем его =quelt=. Элемент очереди является
+   простой сущностью и не имеет состояния.
+
+   #+CAPTION: Данные элемента очереди
+   #+NAME: quelt_flds
+     | field name | field type | note                  |
+     |------------+------------+-----------------------|
+     | id         | serial     | идентификатор         |
+     | que-id     | integer    | идентификатор очереди |
+     | text       | varchar    | содержимое            |
+
+   Сгенерируем код и создадим необходимые очереди:
+
+   #+NAME: que_entity
+   #+BEGIN_SRC lisp :tangle src/entityes.lisp :noweb tangle :exports none :padline no :comments link
+     <<gen_entity("que", "очереди", que_flds)>>
+     <<gen_entity("quelt", "элемента очереди", quelt_flds)>>
+     ;; (make-que :name "admin")
+     ;; (make-que :name "manager")
+     ;; (make-que :name "moderator")
+     ;; (make-que :name "robot")
+   #+END_SRC
+
 * Тесты
 
   #+NAME: asp_test
@@ -7665,6 +7705,33 @@ zlib1g_1.2.8.dfsg-2+b1_armel.deb
               :pathname "mod/auth"
               :components ((:static-file "auth-tpl.htm")
                            (:file "auth")))
+   #+END_SRC
+
+   Как пользователь, я хочу иметь возможность ввести логин и пароль чтобы получить доступ к
+   закрытому от неавторизованных пользователей функционалу.
+
+** Очереди
+
+   Опишем из чего состоит модуль, это описание станет частью asd-файла:
+
+   #+NAME: mod_que
+   #+BEGIN_SRC lisp
+     (:module "que"
+              :serial t
+              :pathname "mod/que"
+              :components ((:file "que")))
+   #+END_SRC
+
+** Демонстрация
+
+   Опишем из чего состоит модуль, это описание станет частью asd-файла:
+
+   #+NAME: mod_demo
+   #+BEGIN_SRC lisp
+     (:module "demo"
+              :serial t
+              :pathname "mod/demo"
+              :components ((:file "demo")))
    #+END_SRC
 
    Как пользователь, я хочу иметь возможность ввести логин и пароль чтобы получить доступ к
@@ -8112,6 +8179,8 @@ zlib1g_1.2.8.dfsg-2+b1_armel.deb
                     <<mod_msg>>
                     ;; (:file "events")     ;; события системы
                     (:file "iface")      ;; файл веб-интерфейса
+                    ;; Модуль демонстрации
+                    <<mod_demo>>
                     ))
    #+END_SRC
 
@@ -8317,9 +8386,6 @@ zlib1g_1.2.8.dfsg-2+b1_armel.deb
 
      (defclass asp-render () ())
 
-     (restas:define-route main ("/")
-       "test main page")
-
      (define-page frp "/frp"
        (let ((breadcrumb (breadcrumb "FRP"))
              (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
@@ -8331,7 +8397,7 @@ zlib1g_1.2.8.dfsg-2+b1_armel.deb
            (ps-html ((:span :class "clear")))))
        ))
 
-     (defun main ()
+     (defun start-server ()
        ;; start
        (restas:start '#:asp :port 3999)
        (restas:debug-mode-on)
@@ -8344,7 +8410,7 @@ zlib1g_1.2.8.dfsg-2+b1_armel.deb
        ;;             :ts-create (get-universal-time))
        )
 
-     (main)
+     (start-server)
 
      ;; Тесты
      <<asp_test>>
@@ -8437,14 +8503,14 @@ using gcc : arm : arm-linux-gnueabihf-g++ ;
    Распаковываем, запускаем
    $ ./configure
    $ sudo make
-   $ sudo make install   
+   $ sudo make install
 
    Обычно на этом всё.
 
 ** Установка rapidjson
    Его тащим с гитхаба:
    $ git clone https://github.com/miloyip/rapidjson.git
-   
+
    После чего производим настройку, сборку и установку:
 
    $ cmake .
@@ -8456,6 +8522,5 @@ using gcc : arm : arm-linux-gnueabihf-g++ ;
 
 ** Единая конфигурация Eclipse                                      :bvl:aav:
    Надо бы по возможности проработать непротиворечивую конфигурацию, чтобы .cproject был единым.
-
 
 * Оптимизация аппаратной части решения
