@@ -156,8 +156,11 @@
 							<builder buildPath="${workspace_loc:/DevicesLayer}/Debug" id="cdt.managedbuild.builder.gnu.cross.324604460" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="cdt.managedbuild.builder.gnu.cross"/>
 							<tool id="cdt.managedbuild.tool.gnu.cross.c.compiler.935527290" name="Cross GCC Compiler" superClass="cdt.managedbuild.tool.gnu.cross.c.compiler">
 								<option id="gnu.c.compiler.option.include.paths.876317423" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="/home/drema/rapidjson/include"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/local/arm-linux-gnueabihf/"/>
+									<listOptionValue builtIn="false" value="/usr/local/arm-linux-gnueabihf/boost"/>
+									<listOptionValue builtIn="false" value="/usr/local/arm-linux-gnueabihf/arm-linux-gnueabihf/libc/usr/include"/>
+									<listOptionValue builtIn="false" value="/usr/local/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/4.9.2"/>
+									<listOptionValue builtIn="false" value="/usr/local/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/4.9.2/arm-linux-gnueabihf"/>
 								</option>
 								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.219717044" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" useByScannerDiscovery="false" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.debugging.level.150675734" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.max" valueType="enumerated"/>
@@ -167,15 +170,11 @@
 							<tool id="cdt.managedbuild.tool.gnu.cross.cpp.compiler.2013516519" name="Cross G++ Compiler" superClass="cdt.managedbuild.tool.gnu.cross.cpp.compiler">
 								<option id="gnu.cpp.compiler.option.include.paths.1247130122" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}}&quot;"/>
-									<listOptionValue builtIn="false" value="/home/drema/rapidjson/include"/>
-									<listOptionValue builtIn="false" value="/home/drema/boost/boost_1_57_0/boost"/>
-									<listOptionValue builtIn="false" value="/home/drema/boost/boost_1_57_0"/>
-									<listOptionValue builtIn="false" value="/home/drema/bb-kernel/KERNEL/include"/>
-									<listOptionValue builtIn="false" value="/home/drema/bb-kernel/dl/gcc-linaro-arm-linux-gnueabihf-4.9-2014.09_linux/arm-linux-gnueabihf/libc/usr/include"/>
-									<listOptionValue builtIn="false" value="/home/drema/bb-kernel/dl/gcc-linaro-arm-linux-gnueabihf-4.9-2014.09_linux/arm-linux-gnueabihf/include/c++/4.9.2"/>
-									<listOptionValue builtIn="false" value="/home/drema/bb-kernel/dl/gcc-linaro-arm-linux-gnueabihf-4.9-2014.09_linux/arm-linux-gnueabihf/include/c++/4.9.2/arm-linux-gnueabihf"/>
-									<listOptionValue builtIn="false" value=""/>
-									<listOptionValue builtIn="false" value=""/>
+									<listOptionValue builtIn="false" value="/usr/local/arm-linux-gnueabihf/"/>
+									<listOptionValue builtIn="false" value="/usr/local/arm-linux-gnueabihf/boost"/>
+									<listOptionValue builtIn="false" value="/usr/local/arm-linux-gnueabihf/arm-linux-gnueabihf/libc/usr/include"/>
+									<listOptionValue builtIn="false" value="/usr/local/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/4.9.2"/>
+									<listOptionValue builtIn="false" value="/usr/local/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/4.9.2/arm-linux-gnueabihf"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.optimization.level.1797070864" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.debugging.level.58200494" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
@@ -200,7 +199,7 @@
 								<option id="gnu.cpp.link.option.nostart.2031120203" name="Do not use standard start files (-nostartfiles)" superClass="gnu.cpp.link.option.nostart" value="false" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.nostdlibs.110150294" name="No startup or default libs (-nostdlib)" superClass="gnu.cpp.link.option.nostdlibs" value="false" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.flags.2146964015" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="-static-libgcc -static" valueType="string"/>
-								<option id="gnu.cpp.link.option.other.1149687148" name="Other options (-Xlinker [option])" superClass="gnu.cpp.link.option.other" valueType="stringList"/>
+								<option id="gnu.cpp.link.option.other.1149687148" name="Other options (-Xlinker [option])" superClass="gnu.cpp.link.option.other"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.929502436" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -248,6 +247,7 @@
 		<configuration configurationName="Debug">
 			<resource resourceType="PROJECT" workspacePath="/DevicesLayer"/>
 		</configuration>
+		<configuration configurationName="ARM_Debug"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cproject>
