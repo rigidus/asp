@@ -38,7 +38,7 @@ public:
 
 		if (m_commCtl.size() == 0)
 		{
-			std::cout << "ERROR! ShlagbaumPalka::sendCommand: communication devices has lost" << std::endl;
+			std::cout << "ERROR! GPIOShlagbaum::sendCommand: communication devices has lost" << std::endl;
 			return;
 		}
 

@@ -16,7 +16,6 @@ const std::string CPinCtl::s_name = "gpio";
 const std::string CPinCtl::gpioPath = "/sys/class/gpio/";
 std::map<std::string, shared_ptr<CBaseCommCtl> > CPinCtl::busyPins;
 boost::thread* CPinCtl::thrNotify = nullptr;
-std::vector<CPinCtl::TPinData> CPinCtl::PinData;
 bool CPinCtl::stopFlag = false;
 
 shared_ptr<CBaseCommCtl> CPinCtl::takeCommCtl(CBaseDevice* device, const std::string& gpioName)
@@ -66,10 +65,29 @@ shared_ptr<CBaseCommCtl> CPinCtl::takeCommCtl(CBaseDevice* device, const std::st
 		}
 		// OK! pin is present
 
+		// Create TPinData
+		std::string fname(pinPath + "value");
+
+		TPinData pin;
+		pin.filename = fname;
+		pin.fd = open( fname.c_str(), O_RDONLY | O_NONBLOCK);
+
+		if (pin.fd == -1)
+		{
+			std::cout << "ERROR! CPinCtl::takeCommCtl didn't open file: " << fname << " as read-only." << std::endl;
+ 			return nullptr;
+		}
+
+		pin.events = IN_CLOSE;
+		pin.watch = 0;
+		pin.name = gpioName;
+		pin.oldvalue = 0;
+
 		// create CPinCtl for pinNum
-		shared_ptr<CBaseCommCtl> pinCtl( (CBaseCommCtl*) new CPinCtl(device, gpioName) );
+		shared_ptr<CBaseCommCtl> pinCtl( (CBaseCommCtl*) new CPinCtl(device, pin) );
 		std::pair<std::string, shared_ptr<CBaseCommCtl> > pr(gpioName, pinCtl);
 		busyPins.insert(pr);
+
 		// OK! pin is made as busied and stored
 
 		std::cout << "CPinCtl::takeCommCtl: take " << gpioName << " successfully" << std::endl;
@@ -141,25 +159,25 @@ bool CPinCtl::fileIsExist(const std::string& fileName)
 
 
 // Functions - non static members
-
-CPinCtl::CPinCtl(CBaseDevice* device, const std::string& gpioName):
-		CBaseCommCtl(device, gpioName),
+CPinCtl::CPinCtl(CBaseDevice* device, TPinData& pinData):
+		CBaseCommCtl(device, pinData.name),
+		m_PinData(pinData),
 		m_timeout(0)
 {
 	std::vector<settings::CommGPIOConfig> configList =
-			settings::getGPIOByDevice(device->c_name, gpioName);
+			settings::getGPIOByDevice(device->c_name, pinData.name);
 
 	settings::CommGPIOConfig config;
 	for (auto v: configList)
 	{
-		if (v.name == gpioName)
+		if (v.name == pinData.name)
 		{
 			config = v;
 			break;
 		}
 	}
 
-	std::string pinPath = CPinCtl::gpioPath + "/" + gpioName + "/";
+	std::string pinPath = CPinCtl::gpioPath + "/" + pinData.name + "/";
 
 	{
 		std::string strActiveLow("0");
@@ -205,14 +223,84 @@ CPinCtl::~CPinCtl(){
 uint32_t CPinCtl::send(std::list<std::vector<uint8_t> > sendData)
 {
 
-	std::cout << "CPinCtl::send: command to pin and imitate reply ACK as callback" << std::endl;
+	std::cout << "CPinCtl::send: command 'write value' to '" << m_PinData.name << "'." << std::endl;
 
 	/*
 	 * Парсинг команды записи в конкретный файл пина
 	 * value, direction, edge, active_low
 	 */
 
+	if ( sendData.size() == 1 && sendData.begin()->size() > 2 )
+	{
+		std::string fname(gpioPath + m_PinData.name + "/");
+
+		std::vector<uint8_t>& data = sendData.back();
+
+		uint8_t filetype = data[0];
+
+		char* beginData = (char*) &data[1];
+		char* endData = (char*) &data[data.size()-1];
+		std::string value(beginData, endData);
+
+		switch(filetype)
+		{
+		case 0: // value
+			fname += "value";
+			break;
+		case 1: // direction
+			fname += "direction";
+			break;
+		case 2:
+			fname += "edge";
+			break;
+		default:
+			std::cout << "ERROR! CPinCtl::send: File type " << filetype << " incorrect" << std::endl;
+			return 0;
+		}
+
+		int32_t fd = open( fname.c_str(), O_WRONLY | O_NONBLOCK);
+		if (fd == -1)
+		{
+			std::cout << "ERROR! CPinCtl::send: File '" << fname << "' don't opened for writing." << std::endl;
+			return 0;
+		}
+
+		uint32_t len = write(fd, value.c_str(), value.size());
+
+		close(fd);
+
+		return len;
+	}
+
+	if ( sendData.size() != 1)
+	{
+		std::cout << "ERROR! CPinCtl::send: Incorrect argument size: list size = "
+				<< sendData.size() << std::endl;
+	}
+	else
+	if ( sendData.begin()->size() < 2 )
+	{
+		std::cout << "ERROR! CPinCtl::send: Incorrect argument size: vector size = "
+		<< sendData.begin()->size() << std::endl;
+	}
+
 	return  0;
+}
+
+
+int8_t CPinCtl::getPinValue()
+{
+	std::cout << "CPinCtl::getPinValue: From " << m_PinData.filename << std::endl;
+
+	char Value = 0;
+	size_t size = read(m_PinData.fd, &Value, 1);
+
+	if (size != 1)
+	{
+		std::cout << "ERROR! CPinCtl::getPinValue: Not successful read from " << m_PinData.filename << std::endl;
+	}
+
+	return Value;
 }
 
 
@@ -220,6 +308,7 @@ int CPinCtl::setSettings(std::string deviceName){
 
 	return 0;
 }
+
 
 void CPinCtl::startNotifier()
 {
@@ -241,52 +330,53 @@ void CPinCtl::Notifier()
 
 	int d_inoty = inotify_init();
 
+	std::cout << "GPIO Notifier started with " << busyPins.size() << " pin controls" << std::endl;
+
 	for (auto busyPin: busyPins)
 	{
-		std::string fname(gpioPath + busyPin.first + "/value");
-
-		TPinData pin;
-		pin.filename = fname;
-		pin.fd = open( fname.c_str(), O_RDONLY | O_NONBLOCK);
-
-		if (pin.fd == -1)
+		CPinCtl* pctl = (CPinCtl*) busyPin.second.get();
+		if ( pctl == nullptr)
 		{
-			std::cout << "ERROR! CPinCtl::Notifier didn't find file: " << fname << ". Notifier exits." << std::endl;
+			std::cout << "ERROR! CPinCtl::Notifier didn't find pointer to GPIO device: " << busyPin.first << ". Notifier exits." << std::endl;
  			return;
 		}
 
-		pin.events = IN_MODIFY | IN_OPEN | IN_CLOSE;
-		pin.watch =  inotify_add_watch(d_inoty, fname.c_str(), pin.events);
-		pin.name = busyPin.first;
-		pin.oldvalue = 0;
+		TPinData& PinData = pctl->m_PinData;
 
-		PinData.push_back(pin);
+		if (PinData.fd == -1)
+		{
+			std::cout << "ERROR! CPinCtl::Notifier didn't find file: " << PinData.filename << ". Notifier exits." << std::endl;
+ 			return;
+		}
+
+		PinData.watch =  inotify_add_watch(d_inoty, PinData.filename.c_str(), PinData.events);
 	}
 
-	std::cout << "GPIO Notifier started with " << PinData.size() << " pin controls" << std::endl;
 
 	while(stopFlag == false)
 	{
 
 		boost::this_thread::sleep(boost::posix_time::milliseconds(100));
 
-		for (uint32_t i=0 ; i < PinData.size(); ++i)
+		for (auto busyPin: busyPins)
 		{
-			lseek(PinData[i].fd, 0, SEEK_SET);
+			TPinData& PinData = ((CPinCtl*) busyPin.second.get())->m_PinData;
+
+			lseek(PinData.fd, 0, SEEK_SET);
 
 			char Value = 0;
-			size_t size = read(PinData[i].fd, &Value, 1);
+			size_t size = read(PinData.fd, &Value, 1);
 			if (size == 1)
 			{
-				if ( PinData[i].oldvalue != Value )
+				if ( PinData.oldvalue != Value )
 				{
-					PinData[i].oldvalue = Value;
+					PinData.oldvalue = Value;
 
-					std::cout << "GPIO Notifier: GPIO was changed: " << PinData[i].name << " = " << Value << std::endl;
+					std::cout << "GPIO Notifier: GPIO was changed: " << PinData.name << " = " << Value << std::endl;
 					std::vector<uint8_t> data;
 					data.push_back(Value);
 
-					auto it = busyPins.find(PinData[i].name);
+					auto it = busyPins.find(PinData.name);
 					if ( it != busyPins.end())
 					{
 						std::cout << "GPIO Notifier: Call Device Event for: " << it->second->myDevice().c_name << std::endl;

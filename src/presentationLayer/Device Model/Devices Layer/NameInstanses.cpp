@@ -9,10 +9,12 @@
 #include "devices/HttpClient.h"
 #include "devices/HttpDevLayerClient.h"
 #include "devices/gpioShlagbaum.h"
+#include "devices/UserButton.h"
 
 #include "abstract/testAbstractDevice.h"
 #include "abstract/BsnsLogic.h"
 #include "abstract/ShlagbaumAbstract.h"
+#include "abstract/UserButtonAbstract.h"
 
 // Abstract names
 // full
@@ -30,9 +32,12 @@
 const std::string CTestAbstractDevice::s_abstractName = "abstract";
 const std::string AbstractShlagbaum::s_abstractName = "shlagbaum";
 const std::string BsnsLogic::s_abstractName = "logic";
+const std::string AbstractUserButton::s_abstractName = "user-button";
 
 // concrete names
 const std::string CTestConcreteDevice::s_concreteName = "concrete_device";
 const std::string CGPIOShlagbaum::s_concreteName = "shlagbaum_gpio";
+const std::string CUserButton::s_concreteName = "user-button";
 const std::string HttpClient::s_concreteName = "logic_http";
 const std::string HttpDevLayerClient::s_concreteName = "logic_http_dev_layer";
+

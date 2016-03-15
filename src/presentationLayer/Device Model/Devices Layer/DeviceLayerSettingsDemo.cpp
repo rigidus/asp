@@ -67,8 +67,8 @@ settings::DeviceConfig display =
 
 settings::DeviceConfig userbutton =
 {
-		"shlagbaum_gpio",
-		"shlagbaum_button",
+		"user-button",
+		"user-button",
 		"",
 		{ "gpio44" },
 		disabled_device

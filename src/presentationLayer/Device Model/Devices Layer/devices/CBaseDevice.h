@@ -37,8 +37,8 @@ public:
 
 	const std::vector< shared_ptr<CBaseCommCtl> >& getCommCtl();
 
-	void performEvent(std::vector<uint8_t>& rcvData);
-	void performTransaction(std::vector<uint8_t>& rcvData);
+	virtual void performEvent(std::vector<uint8_t>& rcvData);
+	virtual void performTransaction(std::vector<uint8_t>& rcvData);
 
 protected:
 

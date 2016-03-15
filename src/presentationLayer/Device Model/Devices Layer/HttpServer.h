@@ -65,9 +65,23 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 		nc->flags |= MG_F_SEND_AND_CLOSE;
 		mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\n\r\n\r\n");
 
+		// Check body lenght
+		if (hmsg->body.len == 0)
+		{
+			// отправить назад сообщение, что body не существует
+			std::stringstream error;
+			error << "ERROR! httpServer::cb_HttpServer: POST body size is NULL.";
+			setCommandTo::sendErrorToClient(error);
+
+			std::cout << error.str() << std::endl;
+
+			return;
+
+		}
+
 		// Parse a JSON string into DOM.
 	    std::vector< ASCII<>::Ch > jsonArray(hmsg->body.len+1, 0);
-		memcpy(&jsonArray[0], hmsg->body.p, (hmsg->body.len+1) * sizeof(jsonArray[0]));
+		memcpy(&jsonArray[0], hmsg->body.p, (hmsg->body.len) * sizeof(jsonArray[0]));
 		jsonArray[hmsg->body.len] = 0;
 
 		Document d;
@@ -104,12 +118,17 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 			{
 				std::stringstream error;
 				error << "Error has received: " << valError.GetString();
+
+				// TODO: Error parser from logic
+
 				std::cout << error.str() << std::endl;
 			}
 			else
 			{
 				std::stringstream error;
 				error << "Error has received but value isn't String";
+
+				setCommandTo::sendErrorToClient(error);
 				std::cout << error.str() << std::endl;
 			}
 
