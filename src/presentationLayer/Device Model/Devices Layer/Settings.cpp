@@ -52,7 +52,7 @@ const std::vector<CommGPIOConfig> getGPIOByDevice(const std::string deviceName, 
 
 	for (settings::DeviceConfig* v: settings::deviceList)
 	{
-		if (v->abstractName == deviceName)
+		if (v->concreteName == deviceName)
 		{
 
 			// find device

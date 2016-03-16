@@ -18,37 +18,113 @@ std::map<std::string, shared_ptr<CBaseCommCtl> > CPinCtl::busyPins;
 boost::thread* CPinCtl::thrNotify = nullptr;
 bool CPinCtl::stopFlag = false;
 
-bool CPinCtl::checkFiles(const std::string& gpioName)
+bool CPinCtl::checkFiles()
 {
-	std::string pinPath = CPinCtl::gpioPath + "/" + gpioName + "/";
+	std::string pinPath = CPinCtl::gpioPath + "/" + m_PinData.name + "/";
 
 	if ( CPinCtl::fileIsExist( pinPath+"direction" ) == false)
 	{
-		std::cout << "ERROR! CPinCtl::takeCommCtl getting" << gpioName << " failed: direction not found" << std::endl;
+		std::cout << "ERROR! CPinCtl::takeCommCtl getting '" << m_PinData.name << "'  failed: direction not found" << std::endl;
 		return false;
 	}
 
 	if ( CPinCtl::fileIsExist( pinPath+"value" ) == false)
 	{
-		std::cout << "ERROR! CPinCtl::takeCommCtl getting" << gpioName << " failed: value not found" << std::endl;
+		std::cout << "ERROR! CPinCtl::takeCommCtl getting '" << m_PinData.name << "' failed: value not found" << std::endl;
 		return false;
 	}
 
 	if ( CPinCtl::fileIsExist( pinPath+"edge" ) == false)
 	{
-		std::cout << "ERROR! CPinCtl::takeCommCtl getting" << gpioName << " failed: edge not found" << std::endl;
+		std::cout << "ERROR! CPinCtl::takeCommCtl getting '" << m_PinData.name << "' failed: edge not found" << std::endl;
 		return false;
 	}
 
 	if ( CPinCtl::fileIsExist( pinPath+"active_low" ) == false)
 	{
-		std::cout << "ERROR! CPinCtl::takeCommCtl getting" << gpioName << " failed: active_low not found" << std::endl;
+		std::cout << "ERROR! CPinCtl::takeCommCtl getting '" << m_PinData.name << "' failed: active_low not found" << std::endl;
 		return false;
 	}
 	// OK! pin is present
 
 	return true;
 }
+
+
+void CPinCtl::setupGPIO()
+{
+
+	std::cout << "CPinCtl::setupGPIO: " << m_PinData.name << std::endl;
+
+	const settings::CommGPIOConfig& config = m_Config;
+
+	std::string pinPath = CPinCtl::gpioPath + "/" + m_PinData.name + "/";
+
+	{
+		std::string strActiveLow("0");
+		boostio::stream_buffer<boostio::file_sink> bufExport(pinPath+"active_low");
+		std::ostream fileExport(&bufExport);
+
+		std::cout << "CPinCtl::setupGPIO: active_low = " << strActiveLow << std::endl;
+
+		fileExport << strActiveLow;
+	}
+
+	{
+		std::string strDir("in");
+		if (config.direction)
+			strDir = "out";
+
+		boostio::stream_buffer<boostio::file_sink> bufExport(pinPath+"direction");
+		std::ostream fileExport(&bufExport);
+
+		std::cout << "CPinCtl::setupGPIO: direction = " << strDir << std::endl;
+
+		fileExport << strDir;
+	}
+
+	{
+		std::string strEdge("both");
+		boostio::stream_buffer<boostio::file_sink> bufExport(pinPath+"edge");
+		std::ostream fileExport(&bufExport);
+
+		std::cout << "CPinCtl::setupGPIO: edge = " << strEdge << std::endl;
+
+		fileExport << strEdge;
+	}
+
+	{
+		std::string strDef("0");
+		if (config.def_value)
+			strDef = "1";
+
+		boostio::stream_buffer<boostio::file_sink> bufExport(pinPath+"value");
+		std::ostream fileExport(&bufExport);
+
+		std::cout << "CPinCtl::setupGPIO: default value = " << strDef << std::endl;
+
+		fileExport << strDef;
+	}
+
+}
+
+
+settings::CommGPIOConfig CPinCtl::getGPIOConfig(CBaseDevice* device, const std::string& gpioName)
+{
+
+	std::vector<settings::CommGPIOConfig> configList =
+			settings::getGPIOByDevice(device->c_name, gpioName);
+
+	for (auto v: configList)
+	{
+		if ( v.name == gpioName )
+			return v;
+	}
+
+	settings::CommGPIOConfig empty = { gpioName, false, false, 0 };
+	return empty;
+}
+
 
 shared_ptr<CBaseCommCtl> CPinCtl::takeCommCtl(CBaseDevice* device, const std::string& gpioName)
 {
@@ -84,8 +160,10 @@ shared_ptr<CBaseCommCtl> CPinCtl::takeCommCtl(CBaseDevice* device, const std::st
 		pin.name = gpioName;
 		pin.oldvalue = 0;
 
+		settings::CommGPIOConfig config = getGPIOConfig(device, gpioName);
+
 		// create CPinCtl for pinNum
-		shared_ptr<CBaseCommCtl> pinCtl( (CBaseCommCtl*) new CPinCtl(device, pin) );
+		shared_ptr<CBaseCommCtl> pinCtl( (CBaseCommCtl*) new CPinCtl(device, config, pin) );
 		std::pair<std::string, shared_ptr<CBaseCommCtl> > pr(gpioName, pinCtl);
 		busyPins.insert(pr);
 
@@ -160,59 +238,12 @@ bool CPinCtl::fileIsExist(const std::string& fileName)
 
 
 // Functions - non static members
-CPinCtl::CPinCtl(CBaseDevice* device, TPinData& pinData):
+CPinCtl::CPinCtl(CBaseDevice* device, const settings::CommGPIOConfig& config, TPinData& pinData):
 		CBaseCommCtl(device, pinData.name),
+		m_Config(config),
 		m_PinData(pinData),
 		m_timeout(0)
 {
-	std::vector<settings::CommGPIOConfig> configList =
-			settings::getGPIOByDevice(device->c_name, pinData.name);
-
-	settings::CommGPIOConfig config;
-	for (auto v: configList)
-	{
-		if (v.name == pinData.name)
-		{
-			config = v;
-			break;
-		}
-	}
-
-	std::string pinPath = CPinCtl::gpioPath + "/" + pinData.name + "/";
-
-	{
-		std::string strActiveLow("0");
-		boostio::stream_buffer<boostio::file_sink> bufExport(gpioPath+"active_low");
-		std::ostream fileExport(&bufExport);
-		fileExport << strActiveLow;
-	}
-
-	{
-		std::string strDir("in");
-		if (config.direction)
-			strDir = "out";
-
-		boostio::stream_buffer<boostio::file_sink> bufExport(gpioPath+"direction");
-		std::ostream fileExport(&bufExport);
-		fileExport << strDir;
-	}
-
-	{
-		std::string strEdge("both");
-		boostio::stream_buffer<boostio::file_sink> bufExport(gpioPath+"edge");
-		std::ostream fileExport(&bufExport);
-		fileExport << strEdge;
-	}
-
-	{
-		std::string strDef("0");
-		if (config.def_value)
-			strDef = "1";
-
-		boostio::stream_buffer<boostio::file_sink> bufExport(gpioPath+"value");
-		std::ostream fileExport(&bufExport);
-		fileExport << strDef;
-	}
 
 }
 
@@ -305,12 +336,6 @@ int8_t CPinCtl::getPinValue()
 }
 
 
-int CPinCtl::setSettings(std::string deviceName){
-
-	return 0;
-}
-
-
 void CPinCtl::startNotifier()
 {
 
@@ -342,14 +367,15 @@ void CPinCtl::Notifier()
  			return;
 		}
 
-		TPinData& PinData = pctl->m_PinData;
-
-		if (checkFiles(PinData.name) == false)
+		if (pctl->checkFiles() == false)
 		{
 			std::cout << "ERROR! CPinCtl::Notifier didn't find important file of GPIO device: " << busyPin.first << ". Notifier exits." << std::endl;
  			return;
 		}
 
+		pctl->setupGPIO();
+
+		TPinData& PinData = pctl->m_PinData;
 		PinData.fd = open( PinData.filename.c_str(), O_RDONLY | O_NONBLOCK);
 		if (PinData.fd == -1)
 		{
