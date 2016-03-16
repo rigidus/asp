@@ -5733,6 +5733,95 @@ zlib1g_1.2.8.dfsg-2+b1_armel.deb
     - Подключение языковых пакетов вместо использования сообщений на дисплеи,
       прописанных жёстко в коде
 
+** HOWTO Подключение подтяжек pull-up для GPIO
+
+   Обнаружилось, что на ряде пинов GPIO по умолчанию не включена
+   подтяжка на + питания. Из-за этого не работало все, как было
+   задумано, то есть при замыкании с землей, так как  это
+   подключение является помехоустойчивым.
+
+   С помощью интерфейса GPIO подтяжками управлять нельзя.
+   Для этого и для многого другого существует система Device Tree Overlays
+   http://www.valvers.com/embedded-linux/beaglebone-black/step04-gpio/
+
+   Как подцепить пуллапы на GPIO44 и GPIO45, user-button и car-detector для шлагбаума в демо
+
+cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pins | grep "834"
+ответ на эту команду будет содержать код 0х27 (главное 4 бит в нуле это выключенный пулл-ап)
+cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pins | grep "830"
+и здесь тоже
+
+Наша задача их включить, то есть задать код 0х37.
+Делаем это так.
+
+   1. Создать файл с именем VALVERS-IO-00A0.dts (имя обязательно такое)
+   Содержимое файла
+#+BEGIN_SRC
+/dts-v1/;
+/plugin/;
+
+/ {
+    compatible = "ti,beaglebone", "ti,beaglebone-black";
+
+    part-number = "VALVERS-IO";
+
+    fragment@0 {
+        target = <&am33xx_pinmux>;
+        __overlay__ {
+            valversled: pinmux_valversled {
+                pinctrl-single,pins1 = <
+                            0x034 0x37 
+                              >;
+                pinctrl-single,pins2 = <
+                            0x030 0x37
+                              >;
+            };
+        };
+    };
+
+    fragment@1 {
+        target = <&ocp>;
+        __overlay__ {
+            valversled_helper {
+                compatible = "bone-pinmux-helper";
+                pinctrl-names = "default";
+                pinctrl-0 = <&valversled>;
+                status = "okay";
+            };
+        };
+    };
+};
+#+END_SRC
+
+   2. Это компиляция
+dtc -O dtb -o VALVERS-IO-00A0.dtbo -b O -@ VALVERS-IO-00A0.dts
+
+   3. Это копирование в бинарные исходники, отсюда идет инсталляция
+cp VALVERS-IO-00A0.dtbo /lib/firmware/
+
+   4. Это инсталляция.
+echo VALVERS-IO > /sys/devices/bone_capemgr.*/slots
+
+   5. Это проверка успеха инсталляции
+cat /sys/devices/bone_capemgr.9/slots
+здесь должен появиться ответ
+ 0: 54:PF--- 
+ 1: 55:PF--- 
+ 2: 56:PF--- 
+ 3: 57:PF--- 
+ 4: ff:P-O-L Bone-LT-eMMC-2G,00A0,Texas Instrument,BB-BONE-EMMC-2G
+ 5: ff:P-O-L Bone-Black-HDMI,00A0,Texas Instrument,BB-BONELT-HDMI
+11: ff:P-O-L Override Board Name,00A0,Override Manuf,VALVERS-IO
+12: ff:P-O-L Override Board Name,00A0,Override Manuf,VALVERS-IO
+
+2 строчки вида Override Board Name, значит наш файл встал.
+
+   6. Проверяем факт включения пуллапов
+cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pins | grep "834"
+ответ на эту команду теперь будет содержать код 0х37 
+cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pins | grep "830"
+и здесь тоже
+
 * Серверная часть                                                  :gmm:pyub:
 ** TODO Общие положения                                                :pyub:
 

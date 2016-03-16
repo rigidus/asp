@@ -105,7 +105,7 @@ settings::CommGPIOConfig gpio68 =
 {
 		"gpio68",
 		false,	// in, DOWN
-		false,	// value = 1
+		false,	// value = 0
 		300		// check delay, ms
 };
 
@@ -113,7 +113,7 @@ settings::CommGPIOConfig gpio69 =
 {
 		"gpio69",
 		true,	// out, DOWN
-		false,	// value = 1
+		false,	// value = 0
 		300		// check delay, ms
 };
 
@@ -121,7 +121,7 @@ settings::CommGPIOConfig gpio45 =
 {
 		"gpio45",
 		false,	// in, signal from car present
-		true,	// value = 1
+		false,	// value = 0
 		300		// check delay, ms
 };
 
@@ -129,7 +129,7 @@ settings::CommGPIOConfig gpio44 =
 {
 		"gpio44",
 		false,	// in, signal from user button
-		true,	// value = 1
+		false,	// value = 0
 		300		// check delay, ms
 };
 
