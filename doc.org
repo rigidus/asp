@@ -7855,10 +7855,27 @@ using gcc : arm : arm-linux-gnueabihf-g++ ;
    Это набор инструментов автотестирования. Его тоже тащим с SourceForge:
    https://sourceforge.net/projects/cppunit/
 
-   Распаковываем, запускаем
+   Сборка производится в директории cppunit.
+   В процессе сборки может произойти ошибка линковки с библиотекой libdl.so, чтобы ее
+   исправить надо в файле configure в строке 21585 дописать -ldl
+   Полный вид строки после исправления: LIBS="$LIBS -lm -ldl"
+
+   Сборка для x86_64
    $ ./configure
    $ sudo make
    $ sudo make install
+
+   Сборка для arm-linux-gnueabihf
+   $ ./configure CC=/usr/local/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc
+   CXX=/usr/local/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-g++
+   --build=arm --exec-prefix=/usr/local/arm-linux-gnueabihf
+   --prefix=/usr/local/arm-linux-gnueabihf --host=amd64
+   $ sudo make
+   $ sudo make install
+
+   Пути cppunit для ARM
+   include: /usr/local/arm-linux-gnueabihf/include/
+   lib: /usr/local/arm-linux-gnueabihf/lib/
 
    Обычно на этом всё.
 
@@ -7872,10 +7889,14 @@ using gcc : arm : arm-linux-gnueabihf-g++ ;
    $ sudo make
    $ sudo make install
 
+   make собирает только примеры использования, поэтому необязателен
+   make install устанавливает исходники в /usr/local/include/rapidjson/.
+   Для нашей сборки на ARM нужно скопировать их в /usr/local/arm-linux-gnueabihf/rapidjson/.
+
    На последнем шаге мне не хватило каталога ./include/rapidjson в существующем ./include. Создал ручками,
    прокатило, установилось.
 
 ** Единая конфигурация Eclipse                                      :bvl:aav:
-   Надо бы по возможности проработать непротиворечивую конфигурацию, чтобы .cproject был единым.
+   [TODO:aav] Надо бы по возможности проработать непротиворечивую конфигурацию, чтобы .cproject был единым.
 
 * Оптимизация аппаратной части решения
