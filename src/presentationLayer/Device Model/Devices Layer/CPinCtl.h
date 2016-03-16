@@ -83,6 +83,7 @@ private:
 	// check existing file on the filesystem
 	// It use here for check interface gpio files only
 	static bool fileIsExist(const std::string& fileName);
+	static bool checkFiles(const std::string& gpioName);
 
 	static std::map<std::string, shared_ptr<CBaseCommCtl> > busyPins;
 

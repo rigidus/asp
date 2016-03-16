@@ -12,6 +12,7 @@
 #include "abstract/testAbstractDevice.h"
 #include "abstract/ShlagbaumAbstract.h"
 #include "abstract/BsnsLogic.h"
+#include "abstract/UserButtonAbstract.h"
 
 class CDeviceFactory
 {
@@ -45,6 +46,9 @@ public:
 			if (dev) devs.push_back(dev);
 
 			dev = createAbstractDevice<BsnsLogic>(abstractName, devName);
+			if (dev) devs.push_back(dev);
+
+			dev = createAbstractDevice<AbstractUserButton>(abstractName, devName);
 			if (dev) devs.push_back(dev);
 
 //			dev = createAbstractDevice<AbstractPrinter>(abstractName, devName);

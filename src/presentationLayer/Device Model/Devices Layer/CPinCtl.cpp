@@ -18,6 +18,38 @@ std::map<std::string, shared_ptr<CBaseCommCtl> > CPinCtl::busyPins;
 boost::thread* CPinCtl::thrNotify = nullptr;
 bool CPinCtl::stopFlag = false;
 
+bool CPinCtl::checkFiles(const std::string& gpioName)
+{
+	std::string pinPath = CPinCtl::gpioPath + "/" + gpioName + "/";
+
+	if ( CPinCtl::fileIsExist( pinPath+"direction" ) == false)
+	{
+		std::cout << "ERROR! CPinCtl::takeCommCtl getting" << gpioName << " failed: direction not found" << std::endl;
+		return false;
+	}
+
+	if ( CPinCtl::fileIsExist( pinPath+"value" ) == false)
+	{
+		std::cout << "ERROR! CPinCtl::takeCommCtl getting" << gpioName << " failed: value not found" << std::endl;
+		return false;
+	}
+
+	if ( CPinCtl::fileIsExist( pinPath+"edge" ) == false)
+	{
+		std::cout << "ERROR! CPinCtl::takeCommCtl getting" << gpioName << " failed: edge not found" << std::endl;
+		return false;
+	}
+
+	if ( CPinCtl::fileIsExist( pinPath+"active_low" ) == false)
+	{
+		std::cout << "ERROR! CPinCtl::takeCommCtl getting" << gpioName << " failed: active_low not found" << std::endl;
+		return false;
+	}
+	// OK! pin is present
+
+	return true;
+}
+
 shared_ptr<CBaseCommCtl> CPinCtl::takeCommCtl(CBaseDevice* device, const std::string& gpioName)
 {
 
@@ -36,48 +68,17 @@ shared_ptr<CBaseCommCtl> CPinCtl::takeCommCtl(CBaseDevice* device, const std::st
 
 		boostio::stream_buffer<boostio::file_sink> bufExport(gpioPath+"export");
 		std::ostream fileExport(&bufExport);
+
+		// TODO: grabli, значимая фиксированная позиция в строке
 		fileExport << &gpioName[4]; // 4 - is gpio number position
 
-		std::string pinPath = CPinCtl::gpioPath + "/" + gpioName + "/";
-
-		if ( CPinCtl::fileIsExist( pinPath+"direction" ) == false)
-		{
-			std::cout << "ERROR! CPinCtl::takeCommCtl getting" << gpioName << " failed: direction not found" << std::endl;
-			return nullptr;
-		}
-
-		if ( CPinCtl::fileIsExist( pinPath+"value" ) == false)
-		{
-			std::cout << "ERROR! CPinCtl::takeCommCtl getting" << gpioName << " failed: value not found" << std::endl;
-			return nullptr;
-		}
-
-		if ( CPinCtl::fileIsExist( pinPath+"edge" ) == false)
-		{
-			std::cout << "ERROR! CPinCtl::takeCommCtl getting" << gpioName << " failed: edge not found" << std::endl;
-			return nullptr;
-		}
-
-		if ( CPinCtl::fileIsExist( pinPath+"active_low" ) == false)
-		{
-			std::cout << "ERROR! CPinCtl::takeCommCtl getting" << gpioName << " failed: active_low not found" << std::endl;
-			return nullptr;
-		}
-		// OK! pin is present
-
 		// Create TPinData
+		std::string pinPath = CPinCtl::gpioPath + "/" + gpioName + "/";
 		std::string fname(pinPath + "value");
 
 		TPinData pin;
 		pin.filename = fname;
-		pin.fd = open( fname.c_str(), O_RDONLY | O_NONBLOCK);
-
-		if (pin.fd == -1)
-		{
-			std::cout << "ERROR! CPinCtl::takeCommCtl didn't open file: " << fname << " as read-only." << std::endl;
- 			return nullptr;
-		}
-
+		pin.fd = -1;
 		pin.events = IN_CLOSE;
 		pin.watch = 0;
 		pin.name = gpioName;
@@ -343,9 +344,16 @@ void CPinCtl::Notifier()
 
 		TPinData& PinData = pctl->m_PinData;
 
+		if (checkFiles(PinData.name) == false)
+		{
+			std::cout << "ERROR! CPinCtl::Notifier didn't find important file of GPIO device: " << busyPin.first << ". Notifier exits." << std::endl;
+ 			return;
+		}
+
+		PinData.fd = open( PinData.filename.c_str(), O_RDONLY | O_NONBLOCK);
 		if (PinData.fd == -1)
 		{
-			std::cout << "ERROR! CPinCtl::Notifier didn't find file: " << PinData.filename << ". Notifier exits." << std::endl;
+			std::cout << "ERROR! CPinCtl::Notifier didn't open file: " << PinData.filename << ". Notifier exits." << std::endl;
  			return;
 		}
 

@@ -7861,17 +7861,18 @@ using gcc : arm : arm-linux-gnueabihf-g++ ;
    Полный вид строки после исправления: LIBS="$LIBS -lm -ldl"
 
    Сборка для x86_64
-   $ ./configure
-   $ sudo make
-   $ sudo make install
+#+BEGIN_BASH
+./configure
+make
+sudo make install
+#+END_BASH
 
    Сборка для arm-linux-gnueabihf
-   $ ./configure CC=/usr/local/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc
-   CXX=/usr/local/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-g++
-   --build=arm --exec-prefix=/usr/local/arm-linux-gnueabihf
-   --prefix=/usr/local/arm-linux-gnueabihf --host=amd64
-   $ sudo make
-   $ sudo make install
+#+BEGIN_BASH
+./configure CC=/usr/local/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc CXX=/usr/local/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-g++ --build=arm --exec-prefix=/usr/local/arm-linux-gnueabihf --prefix=/usr/local/arm-linux-gnueabihf --host=amd64
+make
+sudo make install
+#+END_BASH
 
    Пути cppunit для ARM
    include: /usr/local/arm-linux-gnueabihf/include/

@@ -71,7 +71,7 @@ settings::DeviceConfig userbutton =
 		"user-button",
 		"",
 		{ "gpio44" },
-		disabled_device
+		enabled_device
 };
 
 settings::DeviceConfig* devices[] =
