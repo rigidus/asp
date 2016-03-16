@@ -49,9 +49,9 @@ void CBaseDevice::performTransaction(std::vector<uint8_t>& rcvData)
 	std::cout << std::endl;
 
 	// Вызвать установку задачи для клиента по имени абстрактного девайса
-	std::string answer;
-	for(uint8_t v: rcvData)
-		answer += v;
+	char* beginData = (char*) &rcvData[0];
+	char* endData = (char*) &rcvData[rcvData.size()-1];
+	std::string answer(beginData, endData);
 
 	setCommandTo::Client( setCommandTo::Transaction, c_name, "answer: ", answer);
 }
