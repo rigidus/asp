@@ -10,11 +10,13 @@
 #include "devices/HttpDevLayerClient.h"
 #include "devices/gpioShlagbaum.h"
 #include "devices/UserButton.h"
+#include "devices/winstar16x2.h"
 
 #include "abstract/testAbstractDevice.h"
 #include "abstract/BsnsLogic.h"
 #include "abstract/ShlagbaumAbstract.h"
 #include "abstract/UserButtonAbstract.h"
+#include "abstract/SymbolDisplayAbstract.h"
 
 // Abstract names
 // full
@@ -33,6 +35,7 @@ const std::string CTestAbstractDevice::s_abstractName = "abstract";
 const std::string AbstractShlagbaum::s_abstractName = "shlagbaum";
 const std::string BsnsLogic::s_abstractName = "logic";
 const std::string AbstractUserButton::s_abstractName = "user-button";
+const std::string AbstractSymbolDisplay::s_abstractName = "symbol_LCD";
 
 // concrete names
 const std::string CTestConcreteDevice::s_concreteName = "concrete_device";
@@ -40,4 +43,5 @@ const std::string CGPIOShlagbaum::s_concreteName = "shlagbaum_gpio";
 const std::string CUserButton::s_concreteName = "user-button";
 const std::string HttpClient::s_concreteName = "logic_http";
 const std::string HttpDevLayerClient::s_concreteName = "logic_http_dev_layer";
+const std::string CSLCDWinstar16x2::s_concreteName = "symbol_LCD_Winstar_16x2";
 
