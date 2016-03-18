@@ -49,20 +49,20 @@ settings::DeviceConfig shlagbaum1 =
 
 settings::DeviceConfig printer =
 {
-		"pechatalka_ru",
+		"printer_vkp80ii_usb",
 		"printer",
 		"printer_proto",
 		{"uart4"},
-		disabled_device
+		enabled_device
 };
 
 settings::DeviceConfig display =
 {
-		"display_ru",
-		"display_winstar_4x16",
+		"symbol_LCD_winstar_16x2",
+		"display",
 		"",
-		{ },
-		disabled_device
+		{ "klcd"},
+		enabled_device
 };
 
 settings::DeviceConfig userbutton =
@@ -140,6 +140,12 @@ settings::CommUARTConfig uart2 =
 		8, 1, true
 };
 
+settings::CommDisplayConfig klcd =
+{
+		"klcd",
+		"/dev/klcd"
+};
+
 settings::CommGPIOConfig* gpioConfigs[] =
 {
 		&gpio66,
@@ -155,7 +161,14 @@ settings::CommUARTConfig* uartConfigs[] =
 		&uart2
 };
 
+settings::CommDisplayConfig* displayConfigs[] =
+{
+		&klcd
+};
+
+
 std::vector<settings::CommGPIOConfig*> settings::gpioConfigList(gpioConfigs, &gpioConfigs[sizeof(gpioConfigs)/sizeof(gpioConfigs[0])]);
 std::vector<settings::CommUARTConfig*> settings::uartConfigList(uartConfigs, &uartConfigs[sizeof(uartConfigs)/sizeof(uartConfigs[0])]);
+std::vector<settings::CommDisplayConfig*> settings::displayConfigList(displayConfigs, &displayConfigs[sizeof(displayConfigs)/sizeof(displayConfigs[0])]);
 std::vector<settings::DeviceConfig*> settings::deviceList(devices, &devices[sizeof(devices)/sizeof(devices[0])]);
 
