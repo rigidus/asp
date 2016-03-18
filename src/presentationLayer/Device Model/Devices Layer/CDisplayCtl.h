@@ -63,7 +63,7 @@ public:
 
 
 	// CDisplayCtl public members
-	uint32_t send(std::list<std::vector<uint8_t> > sendData);
+	virtual uint32_t send(std::list<std::vector<uint8_t> > sendData);
 
 private:
 	CDisplayCtl(CBaseDevice* device, const settings::CommDisplayConfig& config, TDisplayData& displayData);
