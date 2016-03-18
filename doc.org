@@ -5318,6 +5318,137 @@ void CBaseDevice::disconnectFromCommCtl()
       git clone git@github.com:rigidus/asp.git
     #+END_SRC
 
+*** Установка Closure Common Lisp на bbb
+
+    Скачиваем (с оффсайта) и распаковываем ccl-1.11-linuxarm.tar.gz
+    http://ccl.clozure.com/download.html
+
+    Установка и возможные проблемы описаны в документации:
+    http://ccl.clozure.com/docs/ccl.html#installing-and-running-clozure-cl
+
+    Заходим в папку, в которую распаковался архив, вызываем armcl и выполняем
+
+    #+BEGIN_SRC lisp
+      (ccl:rebuild-ccl :full t)
+    #+END_SRC
+
+    После того как ребилд прошел, выходим, набирая "(quit)" и переходим в папку
+    =ccl/lisp-kernel/linuxarm=. Там делаем:
+
+    #+BEGIN_SRC sh
+      make clean
+      make
+    #+END_SRC
+
+    Иногда перед этим нужно поставить макропроцессор m4
+
+    Снова запускаем =armcl= и выполгяем компиляцию:
+
+    #+BEGIN_SRC lisp
+      (ccl:compile-ccl t)
+    #+END_SRC
+
+    Выходим, загружаемся снова и загружаем нулевой уровень:
+
+    #+BEGIN_SRC lisp
+      (ccl:xload-level-0)
+    #+END_SRC
+
+    Снова выходим и загружаем полученный образ
+
+    #+BEGIN_SRC sh
+      armcl -image-name x86-boot64.image --no-init
+    #+END_SRC
+
+    Теперь можно его сохранить в окончательный файл
+
+    #+BEGIN_SRC lisp
+      (ccl:save-application "new.image")
+    #+END_SRC
+
+*** Установка org-mode
+
+    Заключается в том, чтобы склонировать правильный org-mode
+
+    #+BEGIN_SRC sh
+      cd ~/repo/
+      https://github.com/rigidus/org-mode.git
+    #+END_SRC
+
+    Зайти в его каталог, сделать:
+
+    #+BEGIN_SRC sh
+      make autoloads
+    #+END_SRC
+
+    и прописать его в ~/.emacs.d/init.el
+
+    #+BEGIN_SRC lisp
+      ;; OrgMode
+      (add-to-list 'load-path "/root/repo/org-mode/lisp")
+      (require 'org-install)
+    #+END_SRC
+
+*** Установка Slime
+
+    Необходимо скачать версию 2.8 с оффсайта, выполнить операции оп установке и
+    прописать в init.el:
+
+    #+BEGIN_SRC lisp
+      ;; CCL
+      (setq inferior-lisp-program "/root/build/ccl/armcl")
+      ;; SLIME
+      (add-to-list 'load-path "/root/build/slime-2.8")
+      (require 'slime)
+      (slime-setup '(slime-fancy))
+    #+END_SRC
+
+*** Установка Quicklisp
+
+    #+BEGIN_SRC sh
+      ccl/armcl --load quicklisp.lisp
+    #+END_SRC
+
+    #+BEGIN_SRC lisp
+      (quicklisp-quickstart:install)
+    #+END_SRC
+
+    В =~/ccl-init.lisp= прописать:
+
+    #+BEGIN_SRC lisp
+      ;;; The following lines added by ql:add-to-init-file:
+      #-quicklisp
+      (let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
+                                             (user-homedir-pathname))))
+        (when (probe-file quicklisp-init)
+          (load quicklisp-init)))
+
+
+      ,#+quicklisp
+      (mapcar #'(lambda (x)
+                  (pushnew x ql:*local-project-directories*))
+              (list
+               #P"~/repo/asp/"
+               ))
+    #+END_SRC
+
+    Чтобы все работало правильно сделать:
+
+    #+BEGIN_SRC sh
+      apt-get purge common-lisp-controller
+      mv /usr/share/common-lisp /usr/share/common-lisp-2
+    #+END_SRC
+
+    И установить локаль ru_RU.UTF-8:
+    http://debianworld.ru/articles/nastrojka-rusifikaciya-konsoli-v-ubuntu-debian/
+
+    #+BEGIN_SRC sh
+      dpkg-reconfigure locales
+    #+END_SRC
+
+    И закомментировать все в файле =/etc/emacs/site-start.d/50slime.el= чтобы
+    запускался нужный swank
+
 *** START Установка и запуск SMTP-сервера                              :gmm:
 
     Почтовый сервер необходим для того, чтобы контроллер мог отправлять на почту
