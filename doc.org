@@ -5513,6 +5513,148 @@ zlib1g_1.2.8.dfsg-2+b1_armel.deb
 
 **** TODO Сканеры штрихкодов
 
+** Подготовка среды разработки ПО контроллера
+*** Сборка ядра Linux в нашей частной конфигурации 3.8.13-bone47
+
+    [VRFY:bvl] Стоит наверно перенести это в [[*Установка и запуск Boost][Установка и запуск Boost]] ?
+
+    Смотри "Сборка Linux в нашей частной конфигурации 3.8.13-bone47" в разделе "Сборка"
+    git clone https://github.com/RobertCNelson/bb-kernel.git
+    git checkout 3.8.13-bone47
+    Это скрипты, которые собирают ядро нужной версии за нас. Перед запуском скрипты
+    потребуют некоторой правки:
+
+    #+NAME: version.sh
+    #+BEGIN_SRC sh
+      #toolchain="gcc_linaro_gnueabi_4_6"
+      #toolchain="gcc_linaro_gnueabihf_4_7"
+      #toolchain="gcc_linaro_gnueabihf_4_8"
+      toolchain="gcc_linaro_gnueabihf_4_9"
+    #+END_SRC
+
+    По образцу gcc_linaro_gnueabihf_4_8) добавляем:
+
+    #+NAME: scripts/gcc.sh
+    #+BEGIN_SRC sh
+      gcc_linaro_gnueabihf_4_9)
+      #http://releases.linaro.org/14.09/components/toolchain/binaries/gcc-linaro-arm-linux-gnueabihf-4.9-2014.09_linux.tar.xz
+      gcc_version="4.9"
+      release="2014.09"
+      toolchain_name="gcc-linaro-arm-linux-gnueabihf"
+      site="https://releases.linaro.org"
+      version="14.09/components/toolchain/binaries"
+      directory="${toolchain_name}-${gcc_version}-${release}_linux"
+      filename="${directory}.tar.xz"
+      datestamp="${release}-${toolchain_name}"
+      binary="bin/arm-linux-gnueabihf-"
+      ;;
+    #+END_SRC
+
+    Скрещиваем пальцы на удачу, запускаем =sudo build_kernel.sh=. Что происходит:
+    - Определяется хост-система
+    - Скачивается указанный выше хост-компилятор. 4.8 потом выдает ошибки, нужен 4.9
+    - Скачивается километр исходников Linux из git.kernel.org. Это не лезет в ВВВ, даже
+      не пытайтесь.
+    - Патчатся исходники ядра в соответствии с меткой 3.8.13-bone47.
+    - Вылезает окно дополнительной конфигурации. Делаем =Exit=.
+    - По команде "СОБЕРИСЬ, ТРЯПКА" - собирается полное ведро исходников Linux с заголовками.
+    - Отрабатывают какие-то дополнительные скрипты, собирающие dtbs.
+
+    У нас получается свежий каталог bb-kernel/KERNEL, в котором индикатором готовности выступает
+    файл Module.symvers. На каталог стараемся не дышать - он нам еще не раз пригодится именно
+    в этом виде.
+
+*** Установка cmake
+
+    Cmake нам понадобится, чтобы собрать Boost
+    apt-get install cmake, собственно
+
+*** Установка Boost
+
+    Boost мы берем отсюда: http://www.boost.org/users/history/version_1_57_0.html
+    Укачиваем с SourceForge, распаковываем, смотрим на каталог.
+
+    Собираем, устанавливаем:
+    $ sudo ./buutstrap.sh
+    $ sudo ./b2 install
+
+    Это должно канать для сборки и тестирования на хост-машине.
+
+    Настраиваем кросс-компиляцию. Мануал:
+    http://www.boost.org/build/doc/html/bbv2/tasks/crosscompile.html Находим файл
+    ./tools/build/example/user-config.jam, тащим его к себе в "~", добавляем строчку
+
+    #+BEGIN_SRC
+      using gcc : arm : arm-linux-gnueabihf-g++ ;
+    #+END_SRC
+
+    Пересобираем с параметром:
+
+    #+BEGIN_SRC sh
+      sudo ./b2 toolset=gcc-arm
+    #+END_SRC
+
+    На ВВВ у нас тоже должен быть установлен и собран Boost, иначе не взлетим. Процесс
+    тот же (кроме настройки кросс-компиляции).
+
+*** Установка cppunit
+
+    Это набор инструментов автотестирования. Его тоже тащим с SourceForge:
+    https://sourceforge.net/projects/cppunit/
+
+    Сборка производится в директории cppunit.
+    В процессе сборки может произойти ошибка линковки с библиотекой libdl.so, чтобы ее
+    исправить надо в файле configure в строке 21585 дописать -ldl
+    Полный вид строки после исправления: LIBS="$LIBS -lm -ldl"
+
+    Сборка для x86_64
+
+    #+BEGIN_SRC sh
+      ./configure
+      make
+      sudo make install
+    #+END_SRC
+
+    Сборка для arm-linux-gnueabihf
+
+    #+BEGIN_SRC sh
+      ./configure CC=/usr/local/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc CXX=/usr/local/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-g++ --build=arm --exec-prefix=/usr/local/arm-linux-gnueabihf --prefix=/usr/local/arm-linux-gnueabihf --host=amd64
+      make
+      sudo make install
+    #+END_SRC
+
+    Пути cppunit для ARM:
+    #+BEGIN_EXAMPLE
+      include: /usr/local/arm-linux-gnueabihf/include/
+      lib: /usr/local/arm-linux-gnueabihf/lib/
+    #+END_EXAMPLE
+
+    Обычно на этом всё.
+
+*** Установка rapidjson
+
+    Его тащим с гитхаба:
+    $ git clone https://github.com/miloyip/rapidjson.git
+
+    После чего производим настройку, сборку и установку:
+
+    #+BEGIN_SRC sh
+      cmake .
+      sudo make
+      sudo make install
+    #+END_SRC
+
+    make собирает только примеры использования, поэтому необязателен
+    make install устанавливает исходники в /usr/local/include/rapidjson/.
+    Для нашей сборки на ARM нужно скопировать их в /usr/local/arm-linux-gnueabihf/rapidjson/.
+
+    На последнем шаге мне не хватило каталога ./include/rapidjson в существующем ./include. Создал ручками,
+    прокатило, установилось.
+
+*** Единая конфигурация Eclipse                                      :bvl:aav:
+
+    [TODO:aav] Надо бы по возможности проработать непротиворечивую конфигурацию, чтобы .cproject был единым.
+
 ** TODO Работа с библиотеками                                      :bvl:aav:
 *** TODO Работа со статическими библиотеками                       :bvl:aav:
 
@@ -5770,7 +5912,7 @@ cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pins | grep "830"
         __overlay__ {
             valversled: pinmux_valversled {
                 pinctrl-single,pins1 = <
-                            0x034 0x37 
+                            0x034 0x37
                               >;
                 pinctrl-single,pins2 = <
                             0x030 0x37
@@ -5805,10 +5947,10 @@ echo VALVERS-IO > /sys/devices/bone_capemgr.*/slots
    5. Это проверка успеха инсталляции
 cat /sys/devices/bone_capemgr.9/slots
 здесь должен появиться ответ
- 0: 54:PF--- 
- 1: 55:PF--- 
- 2: 56:PF--- 
- 3: 57:PF--- 
+ 0: 54:PF---
+ 1: 55:PF---
+ 2: 56:PF---
+ 3: 57:PF---
  4: ff:P-O-L Bone-LT-eMMC-2G,00A0,Texas Instrument,BB-BONE-EMMC-2G
  5: ff:P-O-L Bone-Black-HDMI,00A0,Texas Instrument,BB-BONELT-HDMI
 11: ff:P-O-L Override Board Name,00A0,Override Manuf,VALVERS-IO
@@ -5818,7 +5960,7 @@ cat /sys/devices/bone_capemgr.9/slots
 
    6. Проверяем факт включения пуллапов
 cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pins | grep "834"
-ответ на эту команду теперь будет содержать код 0х37 
+ответ на эту команду теперь будет содержать код 0х37
 cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pins | grep "830"
 и здесь тоже
 
@@ -7866,127 +8008,4 @@ cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pins | grep "830"
      Copyright © 2014-2015 Glukhov Mikhail. All rights reserved.
      Licensed under the GNU AGPLv3
    #+END_SRC
-* Подготовка среды разработки
-** Сборка ядра Linux в нашей частной конфигурации 3.8.13-bone47
-       Смотри "Сборка Linux в нашей частной конфигурации 3.8.13-bone47" в разделе "Сборка"
-       git clone https://github.com/RobertCNelson/bb-kernel.git
-       git checkout 3.8.13-bone47
-       Это скрипты, которые собирают ядро нужной версии за нас. Перед запуском скрипты
-       потребуют некоторой правки:
-       =version.sh=
-       #+BEGIN_SRC
-#toolchain="gcc_linaro_gnueabi_4_6"
-#toolchain="gcc_linaro_gnueabihf_4_7"
-#toolchain="gcc_linaro_gnueabihf_4_8"
-toolchain="gcc_linaro_gnueabihf_4_9"
-       #+END_SRC
-
-       =scripts/gcc.sh=
-       По образцу gcc_linaro_gnueabihf_4_8) добавляем:
-       #+BEGIN_SRC
-       gcc_linaro_gnueabihf_4_9)
-       #http://releases.linaro.org/14.09/components/toolchain/binaries/gcc-linaro-arm-linux-gnueabihf-4.9-2014.09_linux.tar.xz
-       gcc_version="4.9"
-       release="2014.09"
-       toolchain_name="gcc-linaro-arm-linux-gnueabihf"
-       site="https://releases.linaro.org"
-       version="14.09/components/toolchain/binaries"
-       directory="${toolchain_name}-${gcc_version}-${release}_linux"
-       filename="${directory}.tar.xz"
-       datestamp="${release}-${toolchain_name}"
-
-       binary="bin/arm-linux-gnueabihf-"
-       ;;
-
-       #+END_SRC
-
-       Скрещиваем пальцы на удачу, запускаем =sudo build_kernel.sh=. Что происходит:
-       1. Определяется хост-система
-       2. Скачивается указанный выше хост-компилятор. 4.8 потом выдает ошибки, нужен 4.9
-       3. Скачивается километр исходников Linux из git.kernel.org. Это не лезет в ВВВ, даже
-не пытайтесь.
-       4. Патчатся исходники ядра в соответствии с меткой 3.8.13-bone47.
-       5. Вылезает окно дополнительной конфигурации. Делаем =Exit=.
-       6. По команде "СОБЕРИСЬ, ТРЯПКА" - собирается полное ведро исходников Linux с заголовками.
-       7. Отрабатывают какие-то дополнительные скрипты, собирающие dtbs.
-
-       У нас получается свежий каталог bb-kernel/KERNEL, в котором индикатором готовности выступает
-       файл Module.symvers. На каталог стараемся не дышать - он нам еще не раз пригодится именно
-       в этом виде.
-
-** Установка cmake
-   Cmake нам понадобится, чтобы собрать Boost
-   apt-get install cmake, собственно
-
-** Установка Boost
-   Boost мы берем отсюда:
-   http://www.boost.org/users/history/version_1_57_0.html
-   Укачиваем с SourceForge, распаковываем, смотрим на каталог.
-
-   Собираем, устанавливаем:
-   $ sudo ./buutstrap.sh
-   $ sudo ./b2 install
-
-   Это должно канать для сборки и тестирования на хост-машине.
-
-   Настраиваем кросс-компиляцию. Мануал: http://www.boost.org/build/doc/html/bbv2/tasks/crosscompile.html
-   Находим файл ./tools/build/example/user-config.jam, тащим его к себе в "~", добавляем строчку
-   #+BEGIN_SRC
-using gcc : arm : arm-linux-gnueabihf-g++ ;
-   #+END_SRC
-   Пересобираем с параметром:
-   $ sudo ./b2 toolset=gcc-arm
-
-   На ВВВ у нас тоже должен быть установлен и собран Boost, иначе не взлетим. Процесс тот же (кроме
-   настройки кросс-компиляции).
-
-** Установка cppunit
-   Это набор инструментов автотестирования. Его тоже тащим с SourceForge:
-   https://sourceforge.net/projects/cppunit/
-
-   Сборка производится в директории cppunit.
-   В процессе сборки может произойти ошибка линковки с библиотекой libdl.so, чтобы ее
-   исправить надо в файле configure в строке 21585 дописать -ldl
-   Полный вид строки после исправления: LIBS="$LIBS -lm -ldl"
-
-   Сборка для x86_64
-#+BEGIN_BASH
-./configure
-make
-sudo make install
-#+END_BASH
-
-   Сборка для arm-linux-gnueabihf
-#+BEGIN_BASH
-./configure CC=/usr/local/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc CXX=/usr/local/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-g++ --build=arm --exec-prefix=/usr/local/arm-linux-gnueabihf --prefix=/usr/local/arm-linux-gnueabihf --host=amd64
-make
-sudo make install
-#+END_BASH
-
-   Пути cppunit для ARM
-   include: /usr/local/arm-linux-gnueabihf/include/
-   lib: /usr/local/arm-linux-gnueabihf/lib/
-
-   Обычно на этом всё.
-
-** Установка rapidjson
-   Его тащим с гитхаба:
-   $ git clone https://github.com/miloyip/rapidjson.git
-
-   После чего производим настройку, сборку и установку:
-
-   $ cmake .
-   $ sudo make
-   $ sudo make install
-
-   make собирает только примеры использования, поэтому необязателен
-   make install устанавливает исходники в /usr/local/include/rapidjson/.
-   Для нашей сборки на ARM нужно скопировать их в /usr/local/arm-linux-gnueabihf/rapidjson/.
-
-   На последнем шаге мне не хватило каталога ./include/rapidjson в существующем ./include. Создал ручками,
-   прокатило, установилось.
-
-** Единая конфигурация Eclipse                                      :bvl:aav:
-   [TODO:aav] Надо бы по возможности проработать непротиворечивую конфигурацию, чтобы .cproject был единым.
-
 * Оптимизация аппаратной части решения
