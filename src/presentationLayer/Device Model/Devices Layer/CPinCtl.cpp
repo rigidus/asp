@@ -433,7 +433,7 @@ void CPinCtl::Notifier()
 					{
 						std::cout << "GPIO Notifier: Call Device Event for: " << it->second->myDevice().c_name << std::endl;
 
-						it->second->myDevice().performEvent(data);
+						it->second->myDevice().performEvent(PinData.name, data);
 
 						std::cout << "GPIO Notifier: Device Event Ready for: " << it->second->myDevice().c_name << std::endl;
 					}

@@ -22,9 +22,9 @@ class CGPIOShlagbaum: public CBaseDevice
 	* 3 - relay for 'action Close' when active 1
 	* 4 - sensor 'Car Present' when 0
 	*/
-	enum PinFunc { IsOpen, DoOpen, IsClose, DoClose, IsCarPresent };
+	enum PinFunc { IsOpen, DoOpen, IsClose, DoClose, IsCarPresent, LastFunction };
 
-	enum TState { Idle, InProcess, Closed, Opened, CarPresent, InError };
+	enum TState { Idle, InProcessUp, InProcessDown, Closed, Opened, CarPresent, InError, InErrorCommDevice };
 	boost::atomic<TState> actualState;
 
 	TState StateDetector()
@@ -32,7 +32,7 @@ class CGPIOShlagbaum: public CBaseDevice
 		TState state = actualState.load(boost::memory_order_relaxed);
 
 		// На процесс не обращаем внимания
-		if (state == InProcess) return state;
+		if (state == InProcessUp || state == InProcessDown) return state;
 
 		bool realOpen = ((CPinCtl*)m_commCtl[IsOpen].get())->getPinValue() == '0';
 		bool realClose = ((CPinCtl*)m_commCtl[IsClose].get())->getPinValue() == '0';
@@ -74,6 +74,91 @@ class CGPIOShlagbaum: public CBaseDevice
 		return state;
 	}
 
+	// TODO: Сделать отправку транзакций по ТЗ
+	// TODO: Сделать отправку событий с глобальным счетчиком евентов
+	// TODO: Научиться использовать сериализтор рапидджейсон
+	// TODO: Добавлять нужные поля в менеджере транзакций, отсюда отправлять только параметры
+	void SendAnswerToClient(TState state,  std::string command, setCommandTo::CommandType type = setCommandTo::CommandType::Transaction)
+	{
+
+		if (state == Closed)
+		{
+			std::stringstream str;
+			str << "\"command\":\"" << command << "\", " << "\"state\" : \"closed\"";
+			setCommandTo::Client(type, c_name, "send", str.str());
+		}
+
+		if (state == Opened)
+		{
+			std::stringstream str;
+			str << "\"command\":\"" << command << "\", " << "\"state\" : \"opened\", " << "\"car_present\" : \"false\"";
+			setCommandTo::Client(type, c_name, "send", str.str());
+		}
+
+		if (state == InError)
+		{
+			std::stringstream str;
+			str << "\"command\":\"" << command << "\", " << "\"state\" : \"unknown\"";
+			setCommandTo::Client(type, c_name, "send", str.str());
+		}
+
+		if (state == InErrorCommDevice)
+		{
+			std::stringstream str;
+			str << "\"command\":\"" << command << "\", " << "\"state\" : \"communication devices failed\"";
+			setCommandTo::Client(type, c_name, "send", str.str());
+		}
+
+		if (state == InProcessUp)
+		{
+			std::stringstream str;
+			str << "\"command\":\"" << command << "\", " << "\"state\" : \"in process up\", " << "\"car_present\" : \"false\"";
+			setCommandTo::Client(type, c_name, "send", str.str());
+		}
+
+		if (state == InProcessDown)
+		{
+			std::stringstream str;
+			str << "\"command\":\"" << command << "\", " << "\"state\" : \"in process down\", " << "\"car_present\" : \"false\"";
+			setCommandTo::Client(type, c_name, "send", str.str());
+		}
+
+		if (state == CarPresent)
+		{
+			std::stringstream str;
+			str << "\"command\":\"" << command << "\", " << "\"state\" : \"opened\", " << "\"car_present\" : \"true\"";
+			setCommandTo::Client(type, c_name, "send", str.str());
+		}
+
+		if (state == Idle)
+		{
+			std::stringstream str;
+			str << "\"command\":\"" << command << "\", " << "\"state\" : \"idle\"";
+			setCommandTo::Client(type, c_name, "send", str.str());
+		}
+
+	}
+
+	// Распознать пин, с которого пришел евент
+	PinFunc getPinFunc(std::string& name)
+	{
+		uint32_t i = 0;
+		while ( i < m_commCtl.size() && m_commCtl[i]->m_commName != name ) ++i;
+
+		if ( i == m_commCtl.size())
+		{
+			std::cout << "ERROR! GPIOShlagbaum::sendCommand: communication device '" << name << "' has lost in '"
+					<< c_name << "'"  << std::endl;
+
+			actualState = InErrorCommDevice;
+			SendAnswerToClient(InErrorCommDevice, "error", setCommandTo::CommandType::Event);
+			return LastFunction;
+		}
+
+		return (PinFunc) i;
+	}
+
+
 public:
 
 	CGPIOShlagbaum(): CBaseDevice(s_concreteName), actualState(Idle) {}
@@ -87,33 +172,122 @@ public:
 
 	std::vector<uint8_t> rcvData;
 
+	// Информацию с него
+	// составить параметры команды и отправить на клиента
+	virtual void performEvent(std::string& commDeviceName, std::vector<uint8_t>& rcvData)
+	{
+		std::cout << "GPIOShlagbaum::performEvent: from '" << commDeviceName << "'" << std::endl;
+
+		if (m_commCtl.size() < LastFunction)
+		{
+			std::cout << "ERROR! GPIOShlagbaum::sendCommand: communication devices has lost in '" << c_name << "'" << std::endl;
+
+			actualState = InErrorCommDevice;
+			SendAnswerToClient(InErrorCommDevice, "error", setCommandTo::CommandType::Event);
+			return;
+		}
+
+		PinFunc i = getPinFunc(commDeviceName);
+
+		if ( i == LastFunction)
+		{
+			return;
+		}
+
+		TState state = actualState.load(boost::memory_order_relaxed);
+
+		if ( i == IsOpen )
+		{
+			if ( state == InProcessUp )
+			{
+				std::stringstream str;
+				str << "\"command\":\"up\", " << "\"parameters\":{ \"result\":\"OK\" }";
+				setCommandTo::Client(setCommandTo::CommandType::Event, c_name, "send", str.str());
+
+				actualState = Opened;
+
+				std::vector<uint8_t> data;
+				data.push_back(0);
+				data.push_back('0');
+				m_commCtl[DoOpen]->send(data);
+
+				return;
+			}
+		}
+
+		if ( i == IsClose )
+		{
+			if ( state == InProcessDown )
+			{
+				std::stringstream str;
+				str << "\"command\":\"down\", " << "\"parameters\":{ \"result\":\"OK\" }";
+				setCommandTo::Client(setCommandTo::CommandType::Event, c_name, "send", str.str());
+
+				actualState = Closed;
+
+				std::vector<uint8_t> data;
+				data.push_back(0);
+				data.push_back('0');
+				m_commCtl[DoClose]->send(data);
+
+				return;
+			}
+		}
+
+		if ( i == IsCarPresent )
+		{
+			TState state = StateDetector();
+
+
+
+			if ( state == CarPresent )
+			{
+				std::stringstream str;
+				str << "\"command\":\"car_in\", " << "\"state\" : \"opened\", " << "\"car_present\" : \"true\"";
+				setCommandTo::Client(setCommandTo::CommandType::Event, c_name, "send", str.str());
+			}
+			else
+			{
+				if ( state == Opened )
+				{
+					std::stringstream str;
+					str << "\"command\":\"car_out\", " << "\"state\" : \"opened\", " << "\"car_present\" : \"false\"";
+					setCommandTo::Client(setCommandTo::CommandType::Event, c_name, "send", str.str());
+				}
+
+				if ( state == Closed )
+				{
+					std::stringstream str;
+					str << "\"command\":\"car_out\", " << "\"state\" : \"closed\", " << "\"car_present\" : \"false\"";
+					setCommandTo::Client(setCommandTo::CommandType::Event, c_name, "send", str.str());
+				}
+			}
+		}
+
+	}
+
 	virtual void sendCommand(const std::string command, const std::string pars)
 	{
 		std::cout << "GPIOShlagbaum::sendCommand: performs command: " << command << "[" << pars << "]" << std::endl;
 
 		std::list<std::vector<uint8_t> > data;
 
-		if (m_commCtl.size() == 0)
+		if (m_commCtl.size() < LastFunction)
 		{
 			std::cout << "ERROR! GPIOShlagbaum::sendCommand: communication devices has lost" << std::endl;
+
+			actualState = InErrorCommDevice;
+			SendAnswerToClient(InErrorCommDevice, command);
 			return;
 		}
 
 		TState state = StateDetector();
 
 		// Сообщаем о невозможности работать со шлагбаумом
-		if (state == InError)
+		if ( state == InError || state == InProcessUp || state == InProcessDown )
 		{
-			std::stringstream str;
-			str << "\"device\" : \"" << c_name << "\"state\" : \"unknown\"}";
-			setCommandTo::Client(setCommandTo::CommandType::Transaction, c_name, "send", str.str());
-		}
-
-		if (state == InProcess)
-		{
-			std::stringstream str;
-			str << "\"device\" : \"" << c_name << "\"state\" : \"in_process\"}";
-			setCommandTo::Client(setCommandTo::CommandType::Transaction, c_name, "send", str.str());
+			SendAnswerToClient(state, command);
+			return;
 		}
 
 		// command "down"
@@ -124,6 +298,8 @@ public:
 		{
 			if ( state == Opened ) // Это гарантия, что шлагбаум поднят и машины нет
 			{
+				actualState = InProcessDown;
+
 				std::vector<uint8_t> data;
 				data.push_back(0);
 				data.push_back('1');
@@ -131,44 +307,25 @@ public:
 
 				boost::this_thread::sleep(boost::posix_time::milliseconds(3000));
 
-				data[1] = '0';
-				m_commCtl[DoClose]->send(data);
+				if (actualState == InProcessDown)
+				{
+					actualState = Idle;
+					data[1] = '0';
+					m_commCtl[DoClose]->send(data);
+				}
 
 				TState postState = StateDetector();
-
-				if (postState == Closed)
+				if ( postState == InError )
 				{
-					std::stringstream str;
-					str << "\"device\" : \"" << c_name << "\"state\" : \"closed\"}";
-					setCommandTo::Client(setCommandTo::CommandType::Transaction, c_name, "send", str.str());
-				}else
-				if (postState == Opened)
-				{
-					std::stringstream str;
-					str << "\"device\" : \"" << c_name << "\"state\" : \"opened\"}";
-					setCommandTo::Client(setCommandTo::CommandType::Transaction, c_name, "send", str.str());
-				}else
-				{
-					std::stringstream str;
-					str << "\"device\" : \"" << c_name << "\"state\" : \"unknown\"}";
-					setCommandTo::Client(setCommandTo::CommandType::Transaction, c_name, "send", str.str());
+					SendAnswerToClient(postState, command);
 				}
+
+				return;
 			}
 			else
 			{
-				if (state == Closed)
-				{
-					std::stringstream str;
-					str << "\"device\" : \"" << c_name << "\"state\" : \"closed\"}";
-					setCommandTo::Client(setCommandTo::CommandType::Transaction, c_name, "send", str.str());
-				}
-
-				if (state == CarPresent)
-				{
-					std::stringstream str;
-					str << "\"device\" : \"" << c_name << "\"state\" : \"opened\", " << "\"car_present\" : \"true\" }";
-					setCommandTo::Client(setCommandTo::CommandType::Transaction, c_name, "send", str.str());
-				}
+				SendAnswerToClient(state, command);
+				return;
 			}
 		}
 
@@ -180,6 +337,9 @@ public:
 		{
 			if ( state == Closed ) // Это гарантия, что шлагбаум опущен
 			{
+
+				actualState = InProcessUp;
+
 				std::vector<uint8_t> data;
 				data.push_back(0);
 				data.push_back('1');
@@ -187,97 +347,37 @@ public:
 
 				boost::this_thread::sleep(boost::posix_time::milliseconds(3000));
 
-				data[1] = '0';
-				m_commCtl[DoOpen]->send(data);
+				if (actualState == InProcessUp)
+				{
+					actualState = Idle;
+
+					data[1] = '0';
+					m_commCtl[DoOpen]->send(data);
+				}
 
 				TState postState = StateDetector();
-
-				if (postState == Closed)
+				if ( postState == InError )
 				{
-					std::stringstream str;
-					str << "\"device\" : \"" << c_name << "\"state\" : \"closed\"}";
-					setCommandTo::Client(setCommandTo::CommandType::Transaction, c_name, "send", str.str());
+					SendAnswerToClient(postState, command);
 				}
 
-				if (postState == Opened)
-				{
-					std::stringstream str;
-					str << "\"device\" : \"" << c_name << "\"state\" : \"opened\"}";
-					setCommandTo::Client(setCommandTo::CommandType::Transaction, c_name, "send", str.str());
-				}
-
-				if (postState == InError)
-				{
-					std::stringstream str;
-					str << "\"device\" : \"" << c_name << "\"state\" : \"unknown\"}";
-					setCommandTo::Client(setCommandTo::CommandType::Transaction, c_name, "send", str.str());
-				}
+				return;
 			}
 			else
 			{
-				if (state == Opened)
-				{
-					std::stringstream str;
-					str << "\"device\" : \"" << c_name << "\"state\" : \"opened\"}";
-					setCommandTo::Client(setCommandTo::CommandType::Transaction, c_name, "send", str.str());
-				}
+				SendAnswerToClient(state, command);
+				return;
 			}
 		}
 
-		// command "is_car"
-		// Возвращает состояние датчика car_present
-		// Возможные ответы: датчик не найден, есть машина, нет машины
-		if (command == "is_car")
-		{
-			if (state == CarPresent)
-			{
-				std::stringstream str;
-				str << "\"device\" : \"" << c_name << "\"state\" : \"opened\", " << "\"car_present\" : \"true\" }";
-				setCommandTo::Client(setCommandTo::CommandType::Transaction, c_name, "send", str.str());
-			}
-			else
-			{
-				if (state == Opened)
-				{
-					std::stringstream str;
-					str << "\"device\" : \"" << c_name << "\"state\" : \"opened\", " << "\"car_present\" : \"false\" }";
-					setCommandTo::Client(setCommandTo::CommandType::Transaction, c_name, "send", str.str());
-				}
-
-				if (state == Closed)
-				{
-					std::stringstream str;
-					str << "\"device\" : \"" << c_name << "\"state\" : \"closed\", " << "\"car_present\" : \"false\" }";
-					setCommandTo::Client(setCommandTo::CommandType::Transaction, c_name, "send", str.str());
-				}
-
-				if (state == InError)
-				{
-					std::stringstream str;
-					str << "\"device\" : \"" << c_name << "\"state\" : \"unknown\", " << "\"car_present\" : \"false\" }";
-					setCommandTo::Client(setCommandTo::CommandType::Transaction, c_name, "send", str.str());
-				}
-			}
-		}
 
 		// command "state"
 		// Возвращает позицию шлагбаума по концевикам
 		// Возможные ответы: в процессе, ошибка состояния, закрыт, открыт
 		if (command == "state")
 		{
-			if (state == Opened)
-			{
-				std::stringstream str;
-				str << "\"device\" : \"" << c_name << "\"state\" : \"opened\", " << "\"car_present\" : \"false\" }";
-				setCommandTo::Client(setCommandTo::CommandType::Transaction, c_name, "send", str.str());
-			}
-
-			if (state == Closed)
-			{
-				std::stringstream str;
-				str << "\"device\" : \"" << c_name << "\"state\" : \"closed\", " << "\"car_present\" : \"false\" }";
-				setCommandTo::Client(setCommandTo::CommandType::Transaction, c_name, "send", str.str());
-			}
+			SendAnswerToClient(state, command);
+			return;
 		}
 
 	}
