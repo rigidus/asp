@@ -380,6 +380,8 @@ public:
 			return;
 		}
 
+		setCommandTo::Manager(c_name);
+
 	}
 
 	virtual bool connectToCommCtl()

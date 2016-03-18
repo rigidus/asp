@@ -46,6 +46,8 @@ public:
 		if (m_commCtl[0])
 			m_commCtl[0]->send(data);
 
+		setCommandTo::Manager(c_name);
+
 	}
 
 	virtual bool connectToCommCtl()
