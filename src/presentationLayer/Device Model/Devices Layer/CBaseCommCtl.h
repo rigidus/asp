@@ -26,6 +26,7 @@ public:
 	virtual ~CBaseCommCtl();
 
 	virtual uint32_t send(std::list<std::vector<uint8_t> > sendData) = 0;
+	virtual uint32_t send(std::vector<uint8_t> sendData) = 0;
 
 	CBaseDevice& myDevice()
 	{

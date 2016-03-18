@@ -44,7 +44,14 @@ void CBaseDevice::performEvent(std::vector<uint8_t>& rcvData)
 
 void CBaseDevice::performTransaction(std::vector<uint8_t>& rcvData)
 {
-	std::cout << "CBaseDevice::performTransaction: performs Transaction from device: " << c_name << ": ";
+	std::cout << "CBaseDevice::performTransaction: performs Transaction from device: " << c_name << ": " << std::endl;
+
+	if (rcvData.size() == 0)
+	{
+		std::cout << "ERROR! CBaseDevice::performTransaction: Data size = 0" << std::endl;
+		return;
+	}
+
 	for (auto v: rcvData) std::cout << v << " ";
 	std::cout << std::endl;
 

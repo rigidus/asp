@@ -69,9 +69,9 @@ public:
 	static void startNotifier();
 	static void stopNotifier();
 
-
 	// CPinCtl public members
-	uint32_t send(std::list<std::vector<uint8_t> > sendData);
+	virtual uint32_t send(std::list<std::vector<uint8_t> > sendData);
+	virtual uint32_t send(std::vector<uint8_t> sendData);
 	int8_t getPinValue();
 
 private:

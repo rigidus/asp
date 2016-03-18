@@ -132,6 +132,13 @@ shared_ptr<CBaseCommCtl> CPinCtl::takeCommCtl(CBaseDevice* device, const std::st
 	std::cout << "CPinCtl::takeCommCtl try to take " << gpioName << std::endl;
 
 	try{
+
+		if (gpioName.size() < 5)
+		{
+			std::cout << "ERROR! CPinCtl::takeCommCtl: gpio name size < 5" << std::endl;
+			return nullptr;
+		}
+
 		// check busy pin
 		if (busyPins.find(gpioName) != busyPins.end())
 		{
@@ -252,10 +259,33 @@ CPinCtl::~CPinCtl(){
 }
 
 
+uint32_t CPinCtl::send(std::vector<uint8_t> sendData)
+{
+	std::list<std::vector<uint8_t> > lst;
+	lst.push_back(sendData);
+
+	return send(lst);
+}
+
+
 uint32_t CPinCtl::send(std::list<std::vector<uint8_t> > sendData)
 {
 
 	std::cout << "CPinCtl::send: command 'write value' to '" << m_PinData.name << "'." << std::endl;
+
+	if ( sendData.size() != 1)
+	{
+		std::cout << "ERROR! CPinCtl::send: Incorrect argument size: list size = "
+				<< sendData.size() << std::endl;
+		return  0;
+	}
+	else
+	if ( sendData.begin()->size() < 2 )
+	{
+		std::cout << "ERROR! CPinCtl::send: Incorrect argument size: vector size = "
+				<< sendData.begin()->size() << std::endl;
+		return  0;
+	}
 
 	/*
 	 * Парсинг команды записи в конкретный файл пина
@@ -302,18 +332,6 @@ uint32_t CPinCtl::send(std::list<std::vector<uint8_t> > sendData)
 		close(fd);
 
 		return len;
-	}
-
-	if ( sendData.size() != 1)
-	{
-		std::cout << "ERROR! CPinCtl::send: Incorrect argument size: list size = "
-				<< sendData.size() << std::endl;
-	}
-	else
-	if ( sendData.begin()->size() < 2 )
-	{
-		std::cout << "ERROR! CPinCtl::send: Incorrect argument size: vector size = "
-		<< sendData.begin()->size() << std::endl;
 	}
 
 	return  0;
