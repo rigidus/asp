@@ -1,23 +1,23 @@
 /*
- * SymbolDisplayAbstract.h
+ * PrinterAbstract.h
  *
- *  Created on: 16 марта 2016 г.
+ *  Created on: 18 марта 2016 г.
  *      Author: bvl
  */
 
-#ifndef SYMBOLDISPLAYABSTRACT_H_
-#define SYMBOLDISPLAYABSTRACT_H_
+#ifndef PRINTERABSTRACT_H_
+#define PRINTERABSTRACT_H_
 
 #include "CAbstractDevice.h"
 #include <devices/CBaseDevice.h>
-#include <devices/LCD_winstar16x2.h>
+#include <devices/PRN_vkp80ii_usb.h>
 
-class AbstractSymbolDisplay: public CAbstractDevice
+class AbstractPrinter: public CAbstractDevice
 {
 
 public:
 
-	AbstractSymbolDisplay(CBaseDevice* pDevice, const std::string& abstractName):
+	AbstractPrinter(CBaseDevice* pDevice, const std::string& abstractName):
 		CAbstractDevice(pDevice, abstractName) {}
 
 	static const std::string s_abstractName;
@@ -25,7 +25,7 @@ public:
 	static CAbstractDevice* createDevice(const std::string& abstractName, const std::string& devName)
 	{
 
-		std::cout << "SymbolDisplayShlagbaum::createDevice: Create concrete device " << devName << std::endl;
+		std::cout << "AbstractPrinter::createDevice: Create concrete device " << devName << std::endl;
 
 		CBaseDevice* cDev = nullptr;
 
@@ -33,14 +33,14 @@ public:
 		{
 
 			// Создание конкретного такого абстракного типа шлагбаума с конкретной моделью "палка"
-			if ( CSLCDWinstar16x2::s_concreteName == devName)
+			if ( CPRN_vkp80ii_usb::s_concreteName == devName)
 			{
-				cDev = reinterpret_cast<CBaseDevice*> (new CSLCDWinstar16x2());
+				cDev = reinterpret_cast<CBaseDevice*> (new CPRN_vkp80ii_usb());
 
 				// Connect concrete device to communication devices
 				if (cDev->connectToCommCtl())
 				{
-					return new AbstractSymbolDisplay(cDev, abstractName);
+					return new AbstractPrinter(cDev, abstractName);
 				}
 			}
 
@@ -52,9 +52,9 @@ public:
 
 	virtual void sendCommand(const std::string& command, const std::string& pars)
 	{
-		std::cout << "AbstractSymbolDisplay::sendCommand: " << command << "; " << pars << std::endl;
+		std::cout << "AbstractPrinter::sendCommand: " << command << "; " << pars << std::endl;
 		device()->sendCommand(command, pars);
 	}
 };
 
-#endif /* SYMBOLDISPLAYABSTRACT_H_ */
+#endif /* PRINTERABSTRACT_H_ */
