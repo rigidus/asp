@@ -7,16 +7,22 @@
 
 (defclass asp-render () ())
 
-(define-page frp "/frp"
-  (let ((breadcrumb (breadcrumb "FRP"))
-        (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
-    (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
-      (content-box ()
-        (heading ("FRP")
-          "Тестируем FRP")
-        (ps-html ((:div :id "frp")))
-      (ps-html ((:span :class "clear")))))
-  ))
+;; (print
+;;  (macroexpand-1 '
+;; (define-page frp "/frp"
+;;   (let ((breadcrumb (breadcrumb "FRP"))
+;;         (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
+;;     (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
+;;       (content-box ()
+;;         (heading ("FRP")
+;;           "Тестируем FRP")
+;;         (ps-html ((:div :id "frp")))
+;;       (ps-html ((:span :class "clear")))))
+;;   ))))
+
+
+(RESTAS:DEFINE-ROUTE FRP ("/frp")
+  "aaaaaa")
 
 (defun start-server ()
   ;; start
@@ -38,7 +44,7 @@
 ;; Тестируем asp
 (defun asp-test ()
   (make-checkpoint :name "1" :state ":SELFTEST")
-  
+
   (dbg "passed: asp-test~%"))
 (asp-test)
 ;; enter_point ends here

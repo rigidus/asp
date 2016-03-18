@@ -344,10 +344,11 @@
       (defun send-to-low-level (msg)
         (multiple-value-bind (body-or-stream status-code headers uri stream must-close reason-phrase)
             (drakma:http-request
-             ,*low-level-endpoint*
+             *low-level-endpoint*
              :method :post
-             :content (format nil "~{~A~^&~}"
-                              `(("json" . ,(drakma:url-encode (cl-json:encode-json-to-string msg) :utf-8))))
+             :content ;; (format nil "~{~A~^&~}"
+                      ;;        `(("json" . ,(drakma:url-encode (cl-json:encode-json-to-string msg) :utf-8))))
+                      (cl-json:encode-json-to-string msg)
              :content-type "application/x-www-form-urlencoded; charset=UTF-8"
              :force-binary t)
           (prog1
@@ -442,7 +443,7 @@
        (let ((msg `((:TXID . ,*tx-counter*)
                     (:DEVICE . "display")
                     (:COMMAND . "show")
-                    (:PARAMETERS (:SCREEN . 0)))))
+                    (:PARAMETERS (:SCREEN . "0")))))
          (define-demo-page (demo-page-start "/demo_page_start" "Включение стойки"
                                             "На этой странице можно эмулировать включение стойки"
                                             "Включить стойку")
@@ -507,10 +508,10 @@
        ;; }
 
        (let* ((ticket      (ticket-assembly
-                            ,*begin-ticket-id*
+                            *begin-ticket-id*
                             (get-current-time-str)
-                            ,*checkpoint-id*
-                            ,*sector-id*))
+                            *checkpoint-id*
+                            *sector-id*))
               (barcode     (barcode-assembly ""))
               (msg-ticket  `((:TXID . ,*tx-counter*)
                              (:DEVICE . "display")

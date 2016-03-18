@@ -5226,7 +5226,7 @@ void CBaseDevice::disconnectFromCommCtl()
       [19:27:10] rigidus: Потом
       [19:27:15] rigidus: Это в них же
       [19:28:21] rigidus:
-      [19:29:45] rigidus: После чего финально /usr/lib/postgresql/9.1/bin/postgresql -D
+      [19:29:45] rigidus: После чего финально /usr/lib/postgresql/9.1/bin/postgres -D
       /var/lib/postgresql/9.1/work или как ты там назвал папку
       [19:29:55] rigidus: Если все это сработает - мы в шоколаде и можно писать док
       [19:36:24] rigidus: Если не прокатило - то можно создать пользователя с группой,
