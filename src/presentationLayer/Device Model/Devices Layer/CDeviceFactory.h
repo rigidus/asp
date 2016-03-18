@@ -8,11 +8,13 @@
 #ifndef CDEVICEFACTORY_H_
 #define CDEVICEFACTORY_H_
 
+#include <abstract/DisplayAbstract.h>
 #include "devices/CBaseDevice.h"
 #include "abstract/testAbstractDevice.h"
 #include "abstract/ShlagbaumAbstract.h"
 #include "abstract/BsnsLogic.h"
 #include "abstract/UserButtonAbstract.h"
+#include "abstract/PrinterAbstract.h"
 
 class CDeviceFactory
 {
@@ -51,13 +53,15 @@ public:
 			dev = createAbstractDevice<AbstractUserButton>(abstractName, devName);
 			if (dev) devs.push_back(dev);
 
-//			dev = createAbstractDevice<AbstractPrinter>(abstractName, devName);
-//			if (dev) devs.push_back(dev);
+			dev = createAbstractDevice<AbstractPrinter>(abstractName, devName);
+			if (dev) devs.push_back(dev);
+
+			dev = createAbstractDevice<AbstractDisplay>(abstractName, devName);
+			if (dev) devs.push_back(dev);
+
 //			dev = createAbstractDevice<AbstractPassSensor>(abstractName, devName);
 //			if (dev) devs.push_back(dev);
 //			dev = createAbstractDevice<AbstractPresentSensor>(abstractName, devName);
-//			if (dev) devs.push_back(dev);
-//			dev = createAbstractDevice<AbstractDisplay>(abstractName, devName);
 //			if (dev) devs.push_back(dev);
 //			dev = createAbstractDevice<AbstractMassStorage>(abstractName, devName);
 //			if (dev) devs.push_back(dev);

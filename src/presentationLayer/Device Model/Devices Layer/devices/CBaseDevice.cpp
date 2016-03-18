@@ -79,6 +79,7 @@ bool CBaseDevice::connectToCommCtl()
 
 		addCommDevice( takeCommDevice<CPinCtl>(comm) );
 		addCommDevice( takeCommDevice<CSerialPortCtl>(comm) );
+		addCommDevice( takeCommDevice<CDisplayCtl>(comm));
 
 	}
 
