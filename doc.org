@@ -6073,7 +6073,7 @@ dtc -O dtb -o VALVERS-IO-00A0.dtbo -b O -@ VALVERS-IO-00A0.dts
 cp VALVERS-IO-00A0.dtbo /lib/firmware/
 
    4. Это инсталляция.
-echo VALVERS-IO > /sys/devices/bone_capemgr.*/slots
+echo VALVERS-IO > /sys/devices/bone_capemgr.9/slots
 
    5. Это проверка успеха инсталляции
 cat /sys/devices/bone_capemgr.9/slots

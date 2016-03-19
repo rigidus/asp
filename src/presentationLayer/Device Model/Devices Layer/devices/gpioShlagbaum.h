@@ -42,6 +42,7 @@ class CGPIOShlagbaum: public CBaseDevice
 		if ( realOpen == realClose)
 		{
 			actualState = InError;
+			std::cout << "CGPIOShlagbaum::StateDetector: Set state InError (realOpen == realClose)." << std::endl;
 			return InError;
 		}
 
@@ -49,6 +50,7 @@ class CGPIOShlagbaum: public CBaseDevice
 		if ( realClose && realCarPresent )
 		{
 			actualState = InError;
+			std::cout << "CGPIOShlagbaum::StateDetector: Set state InError (realClose && realCarPresent)." << std::endl;
 			return InError;
 		}
 
@@ -56,18 +58,21 @@ class CGPIOShlagbaum: public CBaseDevice
 		if ( realOpen && realCarPresent )
 		{
 			actualState = CarPresent;
+			std::cout << "CGPIOShlagbaum::StateDetector: Set state CarPresent." << std::endl;
 			return CarPresent;
 		}
 
-		if ( realOpen && !CarPresent )
+		if ( realOpen && !realCarPresent )
 		{
 			actualState = Opened;
+			std::cout << "CGPIOShlagbaum::StateDetector: Set state Opened." << std::endl;
 			return Opened;
 		}
 
-		if ( realOpen && !CarPresent )
+		if ( realClose && !realCarPresent )
 		{
 			actualState = Closed;
+			std::cout << "CGPIOShlagbaum::StateDetector: Set state Closed." << std::endl;
 			return Closed;
 		}
 
@@ -81,61 +86,57 @@ class CGPIOShlagbaum: public CBaseDevice
 	void SendAnswerToClient(TState state,  std::string command, setCommandTo::CommandType type = setCommandTo::CommandType::Transaction)
 	{
 
+		std::stringstream str;
+
 		if (state == Closed)
 		{
-			std::stringstream str;
 			str << "\"command\":\"" << command << "\", " << "\"state\" : \"closed\"";
 			setCommandTo::Client(type, c_name, "send", str.str());
 		}
 
 		if (state == Opened)
 		{
-			std::stringstream str;
 			str << "\"command\":\"" << command << "\", " << "\"state\" : \"opened\", " << "\"car_present\" : \"false\"";
 			setCommandTo::Client(type, c_name, "send", str.str());
 		}
 
 		if (state == InError)
 		{
-			std::stringstream str;
 			str << "\"command\":\"" << command << "\", " << "\"state\" : \"unknown\"";
 			setCommandTo::Client(type, c_name, "send", str.str());
 		}
 
 		if (state == InErrorCommDevice)
 		{
-			std::stringstream str;
 			str << "\"command\":\"" << command << "\", " << "\"state\" : \"communication devices failed\"";
 			setCommandTo::Client(type, c_name, "send", str.str());
 		}
 
 		if (state == InProcessUp)
 		{
-			std::stringstream str;
 			str << "\"command\":\"" << command << "\", " << "\"state\" : \"in process up\", " << "\"car_present\" : \"false\"";
 			setCommandTo::Client(type, c_name, "send", str.str());
 		}
 
 		if (state == InProcessDown)
 		{
-			std::stringstream str;
 			str << "\"command\":\"" << command << "\", " << "\"state\" : \"in process down\", " << "\"car_present\" : \"false\"";
 			setCommandTo::Client(type, c_name, "send", str.str());
 		}
 
 		if (state == CarPresent)
 		{
-			std::stringstream str;
 			str << "\"command\":\"" << command << "\", " << "\"state\" : \"opened\", " << "\"car_present\" : \"true\"";
 			setCommandTo::Client(type, c_name, "send", str.str());
 		}
 
 		if (state == Idle)
 		{
-			std::stringstream str;
 			str << "\"command\":\"" << command << "\", " << "\"state\" : \"idle\"";
 			setCommandTo::Client(type, c_name, "send", str.str());
 		}
+
+		std::cout << "CGPIOShlagbaum::SendAnswerToClient: sent string '" << str.str() << std::endl;
 
 	}
 
@@ -196,6 +197,12 @@ public:
 
 		TState state = actualState.load(boost::memory_order_relaxed);
 
+
+		if ( state == InError )
+		{
+			state = StateDetector();
+		}
+
 		if ( i == IsOpen )
 		{
 			if ( state == InProcessUp )
@@ -204,6 +211,8 @@ public:
 				str << "\"command\":\"up\", " << "\"parameters\":{ \"result\":\"OK\" }";
 				setCommandTo::Client(setCommandTo::CommandType::Event, c_name, "send", str.str());
 
+				std::cout << "CGPIOShlagbaum::performEvent: sent string '" << str.str() << std::endl;
+
 				actualState = Opened;
 
 				std::vector<uint8_t> data;
@@ -211,6 +220,12 @@ public:
 				data.push_back('0');
 				m_commCtl[DoOpen]->send(data);
 
+				return;
+			}
+			else
+			{
+				state = StateDetector();
+				SendAnswerToClient(state, "event", setCommandTo::CommandType::Event);
 				return;
 			}
 		}
@@ -223,6 +238,8 @@ public:
 				str << "\"command\":\"down\", " << "\"parameters\":{ \"result\":\"OK\" }";
 				setCommandTo::Client(setCommandTo::CommandType::Event, c_name, "send", str.str());
 
+				std::cout << "CGPIOShlagbaum::performEvent: sent string '" << str.str() << std::endl;
+
 				actualState = Closed;
 
 				std::vector<uint8_t> data;
@@ -232,36 +249,47 @@ public:
 
 				return;
 			}
+			else
+			{
+				state = StateDetector();
+				SendAnswerToClient(state, "event", setCommandTo::CommandType::Event);
+				return;
+			}
 		}
 
 		if ( i == IsCarPresent )
 		{
-			TState state = StateDetector();
+			state = StateDetector();
 
-
+			std::stringstream str;
 
 			if ( state == CarPresent )
 			{
-				std::stringstream str;
 				str << "\"command\":\"car_in\", " << "\"state\" : \"opened\", " << "\"car_present\" : \"true\"";
 				setCommandTo::Client(setCommandTo::CommandType::Event, c_name, "send", str.str());
 			}
 			else
 			{
-				if ( state == Opened )
+				switch(state)
 				{
-					std::stringstream str;
+				case Opened:
 					str << "\"command\":\"car_out\", " << "\"state\" : \"opened\", " << "\"car_present\" : \"false\"";
 					setCommandTo::Client(setCommandTo::CommandType::Event, c_name, "send", str.str());
-				}
+					break;
 
-				if ( state == Closed )
-				{
-					std::stringstream str;
+				case Closed:
 					str << "\"command\":\"car_out\", " << "\"state\" : \"closed\", " << "\"car_present\" : \"false\"";
 					setCommandTo::Client(setCommandTo::CommandType::Event, c_name, "send", str.str());
+					break;
+
+				default:
+					SendAnswerToClient(state, "event", setCommandTo::CommandType::Event);
+					return;
 				}
 			}
+
+			std::cout << "CGPIOShlagbaum::performEvent: sent string '" << str.str() << std::endl;
+
 		}
 
 	}
@@ -312,15 +340,12 @@ public:
 					actualState = Idle;
 					data[1] = '0';
 					m_commCtl[DoClose]->send(data);
-				}
 
-				TState postState = StateDetector();
-				if ( postState == InError )
-				{
+					TState postState = StateDetector();
 					SendAnswerToClient(postState, command);
+					return;
 				}
 
-				return;
 			}
 			else
 			{
@@ -353,15 +378,12 @@ public:
 
 					data[1] = '0';
 					m_commCtl[DoOpen]->send(data);
-				}
 
-				TState postState = StateDetector();
-				if ( postState == InError )
-				{
+					TState postState = StateDetector();
 					SendAnswerToClient(postState, command);
+					return;
 				}
 
-				return;
 			}
 			else
 			{
@@ -369,7 +391,6 @@ public:
 				return;
 			}
 		}
-
 
 		// command "state"
 		// Возвращает позицию шлагбаума по концевикам
