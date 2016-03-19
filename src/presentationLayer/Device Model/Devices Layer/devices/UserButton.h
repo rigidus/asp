@@ -80,7 +80,7 @@ public:
 	}
 
 
-	virtual void performEvent(std::vector<uint8_t>& rcvData)
+	virtual void performEvent(std::string& commDeviceName, std::vector<uint8_t>& rcvData)
 	{
 		std::cout << "CUserButton::performEvent: performs Event from device: " << c_name << ": ";
 		for (auto v: rcvData) std::cout << v << " ";
@@ -92,10 +92,9 @@ public:
 			// Сейчас вызывается по конкретному
 			std::stringstream answer;
 
-			/* TODO: сделать общий генератор идшек для событий */
-			answer << "{\"eventid\":" << 0 << ", \"device\":\"" << c_name << "\", \"command\":\"press\"}";
+			answer << "\"command\" : \"press\"";
 
-			setCommandTo::Client( setCommandTo::Event, c_name, "answer: ", answer.str());
+			setCommandTo::Client( setCommandTo::Event, c_name, "send", answer.str());
 
 		}
 	}
