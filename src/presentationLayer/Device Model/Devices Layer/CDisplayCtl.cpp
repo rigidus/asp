@@ -115,13 +115,17 @@ settings::CommDisplayConfig CDisplayCtl::getDisplayConfig(CBaseDevice* device, c
 
 	std::vector<settings::CommDisplayConfig> configList =
 			settings::getDisplayByDevice(device->c_name); //, displayName);
-/*
+
 	for (auto v: configList)
 	{
 		if ( v.name == displayName )
+		{
+			std::cout << "getDisplayConfig: " << displayName << std::endl;
+
 			return v;
+		}
 	}
-*/
+
 	settings::CommDisplayConfig empty = { displayName, "/dev/klcd" }; //!!!fix hardcode
 	return empty;
 }
@@ -247,6 +251,15 @@ CDisplayCtl::~CDisplayCtl(){
 }
 
 
+uint32_t CDisplayCtl::send(std::vector<uint8_t> sendData)
+{
+	std::list<std::vector<uint8_t> > lst;
+	std::cout << "CDisplayCtl::send: <vector> sendData.size == " << sendData.size() << std::endl;
+	lst.push_back(sendData);
+
+	return send(lst);
+}
+
 uint32_t CDisplayCtl::send(std::list<std::vector<uint8_t> > sendData)
 {
 
@@ -257,31 +270,62 @@ uint32_t CDisplayCtl::send(std::list<std::vector<uint8_t> > sendData)
 	 * value, direction, edge, active_low
 	 */
 
-	if ( sendData.size() == 1 && sendData.begin()->size() > 2 )
+	std::cout << "CDisplayCtl::send: list<vector> sendData.size == " << sendData.size() << std::endl;
+
+	if ( sendData.size() == 1 ) //!!!fix "&& sendData.begin()->size() > 2 )"
 	{
 		std::string fname(displayPath + m_DisplayData.name);
 
 		std::vector<uint8_t>& data = sendData.back();
 
-		uint8_t cmdtype = data[0];
+		std::cout << "CDisplayCtl::send: data.size is " << data.size() << std::endl;
 
-		char* beginData = (char*) &data[1];
-		char* endData = (char*) &data[data.size()-1];
-		std::string value(beginData, endData);
+		uint8_t cmdtype = data[0];
+		uint8_t screenNo;
+
+//		char* beginData = (char*) &data[1];
+//		char* endData = (char*) &data[data.size()-1];
+//		std::string value(beginData, endData);
 
 		switch(cmdtype) //!!!fix
 		{
-		/*
-		case 0: // clear
-			fname += "value";
+		case '0': // clear
+			std::cout << "CDisplayCtl::send: cmdtype is CLEAR" << std::endl;
 			break;
-		case 1: // direction
-			fname += "direction";
+		case '1': // direction
+			std::cout << "CDisplayCtl::send: cmdtype is SHOW" << std::endl;
+
+			screenNo = data[1];
+
+//			std::cout << "CDisplayCtl::send: screenId is " <<  << std::endl;
+
+			switch (screenNo)
+			{
+			case 0:
+				std::cout << "CDisplayCtl::send: showing screenId 0" << std::endl;
+				break;
+			case 1:
+				std::cout << "CDisplayCtl::send: showing screenId 1" << std::endl;
+				break;
+			case 2:
+				std::cout << "CDisplayCtl::send: showing screenId 2" << std::endl;
+				break;
+			case 3:
+				std::cout << "CDisplayCtl::send: showing screenId 3" << std::endl;
+				break;
+			case 4:
+				std::cout << "CDisplayCtl::send: showing screenId 4" << std::endl;
+				break;
+			case 5:
+				std::cout << "CDisplayCtl::send: showing screenId 5" << std::endl;
+				break;
+
+			default:
+				std::cout << "ERROR: CDisplayCtl::send: no matching screenId!" << std::endl;
+			}
+
+
 			break;
-		case 2:
-			fname += "edge";
-			break;
-		*/
 		default:
 			std::cout << "ERROR! CDisplayCtl::send: cmdtype " << cmdtype << " incorrect" << std::endl;
 			return 0;
@@ -294,7 +338,7 @@ uint32_t CDisplayCtl::send(std::list<std::vector<uint8_t> > sendData)
 			return 0;
 		}
 
-		uint32_t len = write(fd, value.c_str(), value.size());
+		uint32_t len = 0; //write(fd, value.c_str(), value.size());
 
 		close(fd);
 

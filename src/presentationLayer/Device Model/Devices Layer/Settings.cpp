@@ -81,28 +81,30 @@ const std::vector<CommDisplayConfig> getDisplayByDevice(const std::string device
 	// make config and return it
 	std::vector<settings::CommDisplayConfig> devs;
 
-//	for (settings::DeviceConfig* v: settings::deviceList)
-//	{
-//		if (v->concreteName == deviceName)
-//		{
-//
-//			// find device
-//			// iteration for comms
-//			for (std::string commName: v->comm)
-//			{
-//				// find config by comm name
-//				uint32_t size = settings::displayConfigList.size();
-//				for (uint32_t i = 0; i < size; ++i)
-//				{
-//					if (commName == settings::displayConfigList[i]->name)
-//					{
-//						devs.push_back(*settings::displayConfigList[i]);
-//						break;
-//					}
-//				}
-//			}
-//		}
-//	}
+	std::cout << "getDisplayByDevice: " << deviceName << std::endl;
+	for (settings::DeviceConfig* v: settings::deviceList)
+	{
+		if (v->concreteName == deviceName)
+		{
+
+			// find device
+			// iteration for comms
+			for (std::string commName: v->comm)
+			{
+				// find config by comm name
+				uint32_t size = settings::displayConfigList.size();
+				for (uint32_t i = 0; i < size; ++i)
+				{
+					if (commName == settings::displayConfigList[i]->name)
+					{
+						std::cout << "getDisplayByDevice: found " << commName << std::endl;
+						devs.push_back(*settings::displayConfigList[i]);
+						break;
+					}
+				}
+			}
+		}
+	}
 
 	return devs;
 }

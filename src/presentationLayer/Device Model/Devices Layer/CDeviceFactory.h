@@ -8,12 +8,12 @@
 #ifndef CDEVICEFACTORY_H_
 #define CDEVICEFACTORY_H_
 
-#include <abstract/DisplayAbstract.h>
 #include "devices/CBaseDevice.h"
 #include "abstract/testAbstractDevice.h"
 #include "abstract/ShlagbaumAbstract.h"
 #include "abstract/BsnsLogic.h"
 #include "abstract/UserButtonAbstract.h"
+#include "abstract/DisplayAbstract.h"
 #include "abstract/PrinterAbstract.h"
 
 class CDeviceFactory
