@@ -20,6 +20,7 @@ using namespace boost;
 #include <Settings.h>
 #include <CPinCtl.h>
 #include <CDisplayCtl.h>
+#include <CPrnCtl.h>
 #include <CSerialPortCtl.h>
 #include <SetCommandTo.h>
 

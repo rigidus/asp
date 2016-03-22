@@ -51,8 +51,8 @@ settings::DeviceConfig printer =
 {
 		"printer_vkp80ii_usb",
 		"printer",
-		"printer_proto",
-		{"uart4"},
+		"",
+		{"prn_usb"},
 		enabled_device
 };
 
@@ -146,6 +146,12 @@ settings::CommDisplayConfig klcd =
 		"/dev/klcd"
 };
 
+settings::CommPrinterConfig prn_usb =
+{
+		"prn_usb",
+		"/dev/usb/lp0"
+};
+
 settings::CommGPIOConfig* gpioConfigs[] =
 {
 		&gpio66,
@@ -166,9 +172,15 @@ settings::CommDisplayConfig* displayConfigs[] =
 		&klcd
 };
 
+settings::CommPrinterConfig* printerConfigs[] =
+{
+		&prn_usb
+};
+
 
 std::vector<settings::CommGPIOConfig*> settings::gpioConfigList(gpioConfigs, &gpioConfigs[sizeof(gpioConfigs)/sizeof(gpioConfigs[0])]);
 std::vector<settings::CommUARTConfig*> settings::uartConfigList(uartConfigs, &uartConfigs[sizeof(uartConfigs)/sizeof(uartConfigs[0])]);
 std::vector<settings::CommDisplayConfig*> settings::displayConfigList(displayConfigs, &displayConfigs[sizeof(displayConfigs)/sizeof(displayConfigs[0])]);
+std::vector<settings::CommPrinterConfig*> settings::printerConfigList(printerConfigs, &printerConfigs[sizeof(printerConfigs)/sizeof(printerConfigs[0])]);
 std::vector<settings::DeviceConfig*> settings::deviceList(devices, &devices[sizeof(devices)/sizeof(devices[0])]);
 

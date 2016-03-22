@@ -19,10 +19,6 @@
 #include "rapidjson/stringbuffer.h"
 
 
-const std::string attrError("error"); // Опциональный атрибут, отменяет все остальные атрибуты
-const std::string attrScreen("screen"); // Опциональный атрибут, отменяет все остальные атрибуты
-
-
 class CSLCDWinstar16x2: public CBaseDevice
 {
 
@@ -45,7 +41,7 @@ public:
 	{
 		using namespace rapidjson;
 
-		//const std::string attrError("error"); // Опциональный атрибут, отменяет все остальные атрибуты
+		const std::string attrError("error"); // Опциональный атрибут, отменяет все остальные атрибуты
 		const std::string attrScreen("screen"); // Опциональный атрибут, отменяет все остальные атрибуты
 
 		std::cout << "CSLCDWinstar16x2::sendCommand: performs command: " << command << "[" << pars << "]" << std::endl;

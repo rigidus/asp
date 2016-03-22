@@ -5,6 +5,7 @@
 
 #include "CDisplayCtl.h"
 #include "SetCommandTo.h"
+#include <sys/ioctl.h>
 //#include <sys/inotify.h>
 
 namespace boostio = boost::iostreams;
@@ -127,6 +128,7 @@ settings::CommDisplayConfig CDisplayCtl::getDisplayConfig(CBaseDevice* device, c
 	}
 
 	settings::CommDisplayConfig empty = { displayName, "/dev/klcd" }; //!!!fix hardcode
+	std::cout << "getDisplayConfig: returning EMPTY! " << displayName << std::endl;
 	return empty;
 }
 
@@ -240,8 +242,8 @@ bool CDisplayCtl::fileIsExist(const std::string& fileName)
 CDisplayCtl::CDisplayCtl(CBaseDevice* device, const settings::CommDisplayConfig& config, TDisplayData& displayData):
 		CBaseCommCtl(device, displayData.name),
 		m_Config(config),
-		m_DisplayData(displayData)
-//		m_timeout(0)
+		m_DisplayData(displayData),
+		m_timeout(0)
 {
 
 }
@@ -262,7 +264,6 @@ uint32_t CDisplayCtl::send(std::vector<uint8_t> sendData)
 
 uint32_t CDisplayCtl::send(std::list<std::vector<uint8_t> > sendData)
 {
-
 	std::cout << "CDisplayCtl::send: command 'write data' to '" << m_DisplayData.name << "'." << std::endl;
 
 	/*
@@ -281,43 +282,65 @@ uint32_t CDisplayCtl::send(std::list<std::vector<uint8_t> > sendData)
 		std::cout << "CDisplayCtl::send: data.size is " << data.size() << std::endl;
 
 		uint8_t cmdtype = data[0];
-		uint8_t screenNo;
+		uint8_t screenId;
 
 //		char* beginData = (char*) &data[1];
 //		char* endData = (char*) &data[data.size()-1];
-//		std::string value(beginData, endData);
+		std::string value; //(beginData, endData);
+
+		int32_t fd = open( fname.c_str(), O_WRONLY | O_NONBLOCK);
+		if (fd == -1)
+		{
+			std::cout << "ERROR! CDisplayCtl::send: File '" << fname << "' isn't opened for writing." << std::endl;
+			return 0;
+		}
+
+		uint32_t len = 0;
 
 		switch(cmdtype) //!!!fix
 		{
 		case '0': // clear
 			std::cout << "CDisplayCtl::send: cmdtype is CLEAR" << std::endl;
+			if( ioctl( fd, (unsigned int) IOCTL_CLEAR_DISPLAY, value.c_str()) < 0)
+				std::cout << "ERROR! CDisplayCtl::send: IOCTL_CLEAR_DISPLAY" << std::endl;
+
+			close(fd);
+
+			return len;
 			break;
-		case '1': // direction
+
+		case '1': // show
 			std::cout << "CDisplayCtl::send: cmdtype is SHOW" << std::endl;
 
-			screenNo = data[1];
+			screenId = data[1];
 
 //			std::cout << "CDisplayCtl::send: screenId is " <<  << std::endl;
 
-			switch (screenNo)
+			switch (screenId)
 			{
 			case 0:
 				std::cout << "CDisplayCtl::send: showing screenId 0" << std::endl;
+				value = "Press button";
 				break;
 			case 1:
 				std::cout << "CDisplayCtl::send: showing screenId 1" << std::endl;
+				value = "Printing";
 				break;
 			case 2:
 				std::cout << "CDisplayCtl::send: showing screenId 2" << std::endl;
+				value = "Get ticket";
 				break;
 			case 3:
 				std::cout << "CDisplayCtl::send: showing screenId 3" << std::endl;
+				value = "Opening...";
 				break;
 			case 4:
 				std::cout << "CDisplayCtl::send: showing screenId 4" << std::endl;
+				value = "Pass, plz.";
 				break;
 			case 5:
 				std::cout << "CDisplayCtl::send: showing screenId 5" << std::endl;
+				value = "Closing...";
 				break;
 
 			default:
@@ -331,14 +354,23 @@ uint32_t CDisplayCtl::send(std::list<std::vector<uint8_t> > sendData)
 			return 0;
 		}
 
-		int32_t fd = open( fname.c_str(), O_WRONLY | O_NONBLOCK);
+		if( ioctl( fd, (unsigned int) IOCTL_CLEAR_DISPLAY, value.c_str()) < 0)
+			std::cout << "ERROR! CDisplayCtl::send: IOCTL_CLEAR_DISPLAY" << std::endl;
+
+		close(fd);
+
+
+		fd = open( fname.c_str(), O_WRONLY | O_NONBLOCK);
 		if (fd == -1)
 		{
 			std::cout << "ERROR! CDisplayCtl::send: File '" << fname << "' isn't opened for writing." << std::endl;
 			return 0;
 		}
+		if( ioctl( fd, (unsigned int) IOCTL_PRINT_ON_FIRSTLINE, value.c_str()) < 0)
+			std::cout << "ERROR! CDisplayCtl::send: IOCTL_PRINT_DISPLAY" << std::endl;
 
-		uint32_t len = 0; //write(fd, value.c_str(), value.size());
+		std::cout << "CDisplayCtl::send: to " << fname.c_str() << " command " << IOCTL_PRINT_ON_FIRSTLINE << " line " << value.c_str() << std::endl;
+//		write(fd, value.c_str(), value.size());
 
 		close(fd);
 

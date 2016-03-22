@@ -51,13 +51,19 @@ using namespace boost;
 		uint32_t stop;
 		bool even;
 	};
-
+/*
 	struct CommKModulesConfig
 	{
 		std::string name;
 	};
-
+*/
 	struct CommDisplayConfig
+	{
+		std::string name;
+		std::string path;
+	};
+
+	struct CommPrinterConfig
 	{
 		std::string name;
 		std::string path;
@@ -76,11 +82,13 @@ using namespace boost;
 	const std::vector<CommGPIOConfig> getGPIOByDevice(const std::string deviceName, const std::string gpioName);
 	const std::vector<CommUARTConfig> getUARTByDevice(const std::string deviceName);
 	const std::vector<CommDisplayConfig> getDisplayByDevice(const std::string deviceName);
+	const std::vector<CommPrinterConfig> getPrinterByDevice(const std::string deviceName);
 
 	extern std::vector<DeviceConfig*> deviceList;
 	extern std::vector<CommGPIOConfig*> gpioConfigList;
 	extern std::vector<CommUARTConfig*> uartConfigList;
 	extern std::vector<CommDisplayConfig*> displayConfigList;
+	extern std::vector<CommPrinterConfig*> printerConfigList;
 
 } /* namespace database */
 

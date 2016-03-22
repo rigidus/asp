@@ -5,7 +5,6 @@
  *      Author: drema
  */
 
-#include "abstract/DisplayAbstract.h"
 #include "devices/LCD_winstar16x2.h"
 #include "devices/testConcreteDevice.h"
 #include "devices/HttpClient.h"
@@ -18,6 +17,7 @@
 #include "abstract/ShlagbaumAbstract.h"
 #include "abstract/UserButtonAbstract.h"
 #include "abstract/PrinterAbstract.h"
+#include "abstract/DisplayAbstract.h"
 
 // Abstract names
 // full

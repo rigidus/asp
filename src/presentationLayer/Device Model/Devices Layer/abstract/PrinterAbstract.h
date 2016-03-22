@@ -53,6 +53,7 @@ public:
 	virtual void sendCommand(const std::string& command, const std::string& pars)
 	{
 		std::cout << "AbstractPrinter::sendCommand: " << command << "; " << pars << std::endl;
+
 		device()->sendCommand(command, pars);
 	}
 };
