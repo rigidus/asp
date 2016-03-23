@@ -43,6 +43,8 @@ private:
 
 	std::map< std::string, DeviceCtl > devices;
 
+	uint32_t m_EventCounter;
+
 	bool popDeviceTask(std::string concreteDevice, DeviceCtl::Task& task);
 
 public:

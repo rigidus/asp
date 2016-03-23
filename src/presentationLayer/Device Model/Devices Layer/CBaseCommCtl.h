@@ -12,6 +12,7 @@
 #include <vector>
 #include <string>
 
+#include <boost/assert.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/cstdint.hpp>
 
@@ -25,8 +26,8 @@ class CBaseCommCtl: private noncopyable
 public:
 	virtual ~CBaseCommCtl();
 
-	virtual uint32_t send(std::list<std::vector<uint8_t> > sendData) = 0;
-	virtual int setSettings(std::string deviceName) = 0;
+	virtual uint32_t send(std::list<std::vector<uint8_t> > sendData);
+	virtual uint32_t send(std::vector<uint8_t> sendData);
 
 	CBaseDevice& myDevice()
 	{

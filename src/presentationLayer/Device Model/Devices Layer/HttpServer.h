@@ -31,6 +31,8 @@
  * http://localhost:8000
  */
 
+// curl -v -H "Content-Type: application/json" -X POST -d '{"txid":12, "device":"shlagbaum_in", "command":"down", "parameters":{"state":"open", "car":"present"} }' http://localhost:8000
+
 namespace httpserver
 {
 
@@ -63,9 +65,23 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 		nc->flags |= MG_F_SEND_AND_CLOSE;
 		mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\n\r\n\r\n");
 
+		// Check body lenght
+		if (hmsg->body.len == 0)
+		{
+			// отправить назад сообщение, что body не существует
+			std::stringstream error;
+			error << "ERROR! httpServer::cb_HttpServer: POST body size is NULL.";
+			setCommandTo::sendErrorToClient(error);
+
+			std::cout << error.str() << std::endl;
+
+			return;
+
+		}
+
 		// Parse a JSON string into DOM.
 	    std::vector< ASCII<>::Ch > jsonArray(hmsg->body.len+1, 0);
-		memcpy(&jsonArray[0], hmsg->body.p, (hmsg->body.len+1) * sizeof(jsonArray[0]));
+		memcpy(&jsonArray[0], hmsg->body.p, (hmsg->body.len) * sizeof(jsonArray[0]));
 		jsonArray[hmsg->body.len] = 0;
 
 		Document d;
@@ -102,12 +118,17 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 			{
 				std::stringstream error;
 				error << "Error has received: " << valError.GetString();
+
+				// TODO: Error parser from logic
+
 				std::cout << error.str() << std::endl;
 			}
 			else
 			{
 				std::stringstream error;
 				error << "Error has received but value isn't String";
+
+				setCommandTo::sendErrorToClient(error);
 				std::cout << error.str() << std::endl;
 			}
 
@@ -166,7 +187,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 		{
 			// отправить сообщение, что txid не число и выйти
 			std::stringstream error;
-			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrTxId << "' isn't number type";
+			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrTxId << "' isn't number type" << std::endl;
 			setCommandTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;
@@ -178,7 +199,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 		{
 			// отправить сообщение, что девайс не строка и выйти
 			std::stringstream error;
-			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrDev << "' isn't string type";
+			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrDev << "' isn't string type" << std::endl;
 			setCommandTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;
@@ -190,7 +211,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 		{
 			// отправить назад сообщение, что команда не строка и выйти
 			std::stringstream error;
-			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrCmd << "' isn't string type";
+			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrCmd << "' isn't string type" << std::endl;
 			setCommandTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;
@@ -202,7 +223,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 		{
 			// отправить назад сообщение, что параметры не объект и выйти
 			std::stringstream error;
-			std::cout << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrPars << "' isn't object type";
+			std::cout << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrPars << "' isn't object type" << std::endl;
 			setCommandTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;

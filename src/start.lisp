@@ -7,9 +7,6 @@
 
 (defclass asp-render () ())
 
-(restas:define-route main ("/")
-  "test main page")
-
 (define-page frp "/frp"
   (let ((breadcrumb (breadcrumb "FRP"))
         (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
@@ -21,7 +18,7 @@
       (ps-html ((:span :class "clear")))))
   ))
 
-(defun main ()
+(defun start-server ()
   ;; start
   (restas:start '#:asp :port 3999)
   (restas:debug-mode-on)
@@ -34,7 +31,7 @@
   ;;             :ts-create (get-universal-time))
   )
 
-(main)
+(start-server)
 
 ;; Тесты
 

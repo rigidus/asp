@@ -208,3 +208,22 @@
 (defun terminatestandbytask ()
   "standby -> terminated")
 ;; task_automat ends here
+;; [[file:doc.org::*Очереди (que, quelt)][que_entity]]
+(define-entity que "Сущность очереди"
+  ((id serial)
+   (name varchar)))
+
+(make-que-table)
+
+(define-entity quelt "Сущность элемента очереди"
+  ((id serial)
+   (que-id integer)
+   (text varchar)))
+
+(make-quelt-table)
+
+;; (make-que :name "admin")
+;; (make-que :name "manager")
+;; (make-que :name "moderator")
+;; (make-que :name "robot")
+;; que_entity ends here

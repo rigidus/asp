@@ -28,6 +28,15 @@ namespace io = boost::iostreams;
 class CPinCtl : private CBaseCommCtl
 {
 
+	struct TPinData{
+		std::string name;
+		std::string filename;
+		int32_t fd;
+		int32_t events;
+		int32_t watch;
+		int32_t oldvalue;
+	};
+
 public:
 
 	/*
@@ -51,46 +60,43 @@ public:
 
 	static boost::thread* thrNotify;
 
-	static void startNotifier();
-	static void stopNotifier();
-	static void Notifier();
-
 	// Thread function for waiting GPIO events
 	// тред должен ждать события на пине через интерфейс inotify
 	// тред должен как-то управляться из того же места, где
 	// будут управляться все треды комм. девайсов
-	static void cb_NotifyGPIOEvent(boost::asio::posix::stream_descriptor* const stream_descriptor, const boost::system::error_code& error);
+	static void Notifier();
+
+	static void startNotifier();
+	static void stopNotifier();
 
 	// CPinCtl public members
-	uint32_t send(std::list<std::vector<uint8_t> > sendData);
-	int setSettings(std::string deviceName);
+	virtual uint32_t send(std::list<std::vector<uint8_t> > sendData);
+	virtual uint32_t send(std::vector<uint8_t> sendData);
+	int8_t getPinValue();
 
 private:
-	CPinCtl(CBaseDevice* device, const std::string& gpioName);
+	CPinCtl(CBaseDevice* device, const settings::CommGPIOConfig& config, TPinData& pinData);
+
+	const settings::CommGPIOConfig m_Config;
+	TPinData m_PinData;
 
 	// check existing file on the filesystem
 	// It use here for check interface gpio files only
 	static bool fileIsExist(const std::string& fileName);
-
+	static settings::CommGPIOConfig getGPIOConfig(CBaseDevice* device, const std::string& gpioName);
 	static std::map<std::string, shared_ptr<CBaseCommCtl> > busyPins;
 
-	struct TPinData{
-		std::string name;
-		int32_t fd;
-		int32_t events;
-		int32_t watch;
-	};
-
-	static std::vector<TPinData> PinData;
-
 	static const std::string gpioPath;
+	static bool stopFlag;
+
+	bool checkFiles();
+	void setupGPIO();
 
 	std::filebuf fBuf;
 	std::fstream fLog;
 
 	uint32_t m_timeout;
 
-	static bool stopFlag;
 
 };
 

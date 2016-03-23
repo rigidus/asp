@@ -27,16 +27,45 @@ const std::vector< shared_ptr<CBaseCommCtl> >& CBaseDevice::getCommCtl(){
 }
 
 
-void CBaseDevice::performEvent(std::vector<uint8_t>& rcvData)
+void CBaseDevice::performEvent(std::string& commDeviceName, std::vector<uint8_t>& rcvData)
 {
 	std::cout << "CBaseDevice::performEvent: performs Event from device: " << c_name << ": ";
+
+	if (rcvData.size() == 0)
+	{
+		std::cout << "ERROR! CBaseDevice::performEvent: Data size = 0" << std::endl;
+		return;
+	}
+
+	for (auto v: rcvData) std::cout << v << " ";
+	std::cout << std::endl;
+
+	// TODO: Вызвать установку задачи для клиента по имени абстрактного девайса
+	char* beginData = (char*) &rcvData[0];
+	char* endData = (char*) &rcvData[rcvData.size()-1];
+	std::string answer(beginData, endData);
+
+	setCommandTo::Client( setCommandTo::Event, c_name, "answer: ", answer);
+}
+
+
+void CBaseDevice::performTransaction(std::vector<uint8_t>& rcvData)
+{
+	std::cout << "CBaseDevice::performTransaction: performs Transaction from device: " << c_name << ": " << std::endl;
+
+	if (rcvData.size() == 0)
+	{
+		std::cout << "ERROR! CBaseDevice::performTransaction: Data size = 0" << std::endl;
+		return;
+	}
+
 	for (auto v: rcvData) std::cout << v << " ";
 	std::cout << std::endl;
 
 	// Вызвать установку задачи для клиента по имени абстрактного девайса
-	std::string answer;
-	for(uint8_t v: rcvData)
-		answer += v;
+	char* beginData = (char*) &rcvData[0];
+	char* endData = (char*) &rcvData[rcvData.size()-1];
+	std::string answer(beginData, endData);
 
 	setCommandTo::Client( setCommandTo::Transaction, c_name, "answer: ", answer);
 }
@@ -64,6 +93,8 @@ bool CBaseDevice::connectToCommCtl()
 
 		addCommDevice( takeCommDevice<CPinCtl>(comm) );
 		addCommDevice( takeCommDevice<CSerialPortCtl>(comm) );
+		addCommDevice( takeCommDevice<CDisplayCtl>(comm));
+		addCommDevice( takeCommDevice<CPrnCtl>(comm));
 
 	}
 

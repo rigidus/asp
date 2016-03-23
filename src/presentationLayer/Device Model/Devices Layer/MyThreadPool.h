@@ -367,7 +367,7 @@ public:
 	bool AddTask(u32 priority, TTaskFunc func)
 	{
 
-		boost::mutex::scoped_lock lock(mutAddTask);
+//		boost::mutex::scoped_lock lock(mutAddTask);
 
 		if (qTasks.size() >= maxtask )
 		{

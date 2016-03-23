@@ -33,6 +33,15 @@ bool CSerialPortCtl::receive(int rcvData){
 }
 
 
+uint32_t CSerialPortCtl::send(std::vector<uint8_t> sendData)
+{
+	std::list<std::vector<uint8_t> > lst;
+	lst.push_back(sendData);
+
+	return send(lst);
+}
+
+
 uint32_t CSerialPortCtl::send(std::list<std::vector<uint8_t> > sendData){
 
 	return  0;
@@ -61,7 +70,8 @@ shared_ptr<CBaseCommCtl> CSerialPortCtl::takeCommCtl(CBaseDevice* device, const 
 
 		// create CPinCtl for pinNum
 		shared_ptr<CBaseCommCtl> uartCtl((CBaseCommCtl*) new CSerialPortCtl(device, uartName));
-		busyUarts.emplace(std::make_pair(uartName, uartCtl));
+		std::pair<std::string, shared_ptr<CBaseCommCtl> > pr(uartName, uartCtl);
+		busyUarts.insert(pr);
 		// OK! pin is made as busied and stored
 
 		std::cout << "CSerialPortCtl::takeCommCtl take " << uartName << " successfully" << std::endl;

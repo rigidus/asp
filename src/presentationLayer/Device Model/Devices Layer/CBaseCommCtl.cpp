@@ -12,6 +12,7 @@ CBaseCommCtl::CBaseCommCtl(CBaseDevice* device, const std::string& commName): m_
 {
 	m_deviceName = m_device->c_name;
 	m_commName = commName;
+	m_device = device;
 }
 
 
@@ -20,13 +21,20 @@ CBaseCommCtl::~CBaseCommCtl(){
 }
 
 
-uint32_t CBaseCommCtl::send(std::list<std::vector<uint8_t> > sendData){
+uint32_t CBaseCommCtl::send(std::vector<uint8_t> sendData)
+{
+
+	BOOST_ASSERT_MSG(false, "CBaseCommCtl::send must redefine in the child class");
 
 	return  0;
 }
 
 
-int CBaseCommCtl::setSettings(std::string deviceName){
+uint32_t CBaseCommCtl::send(std::list<std::vector<uint8_t> > sendData)
+{
 
-	return 0;
+	BOOST_ASSERT_MSG(false, "CBaseCommCtl::send must redefine in the child class");
+
+	return  0;
 }
+
