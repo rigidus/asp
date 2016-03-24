@@ -14,6 +14,8 @@ boost::mutex CDeviceManager::queMutex;
 
 CDeviceManager::CDeviceManager(std::vector<settings::DeviceConfig> devConfig) {
 
+	m_EventCounter = 0;
+
 	CDeviceFactory&	factory = CDeviceFactory::getFactory();
 
 	for (auto v: devConfig)
@@ -196,7 +198,11 @@ void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std
 				clientTask.abstract = itAdresat->second.devInstance->deviceAbstractName();
 				clientTask.concrete = itAdresat->second.devInstance->deviceConcreteName();
 
-				clientTask.taskFn = boost::bind(sendCommand, devices[task.adresat].devInstance.get(), command, parameters);
+				std::stringstream strparams;
+				strparams << "{\"txid\":" << task.txId << ", \"device\":\""
+						<< task.abstract << "\", " << parameters.c_str() << "}";
+
+				clientTask.taskFn = boost::bind(sendCommand, devices[task.adresat].devInstance.get(), command, strparams.str());
 
 				itAdresat->second.taskQue.push(clientTask);
 
@@ -264,7 +270,19 @@ void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std
 
 			std::cout << "CDeviceManager::setCommandToClient: Set event to '" << clientTask.abstract <<"' from " << concreteDevice << " as Event." << std::endl;
 
-			clientTask.taskFn = boost::bind(sendCommand, devices[clientTask.abstract].devInstance.get(), command, parameters);
+			std::stringstream strparams;
+			for (auto& v: devices)
+			{
+				if (v.second.devInstance->deviceConcreteName() == concreteDevice)
+				{
+					strparams << "{\"eventid\":" << m_EventCounter << ", \"device\":\""
+							<< v.first.c_str() << "\", " << parameters.c_str() << "}";
+				}
+			}
+
+			m_EventCounter++;
+
+			clientTask.taskFn = boost::bind(sendCommand, devices[clientTask.abstract].devInstance.get(), command, strparams.str());
 
 			itAdresat->second.taskQue.push(clientTask);
 
@@ -358,7 +376,6 @@ bool CDeviceManager::popDeviceTask(std::string concreteDevice, DeviceCtl::Task& 
 	{
 		if (v.second.devInstance->deviceConcreteName() == concreteDevice)
 		{
-
 			if (v.second.taskQue.size() == 0)
 			{
 				std::cout << "CDeviceManager::popDeviceTask: not found tasks in queue for '" << concreteDevice << "'" << std::endl;

@@ -1,12 +1,5 @@
-///////////////////////////////////////////////////////////
-//  CPinCtl.h
-//  Implementation of the Class CPinCtl
-//  Created on:      19-���-2016 19:58:08
-//  Original author: user-PC
-///////////////////////////////////////////////////////////
-
-#if !defined(EA_F6FA3185_3A4D_4043_A499_06D6A2FDBFCF__INCLUDED_)
-#define EA_F6FA3185_3A4D_4043_A499_06D6A2FDBFCF__INCLUDED_
+#if !defined(_CDISPLAYCTL_H_)
+#define _CDISPLAYCTL_H_
 
 #include "CBaseCommCtl.h"
 #include "devices/CBaseDevice.h"
@@ -22,75 +15,77 @@
 
 namespace io = boost::iostreams;
 
+#define IOCTL_CLEAR_DISPLAY 	  	'0'   // Identifiers for ioctl reqursts
+#define IOCTL_PRINT_ON_FIRSTLINE  	'1'
+
 /*
- * Multitone class controls GPIO interface for interacting with concrete device
+ * Multitone class controls LCD interface for interacting with concrete device
  */
-class CPinCtl : private CBaseCommCtl
+class CDisplayCtl : private CBaseCommCtl
 {
 
-	struct TPinData{
+	struct TDisplayData{
 		std::string name;
 		std::string filename;
 		int32_t fd;
-		int32_t events;
-		int32_t watch;
-		int32_t oldvalue;
+//		int32_t events;
+//		int32_t watch;
+//		int32_t oldvalue;
 	};
 
 public:
-
 	/*
 	 * Function takes GPIO resourse for concrete device
 	 * @param device - pointer to concrete device use for call callback for inform about event from device
 	 * @param gpioName - name of the GPIO resourse for taking
 	 * @return - pointer to busied resource or nullptr when resourse is busy or not existing
 	 */
-	static shared_ptr<CBaseCommCtl> takeCommCtl(CBaseDevice* device, const std::string& gpioName);
+	static shared_ptr<CBaseCommCtl> takeCommCtl(CBaseDevice* device, const std::string& displayName);
 
 	/*
 	 * Function frees GPIO resource for it can be taking by another device in the future
 	 * @param device - pointer to concrete device for control. Device-taker can free GPIO resourse only
 	 * @param gpioName - name of the GPIO resourse for free
 	 */
-	static void freeCommCtl(CBaseDevice* device, const std::string& gpioName);
+	static void freeCommCtl(CBaseDevice* device, const std::string& displayName);
 
-	virtual ~CPinCtl();
+	virtual ~CDisplayCtl();
 
 	static const std::string s_name;
 
-	static boost::thread* thrNotify;
+//	static boost::thread* thrNotify;
 
 	// Thread function for waiting GPIO events
 	// тред должен ждать события на пине через интерфейс inotify
 	// тред должен как-то управляться из того же места, где
 	// будут управляться все треды комм. девайсов
-	static void Notifier();
+//	static void Notifier();
 
-	static void startNotifier();
-	static void stopNotifier();
+//	static void startNotifier();
+//	static void stopNotifier();
 
-	// CPinCtl public members
+
+	// CDisplayCtl public members
 	virtual uint32_t send(std::list<std::vector<uint8_t> > sendData);
 	virtual uint32_t send(std::vector<uint8_t> sendData);
-	int8_t getPinValue();
 
 private:
-	CPinCtl(CBaseDevice* device, const settings::CommGPIOConfig& config, TPinData& pinData);
+	CDisplayCtl(CBaseDevice* device, const settings::CommDisplayConfig& config, TDisplayData& displayData);
 
-	const settings::CommGPIOConfig m_Config;
-	TPinData m_PinData;
+	const settings::CommDisplayConfig m_Config;
+	TDisplayData m_DisplayData;
 
 	// check existing file on the filesystem
-	// It use here for check interface gpio files only
+	// It use here for check interface /dev/klcd file only
 	static bool fileIsExist(const std::string& fileName);
-	static settings::CommGPIOConfig getGPIOConfig(CBaseDevice* device, const std::string& gpioName);
-	static std::map<std::string, shared_ptr<CBaseCommCtl> > busyPins;
+	static settings::CommDisplayConfig getDisplayConfig(CBaseDevice* device, const std::string& displayName);
+	static std::map<std::string, shared_ptr<CBaseCommCtl> > busyDisplays;
 
-	static const std::string gpioPath;
-	static bool stopFlag;
+	static const std::string displayPath;
+//	static bool stopFlag;
 
 	bool checkFiles();
-	void setupGPIO();
+	void setupDisplay();
 
 	std::filebuf fBuf;
 	std::fstream fLog;
@@ -100,4 +95,7 @@ private:
 
 };
 
-#endif // !defined(EA_F6FA3185_3A4D_4043_A499_06D6A2FDBFCF__INCLUDED_)
+
+
+
+#endif //_CDISPLAYCTL_H_

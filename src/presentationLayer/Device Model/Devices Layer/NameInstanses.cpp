@@ -5,7 +5,7 @@
  *      Author: drema
  */
 
-#include <devices/LCD_winstar16x2.h>
+#include "devices/LCD_winstar16x2.h"
 #include "devices/testConcreteDevice.h"
 #include "devices/HttpClient.h"
 #include "devices/HttpDevLayerClient.h"
@@ -16,8 +16,8 @@
 #include "abstract/BsnsLogic.h"
 #include "abstract/ShlagbaumAbstract.h"
 #include "abstract/UserButtonAbstract.h"
-#include "abstract/SymbolDisplayAbstract.h"
 #include "abstract/PrinterAbstract.h"
+#include "abstract/DisplayAbstract.h"
 
 // Abstract names
 // full
@@ -36,7 +36,7 @@ const std::string CTestAbstractDevice::s_abstractName = "abstract";
 const std::string AbstractShlagbaum::s_abstractName = "shlagbaum";
 const std::string BsnsLogic::s_abstractName = "logic";
 const std::string AbstractUserButton::s_abstractName = "user-button";
-const std::string AbstractSymbolDisplay::s_abstractName = "symbol_LCD";
+const std::string AbstractDisplay::s_abstractName = "display";
 const std::string AbstractPrinter::s_abstractName = "printer";
 
 // concrete names

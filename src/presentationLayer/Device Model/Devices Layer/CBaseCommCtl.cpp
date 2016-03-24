@@ -21,7 +21,19 @@ CBaseCommCtl::~CBaseCommCtl(){
 }
 
 
-uint32_t CBaseCommCtl::send(std::list<std::vector<uint8_t> > sendData){
+uint32_t CBaseCommCtl::send(std::vector<uint8_t> sendData)
+{
+
+	BOOST_ASSERT_MSG(false, "CBaseCommCtl::send must redefine in the child class");
+
+	return  0;
+}
+
+
+uint32_t CBaseCommCtl::send(std::list<std::vector<uint8_t> > sendData)
+{
+
+	BOOST_ASSERT_MSG(false, "CBaseCommCtl::send must redefine in the child class");
 
 	return  0;
 }

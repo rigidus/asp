@@ -19,6 +19,8 @@ using namespace boost;
 #include <CBaseCommCtl.h>
 #include <Settings.h>
 #include <CPinCtl.h>
+#include <CDisplayCtl.h>
+#include <CPrnCtl.h>
 #include <CSerialPortCtl.h>
 #include <SetCommandTo.h>
 
@@ -37,7 +39,7 @@ public:
 
 	const std::vector< shared_ptr<CBaseCommCtl> >& getCommCtl();
 
-	virtual void performEvent(std::vector<uint8_t>& rcvData);
+	virtual void performEvent(std::string& commDeviceName, std::vector<uint8_t>& rcvData);
 	virtual void performTransaction(std::vector<uint8_t>& rcvData);
 
 protected:

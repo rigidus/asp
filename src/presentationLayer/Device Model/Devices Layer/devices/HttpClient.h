@@ -71,15 +71,13 @@ public:
 
 		std::cout << "HttpClient::sendCommand: Business logic client performs command: " << command << "[" << pars << "]" << std::endl;
 
-		// TODO Сериализация JSON
-
 		// TODO Здесь пока что сделана синхронка for example, но нужна Асинхронная передача на сервер
 		// Для чего надо ставить задачу на отправку тредпулу, а подтверждение обрабатывать в коллбэке
 		// и ставить задачу для дев менеджера для подтверждения транзакции, удаления ее из очереди и старта
 		// следующей.
 		s_exit_flag = 0;
 
-		mg_connect_http(&mgr, ev_handler, "http://127.0.0.1:8100", "", (command+pars).c_str());
+		mg_connect_http(&mgr, ev_handler, "http://127.0.0.1:8100", "", pars.c_str());
 
 		while (s_exit_flag == 0) {
 			mg_mgr_poll(&mgr, 1000);

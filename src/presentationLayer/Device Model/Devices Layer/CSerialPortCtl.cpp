@@ -33,6 +33,15 @@ bool CSerialPortCtl::receive(int rcvData){
 }
 
 
+uint32_t CSerialPortCtl::send(std::vector<uint8_t> sendData)
+{
+	std::list<std::vector<uint8_t> > lst;
+	lst.push_back(sendData);
+
+	return send(lst);
+}
+
+
 uint32_t CSerialPortCtl::send(std::list<std::vector<uint8_t> > sendData){
 
 	return  0;

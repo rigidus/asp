@@ -132,6 +132,13 @@ shared_ptr<CBaseCommCtl> CPinCtl::takeCommCtl(CBaseDevice* device, const std::st
 	std::cout << "CPinCtl::takeCommCtl try to take " << gpioName << std::endl;
 
 	try{
+
+		if (gpioName.size() < 5)
+		{
+			std::cout << "ERROR! CPinCtl::takeCommCtl: gpio name size < 5" << std::endl;
+			return nullptr;
+		}
+
 		// check busy pin
 		if (busyPins.find(gpioName) != busyPins.end())
 		{
@@ -149,7 +156,7 @@ shared_ptr<CBaseCommCtl> CPinCtl::takeCommCtl(CBaseDevice* device, const std::st
 		fileExport << &gpioName[4]; // 4 - is gpio number position
 
 		// Create TPinData
-		std::string pinPath = CPinCtl::gpioPath + "/" + gpioName + "/";
+		std::string pinPath = CPinCtl::gpioPath + gpioName + "/";
 		std::string fname(pinPath + "value");
 
 		TPinData pin;
@@ -252,17 +259,40 @@ CPinCtl::~CPinCtl(){
 }
 
 
+uint32_t CPinCtl::send(std::vector<uint8_t> sendData)
+{
+	std::list<std::vector<uint8_t> > lst;
+	lst.push_back(sendData);
+
+	return send(lst);
+}
+
+
 uint32_t CPinCtl::send(std::list<std::vector<uint8_t> > sendData)
 {
 
 	std::cout << "CPinCtl::send: command 'write value' to '" << m_PinData.name << "'." << std::endl;
+
+	if ( sendData.size() != 1)
+	{
+		std::cout << "ERROR! CPinCtl::send: Incorrect argument size: list size = "
+				<< sendData.size() << std::endl;
+		return  0;
+	}
+	else
+	if ( sendData.begin()->size() < 2 )
+	{
+		std::cout << "ERROR! CPinCtl::send: Incorrect argument size: vector size = "
+				<< sendData.begin()->size() << std::endl;
+		return  0;
+	}
 
 	/*
 	 * Парсинг команды записи в конкретный файл пина
 	 * value, direction, edge, active_low
 	 */
 
-	if ( sendData.size() == 1 && sendData.begin()->size() > 2 )
+	if ( sendData.size() == 1 && sendData.begin()->size() == 2 )
 	{
 		std::string fname(gpioPath + m_PinData.name + "/");
 
@@ -270,9 +300,10 @@ uint32_t CPinCtl::send(std::list<std::vector<uint8_t> > sendData)
 
 		uint8_t filetype = data[0];
 
-		char* beginData = (char*) &data[1];
-		char* endData = (char*) &data[data.size()-1];
-		std::string value(beginData, endData);
+		data.push_back(0);
+		std::string value((char*) &data[1]);
+
+		std::cout << "CPinCtl::send: writing value = " << value << std::endl;
 
 		switch(filetype)
 		{
@@ -304,18 +335,6 @@ uint32_t CPinCtl::send(std::list<std::vector<uint8_t> > sendData)
 		return len;
 	}
 
-	if ( sendData.size() != 1)
-	{
-		std::cout << "ERROR! CPinCtl::send: Incorrect argument size: list size = "
-				<< sendData.size() << std::endl;
-	}
-	else
-	if ( sendData.begin()->size() < 2 )
-	{
-		std::cout << "ERROR! CPinCtl::send: Incorrect argument size: vector size = "
-		<< sendData.begin()->size() << std::endl;
-	}
-
 	return  0;
 }
 
@@ -324,13 +343,18 @@ int8_t CPinCtl::getPinValue()
 {
 	std::cout << "CPinCtl::getPinValue: From " << m_PinData.filename << std::endl;
 
+	lseek(m_PinData.fd, 0, SEEK_SET);
+
 	char Value = 0;
 	size_t size = read(m_PinData.fd, &Value, 1);
 
 	if (size != 1)
 	{
 		std::cout << "ERROR! CPinCtl::getPinValue: Not successful read from " << m_PinData.filename << std::endl;
+		return -1;
 	}
+
+	std::cout << "CPinCtl::getPinValue: From " << m_PinData.filename <<", got value = " << Value << std::endl;
 
 	return Value;
 }
@@ -415,7 +439,7 @@ void CPinCtl::Notifier()
 					{
 						std::cout << "GPIO Notifier: Call Device Event for: " << it->second->myDevice().c_name << std::endl;
 
-						it->second->myDevice().performEvent(data);
+						it->second->myDevice().performEvent(PinData.name, data);
 
 						std::cout << "GPIO Notifier: Device Event Ready for: " << it->second->myDevice().c_name << std::endl;
 					}

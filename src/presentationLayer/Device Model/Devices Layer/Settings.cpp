@@ -76,10 +76,76 @@ const std::vector<CommGPIOConfig> getGPIOByDevice(const std::string deviceName, 
 	return devs;
 }
 
+const std::vector<CommDisplayConfig> getDisplayByDevice(const std::string deviceName)
+{
+	// make config and return it
+	std::vector<settings::CommDisplayConfig> devs;
+
+	std::cout << "getDisplayByDevice: " << deviceName << std::endl;
+	for (settings::DeviceConfig* v: settings::deviceList)
+	{
+		if (v->concreteName == deviceName)
+		{
+
+			// find device
+			// iteration for comms
+			for (std::string commName: v->comm)
+			{
+				// find config by comm name
+				uint32_t size = settings::displayConfigList.size();
+				for (uint32_t i = 0; i < size; ++i)
+				{
+					if (commName == settings::displayConfigList[i]->name)
+					{
+						std::cout << "getDisplayByDevice: found " << commName << std::endl;
+						devs.push_back(*settings::displayConfigList[i]);
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	return devs;
+}
+
 const std::vector<CommUARTConfig> getUARTByDevice(const std::string deviceName)
 {
 	// TODO: make config and return it
 	std::vector<settings::CommUARTConfig> devs;
+
+	return devs;
+}
+
+const std::vector<CommPrinterConfig> getPrinterByDevice(const std::string deviceName)
+{
+	// make config and return it
+	std::vector<settings::CommPrinterConfig> devs;
+
+	std::cout << "getPrinterByDevice: " << deviceName << std::endl;
+	for (settings::DeviceConfig* v: settings::deviceList)
+	{
+		if (v->concreteName == deviceName)
+		{
+
+			// find device
+			// iteration for comms
+			for (std::string commName: v->comm)
+			{
+				// find config by comm name
+				uint32_t size = settings::printerConfigList.size();
+				for (uint32_t i = 0; i < size; ++i)
+				{
+					if (commName == settings::printerConfigList[i]->name)
+					{
+						std::cout << "getPrinterByDevice: found " << commName << std::endl;
+						devs.push_back(*settings::printerConfigList[i]);
+						break;
+					}
+				}
+			}
+		}
+	}
 
 	return devs;
 }

@@ -46,6 +46,7 @@ public:
 	virtual ~CSerialPortCtl();
 
 	bool receive(int rcvData);
+	uint32_t send(std::vector<uint8_t> sendData);
 	uint32_t send(std::list<std::vector<uint8_t> > sendData);
 	int setSettings(std::string deviceName);
 
