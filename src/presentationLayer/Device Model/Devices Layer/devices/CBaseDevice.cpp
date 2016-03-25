@@ -109,6 +109,8 @@ void CBaseDevice::disconnectFromCommCtl()
 	{
 		CPinCtl::freeCommCtl(this, comm->m_commName);
 		CSerialPortCtl::freeCommCtl(this, comm->m_commName);
+		CDisplayCtl::freeCommCtl(this, comm->m_commName);
+		CPrnCtl::freeCommCtl(this, comm->m_commName);
 	}
 }
 

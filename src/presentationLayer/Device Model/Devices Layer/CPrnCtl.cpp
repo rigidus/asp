@@ -148,8 +148,8 @@ bool CPrnCtl::fileIsExist(const std::string& fileName)
 CPrnCtl::CPrnCtl(CBaseDevice* device, const settings::CommPrinterConfig& config, TPrinterData& printerData):
 		CBaseCommCtl(device, printerData.name),
 		m_Config(config),
-		m_PrinterData(printerData)
-//		m_timeout(0)
+		m_PrinterData(printerData),
+		m_timeout(0)
 {
 
 }
@@ -217,7 +217,7 @@ uint32_t CPrnCtl::send(std::list<std::vector<uint8_t> > sendData)
 			myfile << value.c_str();
 			myfile.close();
 
-			std::system("wkhtmltopdf.sh -s A6 /aspp/tmpcheck.html /aspp/tmpcheck.pdf");
+			std::system("wkhtmltopdf.sh --margin-top 1mm --margin-bottom 1mm --margin-left 1mm --margin-right 1mm --page-width 80mm --page-height 170mm /aspp/tmpcheck.html /aspp/tmpcheck.pdf"); // -s A6
 			std::system("lp /aspp/tmpcheck.pdf");
 
 
@@ -233,13 +233,13 @@ uint32_t CPrnCtl::send(std::list<std::vector<uint8_t> > sendData)
 
 	if ( sendData.size() != 1) //!!!fix
 	{
-		std::cout << "ERROR! CDisplayCtl::send: Incorrect argument size: list size = "
+		std::cout << "ERROR! CPrnCtl::send: Incorrect argument size: list size = "
 				<< sendData.size() << std::endl;
 	}
 	else
 	if ( sendData.begin()->size() < 2 ) //!!!fix
 	{
-		std::cout << "ERROR! CDisplayCtl::send: Incorrect argument size: vector size = "
+		std::cout << "ERROR! CPrnCtl::send: Incorrect argument size: vector size = "
 		<< sendData.begin()->size() << std::endl;
 	}
 

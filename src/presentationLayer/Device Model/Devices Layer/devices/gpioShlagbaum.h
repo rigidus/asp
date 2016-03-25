@@ -192,6 +192,7 @@ public:
 
 		if ( i == LastFunction)
 		{
+			// TODO Errror
 			return;
 		}
 
@@ -333,6 +334,7 @@ public:
 				data.push_back('1');
 				m_commCtl[DoClose]->send(data);
 
+				// TODO Later Значение из базы
 				boost::this_thread::sleep(boost::posix_time::milliseconds(3000));
 
 				if (actualState == InProcessDown)
@@ -370,6 +372,7 @@ public:
 				data.push_back('1');
 				m_commCtl[DoOpen]->send(data);
 
+				// TODO Later Значение из базы
 				boost::this_thread::sleep(boost::posix_time::milliseconds(3000));
 
 				if (actualState == InProcessUp)
