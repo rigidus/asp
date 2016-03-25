@@ -467,10 +467,10 @@
      #+NAME: demo_page_init
      #+BEGIN_SRC lisp
        (in-package :asp)
-
+       
        (defun ticket-assembly (ticket-id time-str checkpoint-id sector-id)
          `("========================="
-           "ДОБРО ПОЖАЛОВАТЬ!"
+           "1ДОБРО ПОЖАЛОВАТЬ!"
            "========================="
            ,(format nil "~8,'0d" *begin-ticket-id*)
            ,(format nil "Въезд: ~A" (get-current-time-str))
@@ -496,16 +496,16 @@
            "========================="
            "Телефон для справок:"
            "8(812)000-00-00"))
-
+       
        (defun barcode-assembly (param)
          "1A B4 C5 DE 35")
-
+       
        ;; {
        ;;   "eventid":XX,
        ;;   "device":"user-button",
        ;;   "command":"press"
        ;; }
-
+       
        (let* ((ticket      (ticket-assembly
                             ,*begin-ticket-id*
                             (get-current-time-str)
