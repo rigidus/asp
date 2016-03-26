@@ -769,7 +769,7 @@
 
     [COMMENT:pyub] Общая оценка используемых бит данных:
     - № стойки - 8 байт, 2 символа
-    - № сектора - 8 байт, 2 символа 
+    - № сектора - 8 байт, 2 символа
     - № места - 16 байт, 4 символа
     - дата, время - 32 байта, unix-time
     - тип ТС - 2 байта, 1 символ
@@ -792,7 +792,7 @@
 
     При считывании штрихкода операции проводятся в обратном порядке, на верхний уровень отдаются
     8 байт без расшифровки.
-    
+
     Предлагаемые стандарты шифрования штрихкода:
     =Code 128= или =EAN-128=
 
@@ -5283,8 +5283,11 @@ void CBaseDevice::disconnectFromCommCtl()
       [19:27:10] rigidus: Потом
       [19:27:15] rigidus: Это в них же
       [19:28:21] rigidus:
-      [19:29:45] rigidus: После чего финально /usr/lib/postgresql/9.1/bin/postgresql -D
-      /var/lib/postgresql/9.1/work или как ты там назвал папку
+      [19:29:45] rigidus: После чего финально
+
+      /usr/lib/postgresql/9.1/bin/postgres -D /var/lib/postgresql/9.1/work/
+
+      или как ты там назвал папку
       [19:29:55] rigidus: Если все это сработает - мы в шоколаде и можно писать док
       [19:36:24] rigidus: Если не прокатило - то можно создать пользователя с группой,
       заовнить на него конфиги
@@ -7949,6 +7952,7 @@ cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pins | grep "830"
                                #:defclass
                                #:defmethod
                                #:standard-class
+                               #:standard-method
                                #:ensure-generic-function
                                #:defgeneric
                                #:standard-generic-function
