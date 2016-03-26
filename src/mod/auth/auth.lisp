@@ -36,7 +36,7 @@
          ((:a :class "action-icon action-icon--close" :href "#") "×")
          (form ("loginform" nil :action "/login")
            (fieldset "Вход:"
-             (input ("email" "Электронная почта" :required t :type "email" :maxlength "50" :class "input-bg"))
+             (input ("email" "Электронная почта" :required t :type "text" :maxlength "50" :class "input-bg"))
              (input ("password" "Пароль" :required t :type "password" :autocomplete "off" :class "input-bg"))
              (ps-html ((:input :type "hidden" :name "act" :value "LOGIN")))
              (submit "Войти")
@@ -305,7 +305,7 @@
         (form ("regform" "Регистрационные данные" :action "/reg" :class "form-section-container")
           ((:div :class "form-section")
            (fieldset "Обязательные поля"
-             (input ("regemail" "Электронная почта" :required t :type "email" :maxlength "50" :value (aif (get-parameter "regemail") it "")))
+             (input ("regemail" "Электронная почта" :required t :type "text" :maxlength "50" :value (aif (get-parameter "regemail") it "")))
              (input ("regpassword" "Пароль" :required t :type "password" :autocomplete "off"))
              (input ("regpasswordconfirm" "Повторите пароль" :required t :type "password" :autocomplete "off"))
              (input ("regnickname" "Никнейм" :required t :maxlength "50":value (aif (get-parameter "regnickname") it "")))))
@@ -411,7 +411,7 @@
            (form ("loginform" "Вход" :action "/login" :class "form-section-container")
              ((:div :class "form-section")
               (fieldset "Обязательные поля"
-                (input ("email" "Электронная почта" :required t :type "email" :maxlength "50" :value default-email))
+                (input ("email" "Электронная почта" :required t :type "text" :maxlength "50" :value default-email))
                 (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))))
              btn))))
   (define-page login "/login"

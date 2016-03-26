@@ -7965,6 +7965,7 @@ cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pins | grep "830"
                                #:defclass
                                #:defmethod
                                #:standard-class
+                               #:standard-method
                                #:ensure-generic-function
                                #:defgeneric
                                #:standard-generic-function
