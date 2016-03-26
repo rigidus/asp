@@ -403,8 +403,8 @@
 
     ;; Тестируем автоматы
     (defun automat-test ()
-      <<automat_test_contents>>
-      (dbg "passed: automat-test~%"))
+      ;; <<automat_test_contents>>
+      (dbg "not (!) passed: automat-test~%"))
     (automat-test)
   #+END_SRC
 
