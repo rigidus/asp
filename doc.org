@@ -5269,6 +5269,10 @@ void CBaseDevice::disconnectFromCommCtl()
       натравить на домашний каталог постргесса (я говорил, что все это надо делать под
       постгрессом?)
 
+      /usr/lib/postgresql/9.1/bin/initdb -D /var/lib/postgresql/9.1/work
+
+      root@bbb# pg_createcluster
+
       root@bbb# /etc/init.d/postgresql restart
 
       error: "root" execution of the PostgreSQL server is not permitted.

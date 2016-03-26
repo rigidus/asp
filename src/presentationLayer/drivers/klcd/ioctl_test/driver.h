@@ -19,7 +19,7 @@
 
 #include <linux/ioctl.h>
 
-#define MAX_BUF_LENGTH  	50  /* maximum length of a buffer to copy from user space to kernel space
+#define MAX_BUF_LENGTH  	100  /* maximum length of a buffer to copy from user space to kernel space
 				       (MUST NOT CHANGE THIS)
 				    */
 struct ioctl_mesg{

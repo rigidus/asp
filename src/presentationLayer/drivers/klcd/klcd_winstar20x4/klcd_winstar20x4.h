@@ -3,7 +3,7 @@
  *  Copyright(c) 2014 Hong Moon 	All Rights Reserved  
  */
 
-/* description: a kernel level Linux device driver to control a 16x2 character LCD (with HD44780 LCD Controller) with 4 bit mode.
+/* description: a kernel level Linux device driver to control a 20x4 character LCD (with HD44780 LCD Controller) with 4 bit mode.
 		The LCD is interfaced with a micro-controller using GPIO pins.
 		See below "LCD Pin Configuration" to see GPIO pin connections
 

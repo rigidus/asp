@@ -3,7 +3,7 @@
  *  Copyright(c) 2014 Hong Moon 	All Rights Reserved
  */
 
-/* description: a kernel level Linux device driver to control a 16x2 character LCD (with HD44780 LCD controller) with 4 bit mode.
+/* description: a kernel level Linux device driver to control a 20x4 character LCD (with HD44780 LCD controller) with 4 bit mode.
   		The LCD is interfaced with a micro-controller using GPIO pins.
 
 		(Tested on Linux 3.8.13)
@@ -32,7 +32,7 @@
 #include "klcd_winstar20x4.h"
 
 #define DRIVER_AUTHOR	"Hong Moon <hsm5xw.gmail.com>"
-#define DRIVER_DESC	"a 16x2 character LCD (HD44780 LCD controller) driver with 4 bit mode"	
+#define DRIVER_DESC	"a 20x4 character LCD (HD44780 LCD controller) driver with 4 bit mode"	
 
 
 // ************ Core Functions ************************************
@@ -310,7 +310,7 @@ static void lcd_print(char * msg, unsigned int lineNumber)
 	}
 
 	if( (lineNum != 1) && (lineNum != 2) && (lineNum != 3) && (lineNum != 4) ) {
-		printk( KERN_DEBUG "ERR: Invalid line number readjusted to 1 \n");
+		printk( KERN_DEBUG "ERR: Invalid line number '%d' readjusted to 1 \n", lineNum);
 		lineNum = 1;
 	}
 
@@ -412,8 +412,8 @@ static void lcd_print_WithPosition(char * msg, unsigned int lineNumber, unsigned
 		return;
 	}
 
-	if( (lineNum != 1) && (lineNum != 2)  ){
-		printk( KERN_DEBUG "ERR: Invalid line number input readjusted to 1 \n");
+	if( (lineNum != 1) && (lineNum != 2) && (lineNum != 3) && (lineNum != 4) ){
+		printk( KERN_DEBUG "ERR: Invalid line number '%d' readjusted to 1 \n", lineNum);
 		lineNum = 1;
 	}
 
@@ -508,8 +508,16 @@ void lcd_setLinePosition(unsigned int line)
 		lcd_instruction(0xC0);
 		lcd_instruction(0x00);
 	}
+	else if(line == 3){
+		lcd_instruction(0x90);
+		lcd_instruction(0x40);
+	}
+	else if(line == 4){
+		lcd_instruction(0xD0);
+		lcd_instruction(0x40);
+	}
 	else{
-		printk("ERR: Invalid line number. Select either 1 or 2 \n");
+		printk("ERR: Invalid line number. Select either 1, 2, 3 or 4 \n");
 	}
 }
 
@@ -535,8 +543,20 @@ void lcd_setPosition(unsigned int line, unsigned int nthCharacter)
 		lcd_instruction(  command & 0xF0 ); 	  // upper 4 bits of command
 		lcd_instruction( (command & 0x0F) << 4 ); // lower 4 bits of command
 	}
+	else if(line == 3){
+		command = 0x94 + (char) nthCharacter;
+
+		lcd_instruction(  command & 0xF0 ); 	  // upper 4 bits of command
+		lcd_instruction( (command & 0x0F) << 4 ); // lower 4 bits of command
+	}
+	else if(line == 4){
+		command = 0xD4 + (char) nthCharacter;
+
+		lcd_instruction(  command & 0xF0 ); 	  // upper 4 bits of command
+		lcd_instruction( (command & 0x0F) << 4 ); // lower 4 bits of command
+	}
 	else{
-		printk("ERR: Invalid line number. Select either 1 or 2 \n");
+		printk("ERR: Invalid line number. Select either 1, 2, 3 or 4 \n");
 	}	
 }
 
@@ -673,6 +693,7 @@ static long klcd_ioctl( struct file *p_file, unsigned int ioctl_command, unsigne
 		return -EFAULT;
 	}
 
+	printk( KERN_INFO "klcd driver: ioctl received '%s', '%d', '%d'", ioctl_arguments.kbuf, ioctl_arguments.lineNumber, ioctl_arguments.nthCharacter);
 	switch( (char) ioctl_command ){
 		case IOCTL_CLEAR_DISPLAY:
 			lcd_clearDisplay();
