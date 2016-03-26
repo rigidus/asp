@@ -1,10 +1,10 @@
 (in-package #:asp)
 
 ;; Скомпилируем шаблон
-(closure-template:compile-template
- :common-lisp-backend
- (pathname
-  (concatenate 'string *base-path* "mod/auth/auth-tpl.htm")))
+;; (closure-template:compile-template
+;;  :common-lisp-backend
+;;  (pathname
+;;   (concatenate 'string *base-path* "mod/auth/auth-tpl.htm")))
 
 (in-package #:asp)
 
@@ -513,7 +513,7 @@
 (define-page role "/role/:roleid"
   (let* ((breadcrumb (breadcrumb "Профиль роли" ("/" . "Главная")))
          (id (handler-case (parse-integer roleid)
-               (SB-INT:SIMPLE-PARSE-ERROR () 0))))
+               (t () 0))))
     (if (null (get-role id))
         (base-page (:breadcrumb breadcrumb)
           (content-box ()
@@ -533,7 +533,7 @@
 (define-page group "/group/:groupid"
   (let* ((breadcrumb (breadcrumb "Профиль группы" ("/" . "Главная")))
          (id (handler-case (parse-integer groupid)
-               (SB-INT:SIMPLE-PARSE-ERROR () 0))))
+               (t () 0))))
       (if (null (get-group id))
           (base-page (:breadcrumb breadcrumb)
             (content-box ()
@@ -625,7 +625,7 @@
   (define-page user "/user/:userid"
     (let* ((breadcrumb (breadcrumb "Профиль пользователя" ("/" . "Главная")))
            (id (handler-case (parse-integer userid)
-                 (SB-INT:SIMPLE-PARSE-ERROR () 0))))
+                 (t () 0))))
       (if (null (get-user id))
           (base-page (:breadcrumb breadcrumb)
             (content-box ()
@@ -942,7 +942,7 @@
 ;; Тестируем авторизацию
 (defun auth-test ()
   (in-package #:asp)
-  
+
   ;; Зарегистрируем пользователя
   ;; (let* ((name "admin")
   ;;        (password "tCDm4nFskcBqR7AN")

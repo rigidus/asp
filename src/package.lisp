@@ -4,7 +4,7 @@
 ;;;; package.lisp
 
 (restas:define-module #:asp
-  (:use  #:cl #:closer-mop #:postmodern #:anaphora #:hunchentoot #:cl-who #:parenscript #:cl-fad #:optima)
+  (:use #:closer-mop #:cl #:postmodern #:anaphora #:hunchentoot #:cl-who #:parenscript #:cl-fad #:optima)
   (:shadowing-import-from #:closer-mop
                           #:defclass
                           #:defmethod

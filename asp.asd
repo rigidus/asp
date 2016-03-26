@@ -30,7 +30,8 @@
   :author "Glukhov Mikhail"
   :version "0.0.3"
   :license "GNU AGPLv3"
-  :components ((:file "package")    ;; файл пакетов
+  :components (
+               (:file "package")    ;; файл пакетов
                (:static-file "templates.htm")
                (:file "prepare")    ;; подготовка к старту
                (:file "util")       ;; файл с утилитами
@@ -55,7 +56,7 @@
                         :pathname "mod/que"
                         :components ((:file "que")))
                ;; Модуль сообщений
-               
+
                ;; (:file "events")     ;; события системы
                (:file "iface")      ;; файл веб-интерфейса
                ;; Модуль демонстрации

@@ -1,1 +1,1 @@
-/home/rigidus/repo/asp/asp.asd
+asp.asd
