@@ -27,8 +27,9 @@
       (drakma:http-request
        *low-level-endpoint*
        :method :post
-       :content (format nil "~{~A~^&~}"
-                        `(("json" . ,(drakma:url-encode (cl-json:encode-json-to-string msg) :utf-8))))
+       :content ;; (format nil "~{~A~^&~}"
+                ;;        `(("json" . ,(drakma:url-encode (cl-json:encode-json-to-string msg) :utf-8))))
+                (cl-json:encode-json-to-string msg)
        :content-type "application/x-www-form-urlencoded; charset=UTF-8"
        :force-binary t)
     (prog1
@@ -112,7 +113,7 @@
 (let ((msg `((:TXID . ,*tx-counter*)
              (:DEVICE . "display")
              (:COMMAND . "show")
-             (:PARAMETERS (:SCREEN . 0)))))
+             (:PARAMETERS (:SCREEN . "0")))))
   (define-demo-page (demo-page-start "/demo_page_start" "Включение стойки"
                                      "На этой странице можно эмулировать включение стойки"
                                      "Включить стойку")

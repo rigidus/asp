@@ -513,7 +513,10 @@
 (define-page role "/role/:roleid"
   (let* ((breadcrumb (breadcrumb "Профиль роли" ("/" . "Главная")))
          (id (handler-case (parse-integer roleid)
-               (t () 0))))
+               (
+                ;; SB-INT:SIMPLE-PARSE-ERROR
+                t
+                   () 0))))
     (if (null (get-role id))
         (base-page (:breadcrumb breadcrumb)
           (content-box ()
@@ -533,7 +536,10 @@
 (define-page group "/group/:groupid"
   (let* ((breadcrumb (breadcrumb "Профиль группы" ("/" . "Главная")))
          (id (handler-case (parse-integer groupid)
-               (t () 0))))
+               (
+                ;; SB-INT:SIMPLE-PARSE-ERROR
+                t
+                   () 0))))
       (if (null (get-group id))
           (base-page (:breadcrumb breadcrumb)
             (content-box ()
@@ -625,7 +631,10 @@
   (define-page user "/user/:userid"
     (let* ((breadcrumb (breadcrumb "Профиль пользователя" ("/" . "Главная")))
            (id (handler-case (parse-integer userid)
-                 (t () 0))))
+                 (
+                  ;; SB-INT:SIMPLE-PARSE-ERROR
+                  t
+                     () 0))))
       (if (null (get-user id))
           (base-page (:breadcrumb breadcrumb)
             (content-box ()
@@ -942,7 +951,7 @@
 ;; Тестируем авторизацию
 (defun auth-test ()
   (in-package #:asp)
-
+  
   ;; Зарегистрируем пользователя
   ;; (let* ((name "admin")
   ;;        (password "tCDm4nFskcBqR7AN")

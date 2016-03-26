@@ -5,7 +5,7 @@
 (defmacro define-entity (name desc &rest tail)
   (let ((*package* (symbol-package name)))
     `(progn
-
+       
        ;; entity-class
        ,(let ((table (intern (symbol-name name))))
          `(defclass ,name ()
@@ -19,20 +19,20 @@
            (:metaclass dao-class)
            (:table-name ,table)
            (:keys ,(caaar tail))))
-
+       
        ;; make-entity-table
        ,(let ((table (intern (symbol-name name))))
          `(defun ,(intern (concatenate 'string "MAKE-" (symbol-name name) "-TABLE")) ()
            (with-connection *db-spec*
              (unless (table-exists-p (string-downcase (symbol-name ',table)))
                (execute (dao-table-definition ',table))))))
-
+       
        ;; make-entity
        ,(let ((table (intern (symbol-name name))))
          `(defun ,(intern (concatenate 'string "MAKE-" (symbol-name name))) (&rest initargs)
            (with-connection *db-spec*
              (apply #'make-dao (list* ',table initargs)))))
-
+       
        ;; upd-entity
        (defmethod ,(intern (concatenate 'string "UPD-" (symbol-name name))) ((obj ,name) &optional args)
          (progn
@@ -42,19 +42,19 @@
                              (,(car accessor) obj))))
            (with-connection *db-spec*
              (update-dao obj))))
-
+       
        ;; del-entity
        ,(let ((table (intern (symbol-name name))))
          `(defun ,(intern (concatenate 'string "DEL-" (symbol-name name))) (id)
            (with-connection *db-spec*
              (delete-dao (get-dao ',table id)))))
-
+       
        ;; all-entity
        ,(let ((table (intern (symbol-name name))))
          `(defun ,(intern (concatenate 'string "ALL-" (symbol-name name))) ()
            (with-connection *db-spec*
              (select-dao ',table))))
-
+       
        ;; get-entity (by id)
        ,(let ((table      (intern (symbol-name name)))
               (get-entity (intern (concatenate 'string "GET-" (symbol-name name)))))
@@ -76,7 +76,7 @@
                         (funcall (intern (symbol-name fld) (find-package ,(symbol-name name)))
                                  obj)))
                rs))))
-
+       
        ;; find-entity
        ,(let ((table (intern (symbol-name name))))
          `(defun ,(intern (concatenate 'string "FIND-" (symbol-name name))) (&rest args)
@@ -85,7 +85,7 @@
                         (sql-compile
                          (list :select :* :from ',table
                                :where (make-clause-list ':and ':= args)))))))
-
+       
        ;; show-entity
        (defmethod ,(intern "TO-HTML") ((obj ,name) &optional &key filter)
          (with-connection *db-spec*
@@ -135,55 +135,55 @@
 
 ;; Тестируем сущности
 (defun entity-test ()
-
+  
   (when (with-connection *db-spec*
             (query (:select 'table_name :from 'information_schema.tables :where
                             (:and (:= 'table_schema "public")
                                   (:= 'table_name "entity123")))))
     (with-connection *db-spec*
       (query (:drop-table 'entity123))))
-
+  
   (define-entity entity123 "Тестовая сущность"
     ((id serial)
      (email varchar)
      (name (or db-null varchar))))
-
+  
   (make-entity123-table)
-
+  
   (assert (not (null (with-connection *db-spec*
                        (query (:select 'table_name :from 'information_schema.tables :where
                                        (:and (:= 'table_schema "public")
                                              (:= 'table_name "entity123"))))))))
-
+  
   (make-entity123 :email "test-email-1" :name "test-name-1")
-
+  
   (assert (not (null (with-connection *db-spec*
                        (query (:select '* :from 'entity123))))))
-
+  
   (assert (not (null (get-entity123 1))))
-
+  
   (upd-entity123 (get-entity123 1) (list :name "new-name"))
-
+  
   (assert (equal "new-name" (name (get-entity123 1))))
-
+  
   (assert (equal "new-name"
                  (caar
                   (with-connection *db-spec*
                     (query (:select 'name :from 'entity123 :where (:= 'id 1)))))))
-
+  
   (del-entity123 1)
-
+  
   (assert (null (with-connection *db-spec*
                   (query (:select '* :from 'entity123 :where (:= 'id 1))))))
-
+  
   (make-entity123 :email "test-email-2" :name "test-name-2")
   (make-entity123 :email "test-email-3" :name "test-name-3")
-
+  
   (assert (equal 2 (length (all-entity123))))
-
+  
   (assert (equal "test-email-3"
                  (email (car (find-entity123 :name "test-name-3")))))
-
+  
   (with-connection *db-spec*
     (query (:drop-table 'entity123)))
   (dbg "passed: entity-test~%"))
@@ -191,77 +191,77 @@
 
 
 ;; Тестируем автоматы
-;; (defun automat-test ()
-
-;;   (when (with-connection *db-spec*
-;;             (query (:select 'table_name :from 'information_schema.tables :where
-;;                             (:and (:= 'table_schema "public")
-;;                                   (:= 'table_name "automat123")))))
-;;     (with-connection *db-spec*
-;;       (query (:drop-table 'automat123))))
-
-;;   (define-automat automat123 "Тестовый автомат"
-;;     ((id serial)
-;;      (email varchar)
-;;      (name (or db-null varchar)))
-;;     (:on :off :broken)
-;;     ((:on      :off     :switch-off)
-;;      (:off     :on      :switch-on)
-;;      (:on      :broken  :fault)
-;;      (:broken  :off     :stop)))
-
-;;   (assert (not (null (with-connection *db-spec*
-;;                        (query (:select 'table_name :from 'information_schema.tables :where
-;;                                        (:and (:= 'table_schema "public")
-;;                                              (:= 'table_name "automat123"))))))))
-
-;;   (assert (not (null
-;;                 (with-connection *db-spec*
-;;                   (query (:select 'column_name :from 'information_schema.columns :where
-;;                                   (:and (:= 'table_schema  "public")
-;;                                         (:= 'table_name    "automat123")
-;;                                         (:= 'column_name   "state"))))))))
-
-;;   (make-automat123 :email "test-email-1" :name "test-name-1")
-
-;;   (upd-automat123 (get-automat123 1) (list :state ":off"))
-
-;;   (defun switch-off ()
-;;     :switch-off)
-
-;;   (defun switch-on ()
-;;     :switch-on)
-
-;;   (defun fault ()
-;;     :fault)
-
-;;   (defun stop ()
-;;     :stop)
-
-;;   (assert (equal '((:SWITCH-ON ":ON") (:SWITCH-OFF ":OFF") (:SWITCH-ON ":ON")
-;;                    (:FAULT ":BROKEN") (:STOP ":OFF"))
-;;                  (loop :for new-state :in '(:on :off :on :broken :off) :collect
-;;                     (list (takt (get-automat123 1) new-state)
-;;                           (state (get-automat123 1))))))
-;;   (assert (not (null
-;;                 (with-connection *db-spec*
-;;                   (query (:select 'state :from 'automat123 :where
-;;                                   (:and
-;;                                    (:= 'id 1)
-;;                                    (:= 'state ":OFF"))))))))
-;;   (let ((test t) (err nil))
-;;     (handler-case
-;;         (progn
-;;           (takt (get-automat123 1) :broken)
-;;           (setf test nil))
-;;       (simple-error ()
-;;         (setf err t))
-;;       (assert (and test err))))
-
-;;   (with-connection *db-spec*
-;;     (query (:drop-table 'automat123)))
-;;   (dbg "passed: automat-test~%"))
-;; (automat-test)
+(defun automat-test ()
+  ;; 
+  ;; (when (with-connection *db-spec*
+  ;;           (query (:select 'table_name :from 'information_schema.tables :where
+  ;;                           (:and (:= 'table_schema "public")
+  ;;                                 (:= 'table_name "automat123")))))
+  ;;   (with-connection *db-spec*
+  ;;     (query (:drop-table 'automat123))))
+  ;; 
+  ;; (define-automat automat123 "Тестовый автомат"
+  ;;   ((id serial)
+  ;;    (email varchar)
+  ;;    (name (or db-null varchar)))
+  ;;   (:on :off :broken)
+  ;;   ((:on      :off     :switch-off)
+  ;;    (:off     :on      :switch-on)
+  ;;    (:on      :broken  :fault)
+  ;;    (:broken  :off     :stop)))
+  ;; 
+  ;; (assert (not (null (with-connection *db-spec*
+  ;;                      (query (:select 'table_name :from 'information_schema.tables :where
+  ;;                                      (:and (:= 'table_schema "public")
+  ;;                                            (:= 'table_name "automat123"))))))))
+  ;; 
+  ;; (assert (not (null
+  ;;               (with-connection *db-spec*
+  ;;                 (query (:select 'column_name :from 'information_schema.columns :where
+  ;;                                 (:and (:= 'table_schema  "public")
+  ;;                                       (:= 'table_name    "automat123")
+  ;;                                       (:= 'column_name   "state"))))))))
+  ;; 
+  ;; (make-automat123 :email "test-email-1" :name "test-name-1")
+  ;; 
+  ;; (upd-automat123 (get-automat123 1) (list :state ":off"))
+  ;; 
+  ;; (defun switch-off ()
+  ;;   :switch-off)
+  ;; 
+  ;; (defun switch-on ()
+  ;;   :switch-on)
+  ;; 
+  ;; (defun fault ()
+  ;;   :fault)
+  ;; 
+  ;; (defun stop ()
+  ;;   :stop)
+  ;; 
+  ;; (assert (equal '((:SWITCH-ON ":ON") (:SWITCH-OFF ":OFF") (:SWITCH-ON ":ON")
+  ;;                  (:FAULT ":BROKEN") (:STOP ":OFF"))
+  ;;                (loop :for new-state :in '(:on :off :on :broken :off) :collect
+  ;;                   (list (takt (get-automat123 1) new-state)
+  ;;                         (state (get-automat123 1))))))
+  ;; (assert (not (null
+  ;;               (with-connection *db-spec*
+  ;;                 (query (:select 'state :from 'automat123 :where
+  ;;                                 (:and
+  ;;                                  (:= 'id 1)
+  ;;                                  (:= 'state ":OFF"))))))))
+  ;; (let ((test t) (err nil))
+  ;;   (handler-case
+  ;;       (progn
+  ;;         (takt (get-automat123 1) :broken)
+  ;;         (setf test nil))
+  ;;     (simple-error ()
+  ;;       (setf err t))
+  ;;     (assert (and test err))))
+  ;; 
+  ;; (with-connection *db-spec*
+  ;;   (query (:drop-table 'automat123)))
+  (dbg "not (!) passed: automat-test~%"))
+(automat-test)
 
 (in-package #:asp)
 
