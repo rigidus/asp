@@ -86,7 +86,7 @@ private:
 
 	bool checkFiles();
 	void setupDisplay();
-	uint32_t utf8towinstar(std::string value);
+	uint32_t utf8towinstar(std::string *value);
 
 	std::filebuf fBuf;
 	std::fstream fLog;

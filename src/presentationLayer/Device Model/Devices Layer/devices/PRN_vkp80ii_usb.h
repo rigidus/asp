@@ -280,12 +280,12 @@ public:
 							"-dGraphicsAlphaBits=4 -sDEVICE=jpeg -sOutputFile=/aspp/barcode.jpg /aspp/barcode.ps") << std::endl;
 
 //					htmlTicket.unget();htmlTicket.unget(); // removing ">\n"
-					htmlTicket << "<TD background=\"./barcode.jpg\"  height=200 width=310>\n";
+					htmlTicket << "<TD background=\"./barcode.jpg\"  height=200 width=310>\n</TD>";
 				}
 
 			}
 
-			htmlTicket << "</TD></TR></TABLE></FONT></BODY></HTML>";
+			htmlTicket << "</TR></TABLE></FONT></BODY></HTML>";
 
 			while (!htmlTicket.eof()) {
 					data.push_back(htmlTicket.get());

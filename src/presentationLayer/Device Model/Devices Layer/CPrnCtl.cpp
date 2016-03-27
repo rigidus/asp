@@ -217,7 +217,7 @@ uint32_t CPrnCtl::send(std::list<std::vector<uint8_t> > sendData)
 			myfile << value.c_str();
 			myfile.close();
 
-			std::system("wkhtmltopdf.sh --margin-top 1mm --margin-bottom 1mm --margin-left 1mm --margin-right 1mm --page-width 80mm --page-height 170mm /aspp/tmpcheck.html /aspp/tmpcheck.pdf"); // -s A6
+			std::system("wkhtmltopdf.sh --margin-top 1mm --margin-bottom 1mm --margin-left 1mm --margin-right 1mm --page-width 80mm --page-height 120mm /aspp/tmpcheck.html /aspp/tmpcheck.pdf"); // -s A6
 			std::system("lp /aspp/tmpcheck.pdf");
 
 
