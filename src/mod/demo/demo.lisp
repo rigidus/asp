@@ -184,7 +184,7 @@
            (msg-ticket  `((:TXID . ,*tx-counter*)
                           (:DEVICE . "display")
                           (:COMMAND . "print")
-                          (:PARAMETERS ((:TICKET . ,ticket) (:BARCODE . ,barcode)))))
+                          (:PARAMETERS . ((:TICKET . ,ticket) (:BARCODE . ,barcode)))))
            (msg-display `((:TXID . ,*tx-counter*)
                           (:DEVICE . "display")
                           (:COMMAND . "show")
