@@ -5292,6 +5292,17 @@ void CBaseDevice::disconnectFromCommCtl()
       заовнить на него конфиги
     #+END_EXAMPLE
 
+    Создание базы данных проекта:
+
+    #+BEGIN_EXAMPLE
+      postgres=# CREATE USER asp_admin WITH PASSWORD 'qwe123';
+      CREATE ROLE
+      postgres=# CREATE DATABASE asp OWNER asp_admin;
+      CREATE DATABASE
+      postgres=# GRANT ALL privileges ON DATABASE asp TO asp_admin;
+      GRANT
+    #+END_EXAMPLE
+
 *** DONE Установка и запуск Boost                                      :bvl:
 
     =Boost= - библиотеки расширения С++, значительно упрощающие работу.
@@ -7769,17 +7780,6 @@ cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pins | grep "830"
    #+END_SRC
 
 ** Глобальные определения
-
-   Создание базы данных проекта:
-
-   #+BEGIN_EXAMPLE
-     postgres=# CREATE USER asp_admin WITH PASSWORD 'qwe123';
-     CREATE ROLE
-     postgres=# CREATE DATABASE asp OWNER asp_admin;
-     CREATE DATABASE
-     postgres=# GRANT ALL privileges ON DATABASE asp TO asp_admin;
-     GRANT
-   #+END_EXAMPLE
 
    #+NAME: globals
    #+BEGIN_SRC lisp :tangle src/globals.lisp :noweb tangle :exports code :padline no :comments link
