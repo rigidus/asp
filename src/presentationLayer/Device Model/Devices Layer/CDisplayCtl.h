@@ -15,6 +15,9 @@
 
 namespace io = boost::iostreams;
 
+#define IOCTL_CLEAR_DISPLAY 	  	'0'   // Identifiers for ioctl reqursts
+#define IOCTL_PRINT_ON_FIRSTLINE  	'1'
+
 /*
  * Multitone class controls LCD interface for interacting with concrete device
  */
@@ -83,6 +86,7 @@ private:
 
 	bool checkFiles();
 	void setupDisplay();
+	uint32_t utf8towinstar(std::string *value);
 
 	std::filebuf fBuf;
 	std::fstream fLog;

@@ -10,6 +10,7 @@ CPP_SRCS += \
 ../CDisplayCtl.cpp \
 ../CPinCodec.cpp \
 ../CPinCtl.cpp \
+../CPrnCtl.cpp \
 ../CSerialPortCtl.cpp \
 ../DeviceLayerSettingsDemo.cpp \
 ../NameInstanses.cpp \
@@ -24,6 +25,7 @@ OBJS += \
 ./CDisplayCtl.o \
 ./CPinCodec.o \
 ./CPinCtl.o \
+./CPrnCtl.o \
 ./CSerialPortCtl.o \
 ./DeviceLayerSettingsDemo.o \
 ./NameInstanses.o \
@@ -38,6 +40,7 @@ CPP_DEPS += \
 ./CDisplayCtl.d \
 ./CPinCodec.d \
 ./CPinCtl.d \
+./CPrnCtl.d \
 ./CSerialPortCtl.d \
 ./DeviceLayerSettingsDemo.d \
 ./NameInstanses.d \
@@ -50,7 +53,7 @@ CPP_DEPS += \
 %.o: ../%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: Cross G++ Compiler'
-	arm-linux-gnueabihf-g++ -std=c++11 -I"/home/alex/workspace/asp/src/presentationLayer/Device Model/Devices Layer" -I/usr/local/arm-linux-gnueabihf/ -I/usr/local/arm-linux-gnueabihf/boost -I/usr/local/arm-linux-gnueabihf/arm-linux-gnueabihf/libc/usr/include -I/usr/local/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/4.9.2 -I/usr/local/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/4.9.2/arm-linux-gnueabihf -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"
+	arm-linux-gnueabihf-g++ -std=c++11 -I"/windows/cygwin64/home/bvl/asp/src/presentationLayer/Device Model/Devices Layer" -I/usr/local/arm-linux-gnueabihf/ -I/usr/local/arm-linux-gnueabihf/boost -I/usr/local/arm-linux-gnueabihf/arm-linux-gnueabihf/libc/usr/include -I/usr/local/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/4.9.2 -I/usr/local/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/4.9.2/arm-linux-gnueabihf -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 

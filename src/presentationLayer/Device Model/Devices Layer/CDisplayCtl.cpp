@@ -5,6 +5,7 @@
 
 #include "CDisplayCtl.h"
 #include "SetCommandTo.h"
+#include <sys/ioctl.h>
 //#include <sys/inotify.h>
 
 namespace boostio = boost::iostreams;
@@ -127,6 +128,7 @@ settings::CommDisplayConfig CDisplayCtl::getDisplayConfig(CBaseDevice* device, c
 	}
 
 	settings::CommDisplayConfig empty = { displayName, "/dev/klcd" }; //!!!fix hardcode
+	std::cout << "getDisplayConfig: returning EMPTY! " << displayName << std::endl;
 	return empty;
 }
 
@@ -240,8 +242,8 @@ bool CDisplayCtl::fileIsExist(const std::string& fileName)
 CDisplayCtl::CDisplayCtl(CBaseDevice* device, const settings::CommDisplayConfig& config, TDisplayData& displayData):
 		CBaseCommCtl(device, displayData.name),
 		m_Config(config),
-		m_DisplayData(displayData)
-//		m_timeout(0)
+		m_DisplayData(displayData),
+		m_timeout(0)
 {
 
 }
@@ -260,9 +262,265 @@ uint32_t CDisplayCtl::send(std::vector<uint8_t> sendData)
 	return send(lst);
 }
 
+uint32_t CDisplayCtl::utf8towinstar(std::string *value)
+{
+	size_t i, j;
+	i = 0;
+	j = 0;
+
+	for (i = 0; i < value->length(); i++)
+	{
+		switch ((*value)[i])
+		{
+		case 0xD0:
+			i++;
+			switch ((*value)[i])
+			{
+			case 0x90: //A
+				(*value)[j] = 0x41;
+				break;
+			case 0x91: //Б
+				(*value)[j] = 0xA0;
+				break;
+			case 0x92: //В
+				(*value)[j] = 0x42;
+				break;
+			case 0x93: //Г
+				(*value)[j] = 0xA1;
+				break;
+			case 0x94: //Д
+				(*value)[j] = 0xE0;
+				break;
+			case 0x95: //Е
+				(*value)[j] = 0x45;
+				break;
+			case 0x81: //Ё
+				(*value)[j] = 0xA2;
+				break;
+			case 0x96: //Ж
+				(*value)[j] = 0xA3;
+				break;
+			case 0x97: //З
+				(*value)[j] = 0xA4;
+				break;
+			case 0x98: //И
+				(*value)[j] = 0xA5;
+				break;
+			case 0x99: //Й
+				(*value)[j] = 0xA6;
+				break;
+			case 0x9A: //К
+				(*value)[j] = 0x4B;
+				break;
+			case 0x9B: //Л
+				(*value)[j] = 0xA7;
+				break;
+			case 0x9C: //М
+				(*value)[j] = 0x4D;
+				break;
+			case 0x9D: //Н
+				(*value)[j] = 0x48;
+				break;
+			case 0x9E: //О
+				(*value)[j] = 0x4F;
+				break;
+			case 0x9F: //П
+				(*value)[j] = 0xA8;
+				break;
+			case 0xA0: //Р
+				(*value)[j] = 0x50;
+				break;
+			case 0xA1: //С
+				(*value)[j] = 0x43;
+				break;
+			case 0xA2: //Т
+				(*value)[j] = 0x54;
+				break;
+			case 0xA3: //У
+				(*value)[j] = 0xA9;
+				break;
+			case 0xA4: //Ф
+				(*value)[j] = 0xAA;
+				break;
+			case 0xA5: //Х
+				(*value)[j] = 0x58;
+				break;
+			case 0xA6: //Ц
+				(*value)[j] = 0xE1;
+				break;
+			case 0xA7: //Ч
+				(*value)[j] = 0xAB;
+				break;
+			case 0xA8: //Ш
+				(*value)[j] = 0xAC;
+				break;
+			case 0xA9: //Щ
+				(*value)[j] = 0xE2;
+				break;
+			case 0xAA: //Ъ
+				(*value)[j] = 0xAD;
+				break;
+			case 0xAB: //Ы
+				(*value)[j] = 0xAE;
+				break;
+			case 0xAC: //Ь
+				(*value)[j] = 0x62;
+				break;
+			case 0xAD: //Э
+				(*value)[j] = 0xAF;
+				break;
+			case 0xAE: //Ю
+				(*value)[j] = 0xB0;
+				break;
+			case 0xAF: //Я
+				(*value)[j] = 0xB1;
+				break;
+			case 0xB0: //а
+				(*value)[j] = 0x61;
+				break;
+			case 0xB1: //б
+				(*value)[j] = 0xB2;
+				break;
+			case 0xB2: //в
+				(*value)[j] = 0xB3;
+				break;
+			case 0xB3: //г
+				(*value)[j] = 0xB4;
+				break;
+			case 0xB4: //д
+				(*value)[j] = 0xE3;
+				break;
+			case 0xB5: //е
+				(*value)[j] = 0x65;
+				break;
+			case 0xB6: //ж
+				(*value)[j] = 0xB6;
+				break;
+			case 0xB7: //з
+				(*value)[j] = 0xB7;
+				break;
+			case 0xB8: //и
+				(*value)[j] = 0xB8;
+				break;
+			case 0xB9: //й
+				(*value)[j] = 0xB9;
+				break;
+			case 0xBA: //к
+				(*value)[j] = 0xBA;
+				break;
+			case 0xBB: //л
+				(*value)[j] = 0xBB;
+				break;
+			case 0xBC: //м
+				(*value)[j] = 0xBC;
+				break;
+			case 0xBD: //н
+				(*value)[j] = 0xBD;
+				break;
+			case 0xBE: //о
+				(*value)[j] = 0x6F;
+				break;
+			case 0xBF: //п
+				(*value)[j] = 0xBE;
+				break;
+			default:
+				std::cout << "CDisplayCtl::utf2winstar: wrong decoding D0 " << (*value)[i] << std::endl;
+				break;
+			}
+			break;
+		case 0xD1:
+			i++;
+			switch ((*value)[i])
+			{
+			case 0x80: //р
+				(*value)[j] = 0x70;
+				break;
+			case 0x81: //с
+				(*value)[j] = 0x63;
+				break;
+			case 0x82: //т
+				(*value)[j] = 0xBF;
+				break;
+			case 0x83: //у
+				(*value)[j] = 0x79;
+				break;
+			case 0x84: //ф
+				(*value)[j] = 0xE4;
+				break;
+			case 0x85: //х
+				(*value)[j] = 0x78;
+				break;
+			case 0x86: //ц
+				(*value)[j] = 0xE5;
+				break;
+			case 0x87: //ч
+				(*value)[j] = 0xC0;
+				break;
+			case 0x88: //ш
+				(*value)[j] = 0xC1;
+				break;
+			case 0x89: //щ
+				(*value)[j] = 0xE6;
+				break;
+			case 0x8A: //ъ
+				(*value)[j] = 0xC2;
+				break;
+			case 0x8B: //ы
+				(*value)[j] = 0xC3;
+				break;
+			case 0x8C: //ь
+				(*value)[j] = 0xC4;
+				break;
+			case 0x8D: //э
+				(*value)[j] = 0xC5;
+				break;
+			case 0x8E: //ю
+				(*value)[j] = 0xC6;
+				break;
+			case 0x8F: //я
+				(*value)[j] = 0xC7;
+				break;
+			case 0x91: //ё
+				(*value)[j] = 0xB5;
+				break;
+			default:
+				std::cout << "CDisplayCtl::utf2winstar: wrong decoding D1 " << (*value)[i] << std::endl;
+				break;
+			}
+			break;
+		case 0xE2: //№
+			i++;
+			switch ((*value)[i])
+			{
+			case 0x84: //№
+				i++;
+				switch ((*value)[i])
+				{
+				case 0x96: //№
+					(*value)[j] = 0xCC;
+					break;
+				default:
+					std::cout << "CDisplayCtl::utf2winstar: wrong decoding E284 " << (*value)[i] << std::endl;
+					break;
+				}
+				break;
+			default:
+				std::cout << "CDisplayCtl::utf2winstar: wrong decoding E2 " << (*value)[i] << std::endl;
+				break;
+			}
+			break;
+		default:
+			(*value)[j] = (*value)[i];
+			break;
+		}
+		j++;
+	}
+	value->resize(j);
+	return 0;
+}
+
 uint32_t CDisplayCtl::send(std::list<std::vector<uint8_t> > sendData)
 {
-
 	std::cout << "CDisplayCtl::send: command 'write data' to '" << m_DisplayData.name << "'." << std::endl;
 
 	/*
@@ -281,43 +539,65 @@ uint32_t CDisplayCtl::send(std::list<std::vector<uint8_t> > sendData)
 		std::cout << "CDisplayCtl::send: data.size is " << data.size() << std::endl;
 
 		uint8_t cmdtype = data[0];
-		uint8_t screenNo;
+		uint8_t screenId;
 
 //		char* beginData = (char*) &data[1];
 //		char* endData = (char*) &data[data.size()-1];
-//		std::string value(beginData, endData);
+		std::string value; //(beginData, endData);
+
+		int32_t fd = open( fname.c_str(), O_WRONLY | O_NONBLOCK);
+		if (fd == -1)
+		{
+			std::cout << "ERROR! CDisplayCtl::send: File '" << fname << "' isn't opened for writing." << std::endl;
+			return 0;
+		}
+
+		uint32_t len = 0;
 
 		switch(cmdtype) //!!!fix
 		{
 		case '0': // clear
 			std::cout << "CDisplayCtl::send: cmdtype is CLEAR" << std::endl;
+			if( ioctl( fd, (unsigned int) IOCTL_CLEAR_DISPLAY, value.c_str()) < 0)
+				std::cout << "ERROR! CDisplayCtl::send: IOCTL_CLEAR_DISPLAY" << std::endl;
+
+			close(fd);
+
+			return len;
 			break;
-		case '1': // direction
+
+		case '1': // show
 			std::cout << "CDisplayCtl::send: cmdtype is SHOW" << std::endl;
 
-			screenNo = data[1];
+			screenId = data[1];
 
 //			std::cout << "CDisplayCtl::send: screenId is " <<  << std::endl;
 
-			switch (screenNo)
+			switch (screenId)
 			{
 			case 0:
 				std::cout << "CDisplayCtl::send: showing screenId 0" << std::endl;
+				value = "Нажмите кнопку";
 				break;
 			case 1:
 				std::cout << "CDisplayCtl::send: showing screenId 1" << std::endl;
+				value = "Печатаем...";
 				break;
 			case 2:
 				std::cout << "CDisplayCtl::send: showing screenId 2" << std::endl;
+				value = "Заберите билет";
 				break;
 			case 3:
 				std::cout << "CDisplayCtl::send: showing screenId 3" << std::endl;
+				value = "Открываем...";
 				break;
 			case 4:
 				std::cout << "CDisplayCtl::send: showing screenId 4" << std::endl;
+				value = "Проезжайте!";
 				break;
 			case 5:
 				std::cout << "CDisplayCtl::send: showing screenId 5" << std::endl;
+				value = "Закрываем...";
 				break;
 
 			default:
@@ -331,14 +611,25 @@ uint32_t CDisplayCtl::send(std::list<std::vector<uint8_t> > sendData)
 			return 0;
 		}
 
-		int32_t fd = open( fname.c_str(), O_WRONLY | O_NONBLOCK);
+		if( ioctl( fd, (unsigned int) IOCTL_CLEAR_DISPLAY, value.c_str()) < 0)
+			std::cout << "ERROR! CDisplayCtl::send: IOCTL_CLEAR_DISPLAY" << std::endl;
+
+		close(fd);
+
+
+		fd = open( fname.c_str(), O_WRONLY | O_NONBLOCK);
 		if (fd == -1)
 		{
 			std::cout << "ERROR! CDisplayCtl::send: File '" << fname << "' isn't opened for writing." << std::endl;
 			return 0;
 		}
+		std::cout << "CDisplayCtl::send: to " << fname.c_str() << " command " << IOCTL_PRINT_ON_FIRSTLINE << " line " << value.c_str() << std::endl;
+		utf8towinstar(&value);
+		std::cout << "CDisplayCtl::send: to " << fname.c_str() << " command " << IOCTL_PRINT_ON_FIRSTLINE << " processed line " << value.c_str() << std::endl;
 
-		uint32_t len = 0; //write(fd, value.c_str(), value.size());
+		if( ioctl( fd, (unsigned int) IOCTL_PRINT_ON_FIRSTLINE, value.c_str()) < 0)
+			std::cout << "ERROR! CDisplayCtl::send: IOCTL_PRINT_DISPLAY" << std::endl;
+//		write(fd, value.c_str(), value.size());
 
 		close(fd);
 

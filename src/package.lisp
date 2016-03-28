@@ -9,6 +9,7 @@
                           #:defclass
                           #:defmethod
                           #:standard-class
+                          #:standard-method
                           #:ensure-generic-function
                           #:defgeneric
                           #:standard-generic-function

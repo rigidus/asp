@@ -94,7 +94,7 @@ bool CBaseDevice::connectToCommCtl()
 		addCommDevice( takeCommDevice<CPinCtl>(comm) );
 		addCommDevice( takeCommDevice<CSerialPortCtl>(comm) );
 		addCommDevice( takeCommDevice<CDisplayCtl>(comm));
-//		addCommDevice( takeCommDevice<CPrinterCtl>(comm));
+		addCommDevice( takeCommDevice<CPrnCtl>(comm));
 
 	}
 
@@ -109,6 +109,8 @@ void CBaseDevice::disconnectFromCommCtl()
 	{
 		CPinCtl::freeCommCtl(this, comm->m_commName);
 		CSerialPortCtl::freeCommCtl(this, comm->m_commName);
+		CDisplayCtl::freeCommCtl(this, comm->m_commName);
+		CPrnCtl::freeCommCtl(this, comm->m_commName);
 	}
 }
 

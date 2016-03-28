@@ -27,8 +27,9 @@
       (drakma:http-request
        *low-level-endpoint*
        :method :post
-       :content (format nil "~{~A~^&~}"
-                        `(("json" . ,(drakma:url-encode (cl-json:encode-json-to-string msg) :utf-8))))
+       :content ;; (format nil "~{~A~^&~}"
+                ;;        `(("json" . ,(drakma:url-encode (cl-json:encode-json-to-string msg) :utf-8))))
+                (cl-json:encode-json-to-string msg)
        :content-type "application/x-www-form-urlencoded; charset=UTF-8"
        :force-binary t)
     (prog1
@@ -104,7 +105,7 @@
                  (content-box ()
                    (system-msg ("success")
                      (ps-html ((:p) "Данные сохранены")
-                              ((:a :href "/event_checkpoint_button") "Следующий шаг - нажатие кнопки на стойке"))))
+                              ((:a :href "/demo_page_init") "Следующий шаг - нажатие кнопки на стойке"))))
                  (ps-html ((:span :class "clear")))))))))
 
 (in-package :asp)
@@ -112,7 +113,7 @@
 (let ((msg `((:TXID . ,*tx-counter*)
              (:DEVICE . "display")
              (:COMMAND . "show")
-             (:PARAMETERS (:SCREEN . 0)))))
+             (:PARAMETERS (:SCREEN . "0")))))
   (define-demo-page (demo-page-start "/demo_page_start" "Включение стойки"
                                      "На этой странице можно эмулировать включение стойки"
                                      "Включить стойку")
@@ -171,27 +172,27 @@
 ;;   "command":"press"
 ;; }
 
-(let* ((ticket      (ticket-assembly
-                     *begin-ticket-id*
-                     (get-current-time-str)
-                     *checkpoint-id*
-                     *sector-id*))
-       (barcode     (barcode-assembly ""))
-       (msg-ticket  `((:TXID . ,*tx-counter*)
-                      (:DEVICE . "display")
-                      (:COMMAND . "print")
-                      (:PARAMETERS ((:TICKET . ,ticket) (:BARCODE . ,barcode)))))
-       (msg-display `((:TXID . ,*tx-counter*)
-                      (:DEVICE . "display")
-                      (:COMMAND . "show")
-                      (:PARAMETERS (:SCREEN . 1)))))
-  (define-demo-page (demo-page-init "/demo_page_init" "Нажатие кнопки на стойке"
-                                    "На этой странице можно эмулировать нажатие кнопки на стойке"
-                                    "Нажать кнопку")
-    (progn
+(define-demo-page (demo-page-init "/demo_page_init" "Нажатие кнопки на стойке"
+                                  "На этой странице можно эмулировать нажатие кнопки на стойке"
+                                  "Нажать кнопку")
+    (let* ((ticket      (ticket-assembly
+                         *begin-ticket-id*
+                         (get-current-time-str)
+                         *checkpoint-id*
+                         *sector-id*))
+           (barcode     (barcode-assembly ""))
+           (msg-ticket  `((:TXID . ,*tx-counter*)
+                          (:DEVICE . "printer")
+                          (:COMMAND . "print")
+                          (:PARAMETERS . ((:TICKET . ,ticket) (:BARCODE . ,barcode)))))
+           (msg-display `((:TXID . ,*tx-counter*)
+                          (:DEVICE . "display")
+                          (:COMMAND . "show")
+                          (:PARAMETERS (:SCREEN . 1)))))
       ;; Отправка сообщения чтобы напечатать билет со штрихкодом
       (let ((response-ticket  (send-to-low-level msg-ticket))
             (response-display (send-to-low-level msg-display)))
+        (incf *begin-ticket-id*)
         ;; TODO : Непонятно кто должен установить таймер, который вызовет событие окончания печати
         (format nil "~{~A~}"
                 (list
@@ -207,7 +208,7 @@
                  "<pre>"
                  (bprint response-ticket)
                  "</pre>"
-                 ))))))
+                 )))))
 
 (in-package :asp)
 

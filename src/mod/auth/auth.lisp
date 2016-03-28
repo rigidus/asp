@@ -1,10 +1,10 @@
 (in-package #:asp)
 
 ;; Скомпилируем шаблон
-(closure-template:compile-template
- :common-lisp-backend
- (pathname
-  (concatenate 'string *base-path* "mod/auth/auth-tpl.htm")))
+;; (closure-template:compile-template
+;;  :common-lisp-backend
+;;  (pathname
+;;   (concatenate 'string *base-path* "mod/auth/auth-tpl.htm")))
 
 (in-package #:asp)
 
@@ -36,7 +36,7 @@
          ((:a :class "action-icon action-icon--close" :href "#") "×")
          (form ("loginform" nil :action "/login")
            (fieldset "Вход:"
-             (input ("email" "Электронная почта" :required t :type "email" :maxlength "50" :class "input-bg"))
+             (input ("email" "Электронная почта" :required t :type "text" :maxlength "50" :class "input-bg"))
              (input ("password" "Пароль" :required t :type "password" :autocomplete "off" :class "input-bg"))
              (ps-html ((:input :type "hidden" :name "act" :value "LOGIN")))
              (submit "Войти")
@@ -305,7 +305,7 @@
         (form ("regform" "Регистрационные данные" :action "/reg" :class "form-section-container")
           ((:div :class "form-section")
            (fieldset "Обязательные поля"
-             (input ("regemail" "Электронная почта" :required t :type "email" :maxlength "50" :value (aif (get-parameter "regemail") it "")))
+             (input ("regemail" "Электронная почта" :required t :type "text" :maxlength "50" :value (aif (get-parameter "regemail") it "")))
              (input ("regpassword" "Пароль" :required t :type "password" :autocomplete "off"))
              (input ("regpasswordconfirm" "Повторите пароль" :required t :type "password" :autocomplete "off"))
              (input ("regnickname" "Никнейм" :required t :maxlength "50":value (aif (get-parameter "regnickname") it "")))))
@@ -411,7 +411,7 @@
            (form ("loginform" "Вход" :action "/login" :class "form-section-container")
              ((:div :class "form-section")
               (fieldset "Обязательные поля"
-                (input ("email" "Электронная почта" :required t :type "email" :maxlength "50" :value default-email))
+                (input ("email" "Электронная почта" :required t :type "text" :maxlength "50" :value default-email))
                 (input ("password" "Пароль" :required t :type "password" :autocomplete "off"))))
              btn))))
   (define-page login "/login"
@@ -513,7 +513,10 @@
 (define-page role "/role/:roleid"
   (let* ((breadcrumb (breadcrumb "Профиль роли" ("/" . "Главная")))
          (id (handler-case (parse-integer roleid)
-               (SB-INT:SIMPLE-PARSE-ERROR () 0))))
+               (
+                ;; SB-INT:SIMPLE-PARSE-ERROR
+                t
+                   () 0))))
     (if (null (get-role id))
         (base-page (:breadcrumb breadcrumb)
           (content-box ()
@@ -533,7 +536,10 @@
 (define-page group "/group/:groupid"
   (let* ((breadcrumb (breadcrumb "Профиль группы" ("/" . "Главная")))
          (id (handler-case (parse-integer groupid)
-               (SB-INT:SIMPLE-PARSE-ERROR () 0))))
+               (
+                ;; SB-INT:SIMPLE-PARSE-ERROR
+                t
+                   () 0))))
       (if (null (get-group id))
           (base-page (:breadcrumb breadcrumb)
             (content-box ()
@@ -625,7 +631,10 @@
   (define-page user "/user/:userid"
     (let* ((breadcrumb (breadcrumb "Профиль пользователя" ("/" . "Главная")))
            (id (handler-case (parse-integer userid)
-                 (SB-INT:SIMPLE-PARSE-ERROR () 0))))
+                 (
+                  ;; SB-INT:SIMPLE-PARSE-ERROR
+                  t
+                     () 0))))
       (if (null (get-user id))
           (base-page (:breadcrumb breadcrumb)
             (content-box ()
