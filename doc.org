@@ -5229,77 +5229,82 @@ void CBaseDevice::disconnectFromCommCtl()
 
 *** START Установка и запуск PostgreSQL                             :gmm:aav:
 
-    [TODO:gmm] Описать что к чему, развернуть PostgreSQL на BBB и расписать как это
-    повторить, какие конфиги задать и так далее.
+    На старте мы предполагаем, что постгрес не установлен на машине, если он
+    установлен, то сносим все.
+    apt-get remove postgresql-common postgresql postgresql-client postgresql-client-9.1
+    rm -r /usr/share/postgresql
+    rm -r /var/lib/postgresql
+    rm -r /etc/postgresql-common
+    rm -r /etc/postgresql
 
-    [VRFY:pyub] [VRFY:bvl] [TODO:aav] Проверьте работает ли, чтобы можно было закрыть
-    тудушку
-
-    [19:21:02] rigidus: Так я осилил постгресс, но очень много хитрых шагов, среди
-    которых половина ненужных. Сделаю перерыв на обед и постараюсь описать. Просьба
-    завтра протестить на каком-нибудь биглбоне.
-
-    Ниже идет лог мытарств, может пригодится, если я буду спать пока Унримах пробует
-    развернуть у себя
+    Начинаем ставить.
 
     #+BEGIN_EXAMPLE
-      root@bbb# apt-get install postgresql postgresql-common postgresql-client
+    Эти пакеты надо ставить строго в этом порядке и по одному, иначе можно словить
+    проблему с клиентом.
+    apt-get install postgresql-common
+    apt-get install postgresql
+    apt-get install postgresql-client-9.1
 
-      [19:25:56] rigidus: Потом заходишь cd /usr/share/postgresql/9.1
-      [19:26:52] rigidus: Там есть конфиги *.samle - их надо скопировать в такие же но без
-      ".sample", после чего отредактировать:
-      uncomment in /etc/postgresql/<version>/mainpostgresql.conf (/usr/share/postgresql/<version>/main/postgresql.conf):
+    service postgresql status
 
-      # listen_addresses = 'localhost'
+    ответ:
+postgresql.service - LSB: PostgreSQL RDBMS server
+	  Loaded: loaded (/etc/init.d/postgresql)
+	  Active: active (exited) since Mon, 28 Mar 2016 17:53:45 +0000; 4min 46s ago
+	  CGroup: name=systemd:/system/postgresql.service
+Mar 28 17:53:44 beaglebone postgresql[14613]: /etc/init.d/postgresql: 32: /etc/init.d/postgresql: create_socket_directory: not found
+Mar 28 17:53:45 beaglebone postgresql[14613]: No PostgreSQL clusters exist; see "man pg_createcluster" ... (warning).
 
-      опционально выставить минимальные параметры по памяти, но может это не надо
+    pg_createcluster 9.1 work --start
 
-      /etc/postgresql/<version>/main/pg_hba.conf (/usr/share/postgresql/<version>/main/pg_hba.conf):
-      local   all         postgres                          md5
+    ответ:
+Creating new cluster (configuration: /etc/postgresql/9.1/work, data: /var/lib/postgresql/9.1/work)...
+could not change directory to "/root/asp"
+Moving configuration file /var/lib/postgresql/9.1/work/postgresql.conf to /etc/postgresql/9.1/work...
+Moving configuration file /var/lib/postgresql/9.1/work/pg_hba.conf to /etc/postgresql/9.1/work...
+Moving configuration file /var/lib/postgresql/9.1/work/pg_ident.conf to /etc/postgresql/9.1/work...
+Configuring postgresql.conf to use port 5432...
 
-      Потом попытаться запустить /usr/lib/postgresql/9.1/bin/postgresql
-      Если не сработает - в этой же папке лежит initdb - его надо
-      натравить на домашний каталог постргесса (я говорил, что все это надо делать под
-      постгрессом?)
+    cd /usr/share/postgresql/9.1
 
-      /usr/lib/postgresql/9.1/bin/initdb -D /var/lib/postgresql/9.1/work
+    cp pg_hba.conf.sample pg_hba.conf
+    cp pg_ident.conf.sample pg_ident.conf
+    cp pg_service.conf.sample pg_service.conf
+    cp postgresql.conf.sample postgresql.conf
+    cp recovery.conf.sample recovery.conf
 
-      root@bbb# pg_createcluster
+    service postgresql restart
+    ответ:
+[ ok ] Restarting postgresql (via systemctl): postgresql.service.
 
-      root@bbb# /etc/init.d/postgresql restart
+    ps -auxw | grep postgre | grep -- -D
+    ответ:
+warning: bad ps syntax, perhaps a bogus '-'?
+See http://gitorious.org/procps/procps/blobs/master/Documentation/FAQ
+postgres 15697  1.3  1.4  45040  7328 ?        S    18:02   0:02 /usr/lib/postgresql/9.1/bin/postgres -D /var/lib/postgresql/9.1/work -c config_file=/etc/postgresql/9.1/work/postgresql.conf
 
-      error: "root" execution of the PostgreSQL server is not permitted.
-      The server must be started under an unprivileged user ID to prevent
-      possible system security compromise.  See the documentation for
-      more information on how to properly start the server.
+    su postgres
 
-      root@bbb su postgres
-
-      postgres@beaglebone:/usr/share/postgresql$ /etc/init.d/postgresql start
-
-      [19:27:10] rigidus: Потом
-      [19:27:15] rigidus: Это в них же
-      [19:28:21] rigidus:
-
-      [19:29:45] rigidus: После чего финально
-
-      /usr/lib/postgresql/9.1/bin/postgres -D /var/lib/postgresql/9.1/work/
-
-      или как ты там назвал папку
-
-      [19:29:55] rigidus: Если все это сработает - мы в шоколаде и можно писать док
-      [19:36:24] rigidus: Если не прокатило - то можно создать пользователя с группой,
-      заовнить на него конфиги
+    psql
     #+END_EXAMPLE
 
-    Создание базы данных проекта:
+    Мы в консоли.
+
+    Теперь создаем БД. Это можно было сделать все целиком из консоли, но влом было уже
+    тестить, оставил как раньше.
 
     #+BEGIN_EXAMPLE
-      postgres=# CREATE USER asp_admin WITH PASSWORD 'qwe123';
+      CREATE USER asp_admin WITH PASSWORD 'qwe123';
+      ответ:
       CREATE ROLE
-      postgres=# CREATE DATABASE asp OWNER asp_admin;
+
+      CREATE DATABASE asp OWNER asp_admin;
+      ответ:
       CREATE DATABASE
-      postgres=# GRANT ALL privileges ON DATABASE asp TO asp_admin;
+
+      GRANT ALL privileges ON DATABASE asp TO asp_admin;
+      ответ:
       GRANT
     #+END_EXAMPLE
 
