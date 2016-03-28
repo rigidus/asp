@@ -7,17 +7,6 @@
 
 (defclass asp-render () ())
 
-(define-page frp "/frp"
-  (let ((breadcrumb (breadcrumb "FRP"))
-        (user       (if (null *current-user*) "Анонимный пользователь" (name (get-user *current-user*)))))
-    (standard-page (:breadcrumb breadcrumb :user user :menu (menu) :overlay (reg-overlay))
-      (content-box ()
-        (heading ("FRP")
-          "Тестируем FRP")
-        (ps-html ((:div :id "frp")))
-      (ps-html ((:span :class "clear")))))
-  ))
-
 (defun start-server ()
   ;; start
   (restas:start '#:asp :port 3999)

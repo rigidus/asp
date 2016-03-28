@@ -147,21 +147,83 @@ public:
 			}
 
 			std::stringstream htmlTicket;
-			htmlTicket << "\
-			<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">\
-			<HTML>\
-			    <HEAD>\
-				<META http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\
-			    <TITLE></TITLE>\
-			    </HEAD>\
-			<BODY>\
-			<TABLE BORDER=\"0\">\
-			<TR><TD>\n";
+			htmlTicket << "\n"
+			"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">\n"
+			"<HTML>\n"
+			    "<HEAD>\n"
+				"<META http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n"
+			    "<TITLE></TITLE>\n"
+			    "</HEAD>\n"
+			"<BODY marginwidth=\"0\" leftmargin=\"0\" marginheight=\"0\" topmargin=\"0\">\n"
+			"<BASEFONT SIZE=\"3\">\n"
+			"<FONT FACE=\"Arial\">\n"
+			"<TABLE BORDER=\"0\" CELLPADDING=\"0\" CELLSPACING=\"0\">\n"
+			"<TR>";
 
 			for (SizeType i = 0; i < valTicket.Size(); i++) // Uses SizeType instead of size_t
 			 {
-				htmlTicket << valTicket[i].GetString();
-				htmlTicket << "\n</TD></TR><TR><TD>\n";
+				switch (i)
+				{
+				case 0: // WELCOME!
+					htmlTicket << "<TH><FONT size=3><B>\n";
+					htmlTicket << valTicket[i].GetString();
+					htmlTicket << "\n</B></FONT></TH></TR><TR>";
+					break;
+				case 1: // skipping horizontal breakers
+				case 7:
+				case 22:
+					break;
+				case 2: // Number of ticket
+					htmlTicket << "<TD align=right><FONT size=4>\n";
+					htmlTicket << valTicket[i].GetString();
+					htmlTicket << "\n</FONT></TD></TR><TR>";
+					break;
+				case 3: // Main data on this ticket
+				case 4:
+				case 5:
+				case 6:
+					htmlTicket << "<TD>\n";
+					htmlTicket << valTicket[i].GetString();
+					htmlTicket << "\n</TD></TR><TR>";
+					break;
+				case 8: // Follow to
+					htmlTicket << "<TD align=center>\n";
+					htmlTicket << valTicket[i].GetString();
+					htmlTicket << "\n</TD></TR><TR>";
+					break;
+				case 9: // place# to follow
+					htmlTicket << "<TD align=center><FONT size=4><B>\n";
+					htmlTicket << valTicket[i].GetString();
+					htmlTicket << "\n</B></FONT></TD></TR><TR>";
+					break;
+				case 10: // sector# to follow
+					htmlTicket << "<TD align=center><FONT size=4><B>\n";
+					htmlTicket << valTicket[i].GetString();
+					htmlTicket << "\n</B></FONT></TD></TR><TR>";
+					break;
+				case 11: // Misc info
+				case 12:
+				case 13:
+				case 14:
+				case 15:
+				case 16:
+				case 17:
+				case 18:
+				case 19:
+				case 20:
+				case 21:
+				case 23:
+				case 24:
+					htmlTicket << "<TD><FONT size=1>\n";
+					htmlTicket << valTicket[i].GetString();
+					htmlTicket << "\n</FONT></TH></TR><TR>";
+					break;
+				default:
+					htmlTicket << "<TD>\n";
+					htmlTicket << valTicket[i].GetString();
+					htmlTicket << "\n</TD></TR><TR>";
+					break;
+				}
 			 }
 
 /*
@@ -177,6 +239,14 @@ public:
 				std::cout << "CPRN_vkp80ii_usb::sendCommand: JSON attribute '" << attrBarcode << "' found!" << std::endl;
 
 				Value& valBarcode = d[attrBarcode.c_str()];
+				char bcgenStr[50];
+				char tmpstr1[20], tmpstr2[20];
+				std::string compressedStr;
+				memset(bcgenStr, 0, sizeof(bcgenStr));
+				memset(tmpstr1, 0, sizeof(tmpstr1));
+				memset(tmpstr2, 0, sizeof(tmpstr2));
+//				memset(compressedStr, 0, sizeof(compressedStr));
+
 				if (valBarcode.IsString() == false)
 				{
 					// отправить сообщение, что Ticket не массив и выйти
@@ -190,12 +260,32 @@ public:
 				{
 					std::cout << "CPRN_vkp80ii_usb::sendCommand: barcode is '" << valBarcode.GetString() << "' found!" << std::endl;
 
-					htmlTicket << "<IMG src=/aspp/barcode.gif>";
+					strcpy(tmpstr1, valBarcode.GetString());
+
+					int i, j;
+					j = 0;
+					for (i = 0; tmpstr1[i] != '\0'; i++)
+					{
+						if (tmpstr1[i] != ' ')
+						{
+							tmpstr2[j] = tmpstr1[i];
+							j++;
+						}
+					}
+					std::cout << "CPRN_vkp80ii_usb::sendCommand: compressed barcode is " << tmpstr2 << std::endl;
+					sprintf(bcgenStr, "barcode -b \"%s\" -p 110x297mm -t 1x6 -o /aspp/barcode.ps", tmpstr2); //valBarcode.GetString());
+					std::cout << "CPRN_vkp80ii_usb::sendCommand: barcode returned: " << std::system(bcgenStr) << std::endl;
+					std::cout << "CPRN_vkp80ii_usb::sendCommand: gs returned: " << std::system("gs -dQUIET -dSAFER -dBATCH "
+							"-dNOPAUSE -dNOPROMPT -dMaxBitmap=500000000 -dAlignToPixels=0 -dGridFitTT=2 -dTextAlphaBits=4 "
+							"-dGraphicsAlphaBits=4 -sDEVICE=jpeg -sOutputFile=/aspp/barcode.jpg /aspp/barcode.ps") << std::endl;
+
+//					htmlTicket.unget();htmlTicket.unget(); // removing ">\n"
+					htmlTicket << "<TD background=\"./barcode.jpg\"  height=200 width=310>\n</TD>";
 				}
 
 			}
 
-			htmlTicket << "</TD></TR></TABLE></BODY></HTML>";
+			htmlTicket << "</TR></TABLE></FONT></BODY></HTML>";
 
 			while (!htmlTicket.eof()) {
 					data.push_back(htmlTicket.get());
@@ -212,7 +302,13 @@ public:
 		*/
 		// command "up"
 		if (m_commCtl[0])
+		{
+			std::cout << "CPRN_vkp80ii_usb::sendCommand: executing send(data)..." << std::endl;
 			m_commCtl[0]->send(data);
+		}
+		else
+			std::cout << "ERROR! CPRN_vkp80ii_usb::sendCommand: failed executing send(data) due to nil m_commCtl" << std::endl;
+
 
 		setCommandTo::Manager(c_name);
 	}

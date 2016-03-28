@@ -1,1 +1,0 @@
-/home/rigidus/repo/asp/asp.asd
