@@ -5300,25 +5300,23 @@ void CBaseDevice::disconnectFromCommCtl()
     регламентировать порядок установки пакетов если есть хотя бы вероятность того, что
     это важно. Хуже от него не будет.
 
-    [COMMENT:gmm] Так я осилил постгресс, но очень много хитрых шагов, среди которых
-    половина ненужных. Сделаю перерыв на обед и постараюсь описать. Просьба завтра
-    протестить на каком-нибудь BBB.  Ниже идет лог мытарств, может пригодится, если я
-    буду спать пока Унримах пробует развернуть у себя
-
     #+BEGIN_SRC sh
-      apt-get purge postgresql-common postgresql postgresql-client postgresql-client-9.1
-    #+END_SRC
-
-    Если вместо =purge= использовать =remove= то придется удалять некоторые
-    конфигурационные вещи. Более подробно можно об этом узнать тут:
-    http://unix.stackexchange.com/questions/118880/should-i-use-apt-get-remove-or-apt-get-purge
-
-    #+BEGIN_SRC sh
+      apt-get remove postgresql-common postgresql postgresql-client postgresql-client-9.1
       rm -r /usr/share/postgresql
       rm -r /var/lib/postgresql
       rm -r /etc/postgresql-common
       rm -r /etc/postgresql
     #+END_SRC
+
+
+    По идее вместо =purge=  можно использовать =remove=, но это удаляет не все, что
+    могло быть понаставлено постгрей дополнительно. И все равно придется удалять некоторые
+    конфигурационные вещи или базы из левых мест.
+    Про пурж общеизвестные вещи более подробно можно об этом узнать тут:
+    http://unix.stackexchange.com/questions/118880/should-i-use-apt-get-remove-or-apt-get-purge
+    Не удалял, дабы потешить самолюбие gmm, грамматические ошибки за ним исправил.
+
+    Но в этом конкретном случае это не так и надо перестраховаться и удалять все руками.
 
     Начинаем ставить.
 
@@ -5326,6 +5324,12 @@ void CBaseDevice::disconnectFromCommCtl()
     можно словить проблему с клиентом.
 
     [COMMENT:gmm] Возможные проблемы от способа установки пакетов не зависят.
+
+    [COMMENT:aav] Вот конкретно ЗДЕСЬ и с этой версией зависят.
+
+    [COMMENT:aav] Всегда явно обозначайте ОТВЕТ! Не надо стирать слово "ответ". Другой
+    может начать это вводить как команду, если это будет неочевидно. Или не введет
+    часть команд, если подумает, что это должен быть такой ответ.
 
     #+BEGIN_SRC sh
       apt-get install postgresql-common
@@ -5338,6 +5342,7 @@ void CBaseDevice::disconnectFromCommCtl()
     #+BEGIN_SRC sh
       service postgresql status
 
+      ответ:
       postgresql.service - LSB: PostgreSQL RDBMS server
             Loaded: loaded (/etc/init.d/postgresql)
             Active: active (exited) since Mon, 28 Mar 2016 17:53:45 +0000; 4min 46s ago
@@ -5352,6 +5357,7 @@ void CBaseDevice::disconnectFromCommCtl()
     #+BEGIN_SRC sh
       pg_createcluster 9.1 work --start
 
+      ответ:
       Creating new cluster (configuration: /etc/postgresql/9.1/work, data: /var/lib/postgresql/9.1/work)...
       could not change directory to "/root/asp"
       Moving configuration file /var/lib/postgresql/9.1/work/postgresql.conf to /etc/postgresql/9.1/work...
@@ -5362,8 +5368,8 @@ void CBaseDevice::disconnectFromCommCtl()
 
     Копируем конфигурацию из примеров в рабочие файлы конфигурации
 
-    В =/usr/share/postgresql/9.1= есть конфиги *.samle - их надо скопировать в такие же
-    но без ".sample"
+    В =/usr/share/postgresql/9.1= есть конфиги *.sample - их надо скопировать в такие же
+    но без ".sample". Из команд это абсолютно очевидно.
 
     #+BEGIN_SRC sh
       cd /usr/share/postgresql/9.1
@@ -5375,42 +5381,13 @@ void CBaseDevice::disconnectFromCommCtl()
       cp recovery.conf.sample recovery.conf
     #+END_SRC
 
-    после чего отредактировать:
-    uncomment in /etc/postgresql/<version>/mainpostgresql.conf
-    (/usr/share/postgresql/<version>/main/postgresql.conf):
-
-    #+BEGIN_SRC conf
-      listen_addresses = 'localhost'
-    #+END_SRC
-
-    опционально выставить минимальные параметры по памяти, но может это не надо
-
-    В =/etc/postgresql/<version>/main/pg_hba.conf=
-    (=/usr/share/postgresql/<version>/main/pg_hba.conf=):
-
-    Прописать способ входа в консоль psql. Можно использовать =trust= для локальных
-    подключений:
-
-    #+BEGIN_SRC conf
-      local all  postgres  trust
-    #+END_SRC
-
-    Потом попытаться запустить /usr/lib/postgresql/9.1/bin/postgresql Если не
-    сработает - в этой же папке лежит initdb - его надо натравить на домашний каталог
-    постргесса (все это надо делать под постгрессом)
-
     Рестартим базу
 
     #+BEGIN_SRC sh
       service postgresql restart
 
+      ответ:
       [ ok ] Restarting postgresql (via systemctl): postgresql.service.
-    #+END_SRC
-
-    Или
-
-    #+BEGIN_SRC sh
-      /usr/lib/postgresql/9.1/bin/postgres -D /var/lib/postgresql/9.1/work/
     #+END_SRC
 
     Смотрим наличие процессов постгри в списке процессов
@@ -5418,6 +5395,7 @@ void CBaseDevice::disconnectFromCommCtl()
     #+BEGIN_SRC sh
       ps -auxw | grep postgre | grep -- -D
 
+      ответ:
       warning: bad ps syntax, perhaps a bogus '-'?
       See http://gitorious.org/procps/procps/blobs/master/Documentation/FAQ
       postgres 15697  1.3  1.4  45040  7328 ?        S    18:02   0:02 /usr/lib/postgresql/9.1/bin/postgres -D /var/lib/postgresql/9.1/work -c config_file=/etc/postgresql/9.1/work/postgresql.conf
