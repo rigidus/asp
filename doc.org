@@ -5291,67 +5291,164 @@ void CBaseDevice::disconnectFromCommCtl()
     Снова запускаем nginx, открываем приветствие nginx по адресу http://10.0.10.114:8081/
     Вуаля.
 
-*** START Установка и запуск PostgreSQL                             :gmm:aav:
+*** START COMMENT Установка и запуск PostgreSQL                             :gmm:aav:
 
-    [TODO:gmm] Описать что к чему, развернуть PostgreSQL на BBB и расписать как это
-    повторить, какие конфиги задать и так далее.
+    На старте мы предполагаем, что постгрес не установлен на машине, если он
+    установлен, то сносим все.
 
-    [TODO:aav] Проверь работает ли, чтобы можно было закрыть тудушку.
+    [TODO:aav] [TODO:gmm] Верифицируйтесь, пожалуйста. Я не вижупроблем в том, чтобы
+    регламентировать порядок установки пакетов если есть хотя бы вероятность того, что
+    это важно. Хуже от него не будет.
 
     [COMMENT:gmm] Так я осилил постгресс, но очень много хитрых шагов, среди которых
     половина ненужных. Сделаю перерыв на обед и постараюсь описать. Просьба завтра
     протестить на каком-нибудь BBB.  Ниже идет лог мытарств, может пригодится, если я
     буду спать пока Унримах пробует развернуть у себя
 
-    #+BEGIN_EXAMPLE
-      root@bbb# apt-get install postgresql postgresql-common postgresql-client
+    #+BEGIN_SRC sh
+      apt-get purge postgresql-common postgresql postgresql-client postgresql-client-9.1
+    #+END_SRC
 
-      [19:25:56] rigidus: Потом заходишь cd /usr/share/postgresql/9.1
-      [19:26:52] rigidus: Там есть конфиги *.samle - их надо скопировать в такие же но без
-      ".sample", после чего отредактировать:
-      uncomment in /etc/postgresql/<version>/mainpostgresql.conf (/usr/share/postgresql/<version>/main/postgresql.conf):
+    Если вместо =purge= использовать =remove= то придется удалять некоторые
+    конфигурационные вещи. Более подробно можно об этом узнать тут:
+    http://unix.stackexchange.com/questions/118880/should-i-use-apt-get-remove-or-apt-get-purge
 
-      # listen_addresses = 'localhost'
+    #+BEGIN_SRC sh
+      rm -r /usr/share/postgresql
+      rm -r /var/lib/postgresql
+      rm -r /etc/postgresql-common
+      rm -r /etc/postgresql
+    #+END_SRC
 
-      опционально выставить минимальные параметры по памяти, но может это не надо
+    Начинаем ставить.
 
-      /etc/postgresql/<version>/main/pg_hba.conf (/usr/share/postgresql/<version>/main/pg_hba.conf):
-      local   all         postgres                          md5
+    [COMMENT:aav] Эти пакеты надо ставить строго в этом порядке и по одному, иначе
+    можно словить проблему с клиентом.
 
-      Потом попытаться запустить /usr/lib/postgresql/9.1/bin/postgresql
-      Если не сработает - в этой же папке лежит initdb - его надо
-      натравить на домашний каталог постргесса (я говорил, что все это надо делать под
-      постгрессом?)
+    [COMMENT:gmm] Возможные проблемы от способа установки пакетов не зависят.
 
-      /usr/lib/postgresql/9.1/bin/initdb -D /var/lib/postgresql/9.1/work
+    #+BEGIN_SRC sh
+      apt-get install postgresql-common
+      apt-get install postgresql
+      apt-get install postgresql-client-9.1
+    #+END_SRC
 
-      root@bbb# pg_createcluster
+    Смотрим как установилось:
 
-      root@bbb# /etc/init.d/postgresql restart
+    #+BEGIN_SRC sh
+      service postgresql status
 
-      error: "root" execution of the PostgreSQL server is not permitted.
-      The server must be started under an unprivileged user ID to prevent
-      possible system security compromise.  See the documentation for
-      more information on how to properly start the server.
+      postgresql.service - LSB: PostgreSQL RDBMS server
+            Loaded: loaded (/etc/init.d/postgresql)
+            Active: active (exited) since Mon, 28 Mar 2016 17:53:45 +0000; 4min 46s ago
+            CGroup: name=systemd:/system/postgresql.service
+      Mar 28 17:53:44 beaglebone postgresql[14613]: /etc/init.d/postgresql: 32: /etc/init.d/postgresql: create_socket_directory: not found
+      Mar 28 17:53:45 beaglebone postgresql[14613]: No PostgreSQL clusters exist; see "man pg_createcluster" ... (warning).
+    #+END_SRC
 
-      root@bbb su postgres
+    Постгресс сообщает, что нет ни одного кластера базы данных.
+    Создаем кластер БД =work=
 
-      postgres@beaglebone:/usr/share/postgresql$ /etc/init.d/postgresql start
+    #+BEGIN_SRC sh
+      pg_createcluster 9.1 work --start
 
-      [19:27:10] rigidus: Потом
-      [19:27:15] rigidus: Это в них же
-      [19:28:21] rigidus:
+      Creating new cluster (configuration: /etc/postgresql/9.1/work, data: /var/lib/postgresql/9.1/work)...
+      could not change directory to "/root/asp"
+      Moving configuration file /var/lib/postgresql/9.1/work/postgresql.conf to /etc/postgresql/9.1/work...
+      Moving configuration file /var/lib/postgresql/9.1/work/pg_hba.conf to /etc/postgresql/9.1/work...
+      Moving configuration file /var/lib/postgresql/9.1/work/pg_ident.conf to /etc/postgresql/9.1/work...
+      Configuring postgresql.conf to use port 5432...
+    #+END_SRC
 
-      [19:29:45] rigidus: После чего финально
+    Копируем конфигурацию из примеров в рабочие файлы конфигурации
 
+    В =/usr/share/postgresql/9.1= есть конфиги *.samle - их надо скопировать в такие же
+    но без ".sample"
+
+    #+BEGIN_SRC sh
+      cd /usr/share/postgresql/9.1
+
+      cp pg_hba.conf.sample pg_hba.conf
+      cp pg_ident.conf.sample pg_ident.conf
+      cp pg_service.conf.sample pg_service.conf
+      cp postgresql.conf.sample postgresql.conf
+      cp recovery.conf.sample recovery.conf
+    #+END_SRC
+
+    после чего отредактировать:
+    uncomment in /etc/postgresql/<version>/mainpostgresql.conf
+    (/usr/share/postgresql/<version>/main/postgresql.conf):
+
+    #+BEGIN_SRC conf
+      listen_addresses = 'localhost'
+    #+END_SRC
+
+    опционально выставить минимальные параметры по памяти, но может это не надо
+
+    В =/etc/postgresql/<version>/main/pg_hba.conf=
+    (=/usr/share/postgresql/<version>/main/pg_hba.conf=):
+
+    Прописать способ входа в консоль psql. Можно использовать =trust= для локальных
+    подключений:
+
+    #+BEGIN_SRC conf
+      local all  postgres  trust
+    #+END_SRC
+
+    Потом попытаться запустить /usr/lib/postgresql/9.1/bin/postgresql Если не
+    сработает - в этой же папке лежит initdb - его надо натравить на домашний каталог
+    постргесса (все это надо делать под постгрессом)
+
+    Рестартим базу
+
+    #+BEGIN_SRC sh
+      service postgresql restart
+
+      [ ok ] Restarting postgresql (via systemctl): postgresql.service.
+    #+END_SRC
+
+    Или
+
+    #+BEGIN_SRC sh
       /usr/lib/postgresql/9.1/bin/postgres -D /var/lib/postgresql/9.1/work/
+    #+END_SRC
 
-      или как ты там назвал папку
+    Смотрим наличие процессов постгри в списке процессов
 
-      [19:29:55] rigidus: Если все это сработает - мы в шоколаде и можно писать док
-      [19:36:24] rigidus: Если не прокатило - то можно создать пользователя с группой,
-      заовнить на него конфиги
-    #+END_EXAMPLE
+    #+BEGIN_SRC sh
+      ps -auxw | grep postgre | grep -- -D
+
+      warning: bad ps syntax, perhaps a bogus '-'?
+      See http://gitorious.org/procps/procps/blobs/master/Documentation/FAQ
+      postgres 15697  1.3  1.4  45040  7328 ?        S    18:02   0:02 /usr/lib/postgresql/9.1/bin/postgres -D /var/lib/postgresql/9.1/work -c config_file=/etc/postgresql/9.1/work/postgresql.conf
+    #+END_SRC
+
+    Запускаем консоль базы
+
+    #+BEGIN_SRC sh
+      su postgres
+
+      psql
+    #+END_SRC
+
+    Мы в консоли.
+
+    Теперь создаем БД. Это можно было сделать все целиком из консоли, но влом было уже
+    тестить, оставил как раньше.
+
+    #+BEGIN_SRC sql
+      CREATE USER asp_admin WITH PASSWORD 'qwe123';
+      ответ:
+      CREATE ROLE
+
+      CREATE DATABASE asp OWNER asp_admin;
+      ответ:
+      CREATE DATABASE
+
+      GRANT ALL privileges ON DATABASE asp TO asp_admin;
+      ответ:
+      GRANT
+    #+END_SRC
 
 *** DONE Установка и запуск Boost                                      :bvl:
 
@@ -5430,6 +5527,10 @@ void CBaseDevice::disconnectFromCommCtl()
 
     Заходим в папку, в которую распаковался архив, вызываем armcl и выполняем
 
+    [TODO:gmm] Вот armcl не запустился, пока не был сделан ребилд ядра этого armcl.
+    Он хотел другую либу ядра. Поэтому шаги по сборке и по первому запуску armcl надо
+    поменять местами или строить ядро 2 раза, я на всякий случай строил 2 раза.
+
     #+BEGIN_SRC lisp
       (ccl:rebuild-ccl :full t)
     #+END_SRC
@@ -5459,7 +5560,7 @@ void CBaseDevice::disconnectFromCommCtl()
     Снова выходим и загружаем полученный образ
 
     #+BEGIN_SRC sh
-      armcl -image-name x86-boot64.image --no-init
+      armcl --image-name armcl.image --no-init
     #+END_SRC
 
     Теперь можно его сохранить в окончательный файл
@@ -5496,6 +5597,10 @@ void CBaseDevice::disconnectFromCommCtl()
 *** DONE Установка Slime                                                :gmm:
 
    [VRFY:aav] Воспроизвести и верифицировать.
+
+    [TODO:gmm] Указать линк на версию, которую надо скачивать. Прописать операции по
+    установке здесь. Откуда директория билд взялась, не было упоминания, что ее надо
+    создавать?
 
     Необходимо скачать версию 2.8 с оффсайта, выполнить операции оп установке и
     прописать в init.el:
@@ -7864,17 +7969,6 @@ cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pins | grep "830"
    #+END_SRC
 
 ** Глобальные определения
-
-   Создание базы данных проекта:
-
-   #+BEGIN_EXAMPLE
-     postgres=# CREATE USER asp_admin WITH PASSWORD 'qwe123';
-     CREATE ROLE
-     postgres=# CREATE DATABASE asp OWNER asp_admin;
-     CREATE DATABASE
-     postgres=# GRANT ALL privileges ON DATABASE asp TO asp_admin;
-     GRANT
-   #+END_EXAMPLE
 
    #+NAME: globals
    #+BEGIN_SRC lisp :tangle src/globals.lisp :noweb tangle :exports code :padline no :comments link
