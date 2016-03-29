@@ -5227,74 +5227,143 @@ void CBaseDevice::disconnectFromCommCtl()
     Снова запускаем nginx, открываем приветствие nginx по адресу http://10.0.10.114:8081/
     Вуаля.
 
-*** START Установка и запуск PostgreSQL                             :gmm:aav:
+*** START COMMENT Установка и запуск PostgreSQL                             :gmm:aav:
 
     На старте мы предполагаем, что постгрес не установлен на машине, если он
     установлен, то сносим все.
-    apt-get remove postgresql-common postgresql postgresql-client postgresql-client-9.1
-    rm -r /usr/share/postgresql
-    rm -r /var/lib/postgresql
-    rm -r /etc/postgresql-common
-    rm -r /etc/postgresql
+
+    #+BEGIN_SRC sh
+      apt-get purge postgresql-common postgresql postgresql-client postgresql-client-9.1
+    #+END_SRC
+
+    Если вместо =purge= использовать =remove= то придется удалять некоторые
+    конфигурационные вещи. Более подробно можно об этом узнать тут:
+    http://unix.stackexchange.com/questions/118880/should-i-use-apt-get-remove-or-apt-get-purge
+
+    #+BEGIN_SRC sh
+      rm -r /usr/share/postgresql
+      rm -r /var/lib/postgresql
+      rm -r /etc/postgresql-common
+      rm -r /etc/postgresql
+    #+END_SRC
 
     Начинаем ставить.
 
-    #+BEGIN_EXAMPLE
-    Эти пакеты надо ставить строго в этом порядке и по одному, иначе можно словить
-    проблему с клиентом.
-    apt-get install postgresql-common
-    apt-get install postgresql
-    apt-get install postgresql-client-9.1
+    (aav считает, что) эти пакеты надо ставить строго в этом порядке и по одному,
+    иначе можно словить проблему с клиентом.
 
-    service postgresql status
+    gmm считает, что возможные проблемы от способа установки пакетов не зависят.
 
-    ответ:
-postgresql.service - LSB: PostgreSQL RDBMS server
-	  Loaded: loaded (/etc/init.d/postgresql)
-	  Active: active (exited) since Mon, 28 Mar 2016 17:53:45 +0000; 4min 46s ago
-	  CGroup: name=systemd:/system/postgresql.service
-Mar 28 17:53:44 beaglebone postgresql[14613]: /etc/init.d/postgresql: 32: /etc/init.d/postgresql: create_socket_directory: not found
-Mar 28 17:53:45 beaglebone postgresql[14613]: No PostgreSQL clusters exist; see "man pg_createcluster" ... (warning).
+    #+BEGIN_SRC sh
+      apt-get install postgresql-common
+      apt-get install postgresql
+      apt-get install postgresql-client-9.1
+    #+END_SRC
 
-    pg_createcluster 9.1 work --start
+    Смотрим как установилось:
 
-    ответ:
-Creating new cluster (configuration: /etc/postgresql/9.1/work, data: /var/lib/postgresql/9.1/work)...
-could not change directory to "/root/asp"
-Moving configuration file /var/lib/postgresql/9.1/work/postgresql.conf to /etc/postgresql/9.1/work...
-Moving configuration file /var/lib/postgresql/9.1/work/pg_hba.conf to /etc/postgresql/9.1/work...
-Moving configuration file /var/lib/postgresql/9.1/work/pg_ident.conf to /etc/postgresql/9.1/work...
-Configuring postgresql.conf to use port 5432...
+    #+BEGIN_SRC sh
+      service postgresql status
 
-    cd /usr/share/postgresql/9.1
+      postgresql.service - LSB: PostgreSQL RDBMS server
+            Loaded: loaded (/etc/init.d/postgresql)
+            Active: active (exited) since Mon, 28 Mar 2016 17:53:45 +0000; 4min 46s ago
+            CGroup: name=systemd:/system/postgresql.service
+      Mar 28 17:53:44 beaglebone postgresql[14613]: /etc/init.d/postgresql: 32: /etc/init.d/postgresql: create_socket_directory: not found
+      Mar 28 17:53:45 beaglebone postgresql[14613]: No PostgreSQL clusters exist; see "man pg_createcluster" ... (warning).
+    #+END_SRC
 
-    cp pg_hba.conf.sample pg_hba.conf
-    cp pg_ident.conf.sample pg_ident.conf
-    cp pg_service.conf.sample pg_service.conf
-    cp postgresql.conf.sample postgresql.conf
-    cp recovery.conf.sample recovery.conf
+    Постгресс сообщает, что нет ни одного кластера базы данных.
+    Создаем кластер БД =work=
 
-    service postgresql restart
-    ответ:
-[ ok ] Restarting postgresql (via systemctl): postgresql.service.
+    #+BEGIN_SRC sh
+      pg_createcluster 9.1 work --start
 
-    ps -auxw | grep postgre | grep -- -D
-    ответ:
-warning: bad ps syntax, perhaps a bogus '-'?
-See http://gitorious.org/procps/procps/blobs/master/Documentation/FAQ
-postgres 15697  1.3  1.4  45040  7328 ?        S    18:02   0:02 /usr/lib/postgresql/9.1/bin/postgres -D /var/lib/postgresql/9.1/work -c config_file=/etc/postgresql/9.1/work/postgresql.conf
+      Creating new cluster (configuration: /etc/postgresql/9.1/work, data: /var/lib/postgresql/9.1/work)...
+      could not change directory to "/root/asp"
+      Moving configuration file /var/lib/postgresql/9.1/work/postgresql.conf to /etc/postgresql/9.1/work...
+      Moving configuration file /var/lib/postgresql/9.1/work/pg_hba.conf to /etc/postgresql/9.1/work...
+      Moving configuration file /var/lib/postgresql/9.1/work/pg_ident.conf to /etc/postgresql/9.1/work...
+      Configuring postgresql.conf to use port 5432...
+    #+END_SRC
 
-    su postgres
+    Копируем конфигурацию из примеров в рабочие файлы конфигурации
 
-    psql
-    #+END_EXAMPLE
+    В =/usr/share/postgresql/9.1= есть конфиги *.samle - их надо скопировать в такие же
+    но без ".sample"
+
+    #+BEGIN_SRC sh
+      cd /usr/share/postgresql/9.1
+
+      cp pg_hba.conf.sample pg_hba.conf
+      cp pg_ident.conf.sample pg_ident.conf
+      cp pg_service.conf.sample pg_service.conf
+      cp postgresql.conf.sample postgresql.conf
+      cp recovery.conf.sample recovery.conf
+    #+END_SRC
+
+    после чего отредактировать:
+    uncomment in /etc/postgresql/<version>/mainpostgresql.conf
+    (/usr/share/postgresql/<version>/main/postgresql.conf):
+
+    #+BEGIN_SRC conf
+      listen_addresses = 'localhost'
+    #+END_SRC
+
+    опционально выставить минимальные параметры по памяти, но может это не надо
+
+    В =/etc/postgresql/<version>/main/pg_hba.conf=
+    (=/usr/share/postgresql/<version>/main/pg_hba.conf=):
+
+    Прописать способ входа в консоль psql. Можно использовать =trust= для локальных
+    подключений:
+
+    #+BEGIN_SRC conf
+      local all  postgres  trust
+    #+END_SRC
+
+    Потом попытаться запустить /usr/lib/postgresql/9.1/bin/postgresql Если не
+    сработает - в этой же папке лежит initdb - его надо натравить на домашний каталог
+    постргесса (все это надо делать под постгрессом)
+
+    Рестартим базу
+
+    #+BEGIN_SRC sh
+      service postgresql restart
+
+      [ ok ] Restarting postgresql (via systemctl): postgresql.service.
+    #+END_SRC
+
+    Или
+
+    #+BEGIN_SRC sh
+      /usr/lib/postgresql/9.1/bin/postgres -D /var/lib/postgresql/9.1/work/
+    #+END_SRC
+
+    Смотрим наличие процессов постгри в списке процессов
+
+    #+BEGIN_SRC sh
+      ps -auxw | grep postgre | grep -- -D
+
+      warning: bad ps syntax, perhaps a bogus '-'?
+      See http://gitorious.org/procps/procps/blobs/master/Documentation/FAQ
+      postgres 15697  1.3  1.4  45040  7328 ?        S    18:02   0:02 /usr/lib/postgresql/9.1/bin/postgres -D /var/lib/postgresql/9.1/work -c config_file=/etc/postgresql/9.1/work/postgresql.conf
+    #+END_SRC
+
+    Запускаем консоль базы
+
+    #+BEGIN_SRC sh
+      su postgres
+
+      psql
+    #+END_SRC
 
     Мы в консоли.
 
     Теперь создаем БД. Это можно было сделать все целиком из консоли, но влом было уже
     тестить, оставил как раньше.
 
-    #+BEGIN_EXAMPLE
+    #+BEGIN_SRC sql
       CREATE USER asp_admin WITH PASSWORD 'qwe123';
       ответ:
       CREATE ROLE
@@ -5306,7 +5375,7 @@ postgres 15697  1.3  1.4  45040  7328 ?        S    18:02   0:02 /usr/lib/postgr
       GRANT ALL privileges ON DATABASE asp TO asp_admin;
       ответ:
       GRANT
-    #+END_EXAMPLE
+    #+END_SRC
 
 *** DONE Установка и запуск Boost                                      :bvl:
 
