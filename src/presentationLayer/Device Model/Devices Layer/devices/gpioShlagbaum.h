@@ -325,13 +325,16 @@ public:
 		// Возможные ответы: шлагбаум в работе, есть машина, уже закрыт, ошибка состояния, успех
 		if (command == "down")
 		{
-			if ( state == Opened ) // Это гарантия, что шлагбаум поднят и машины нет
+			if ( state == Opened || state == InProcessUp) // Это гарантия, что шлагбаум поднят или поднимается и машины нет
 			{
 				actualState = InProcessDown;
 
 				std::vector<uint8_t> data;
 				data.push_back(0);
-				data.push_back('1');
+				data.push_back('0');
+				m_commCtl[DoOpen]->send(data);
+
+				data[1] = '1';
 				m_commCtl[DoClose]->send(data);
 
 				// TODO Later Значение из базы
@@ -362,14 +365,17 @@ public:
 		// Возможные ответы: шлагбаум в работе, уже открыт, ошибка состояния, успех
 		if (command == "up")
 		{
-			if ( state == Closed ) // Это гарантия, что шлагбаум опущен
+			if ( state == Closed || state == InProcessDown) // Это гарантия, что шлагбаум опущен или опускается
 			{
 
 				actualState = InProcessUp;
 
 				std::vector<uint8_t> data;
 				data.push_back(0);
-				data.push_back('1');
+				data.push_back('0');
+				m_commCtl[DoClose]->send(data);
+
+				data[1] = '1';
 				m_commCtl[DoOpen]->send(data);
 
 				// TODO Later Значение из базы
