@@ -5291,7 +5291,7 @@ void CBaseDevice::disconnectFromCommCtl()
     Снова запускаем nginx, открываем приветствие nginx по адресу http://10.0.10.114:8081/
     Вуаля.
 
-*** START COMMENT Установка и запуск PostgreSQL                             :gmm:aav:
+*** DONE COMMENT Установка и запуск PostgreSQL 			    :gmm:aav:
 
     На старте мы предполагаем, что постгрес не установлен на машине, если он
     установлен, то сносим все.
@@ -5300,23 +5300,17 @@ void CBaseDevice::disconnectFromCommCtl()
     регламентировать порядок установки пакетов если есть хотя бы вероятность того, что
     это важно. Хуже от него не будет.
 
-    #+BEGIN_SRC sh
-      apt-get remove postgresql-common postgresql postgresql-client postgresql-client-9.1
-      rm -r /usr/share/postgresql
-      rm -r /var/lib/postgresql
-      rm -r /etc/postgresql-common
-      rm -r /etc/postgresql
-    #+END_SRC
-
-
-    По идее вместо =purge=  можно использовать =remove=, но это удаляет не все, что
-    могло быть понаставлено постгрей дополнительно. И все равно придется удалять некоторые
-    конфигурационные вещи или базы из левых мест.
+    =purge= не всегда удаляет все, что могло быть понаставлено постгрей дополнительно.
+    Иногда все равно придется удалять некоторые конфигурационные вещи или базы.
     Про пурж общеизвестные вещи более подробно можно об этом узнать тут:
     http://unix.stackexchange.com/questions/118880/should-i-use-apt-get-remove-or-apt-get-purge
-    Не удалял, дабы потешить самолюбие gmm, грамматические ошибки за ним исправил.
+    Но в этом конкретном случае это не так и надо перестраховаться и удалить все возможные 
+    включения постгри поиском.
 
-    Но в этом конкретном случае это не так и надо перестраховаться и удалять все руками.
+    #+BEGIN_SRC sh
+      apt-get purge postgresql-common postgresql postgresql-client postgresql-client-9.1
+      find / -name "postgres*" | xargs rm -rv
+    #+END_SRC
 
     Начинаем ставить.
 
@@ -5327,8 +5321,9 @@ void CBaseDevice::disconnectFromCommCtl()
 
     [COMMENT:aav] Вот конкретно ЗДЕСЬ и с этой версией зависят.
 
-    [COMMENT:aav] Всегда явно обозначайте ОТВЕТ! Не надо стирать слово "ответ". Другой
-    может начать это вводить как команду, если это будет неочевидно. Или не введет
+    [COMMENT:aav] Всегда явно обозначайте ОТВЕТ на команду. 
+    Не надо стирать слово "ответ". Другой человек в запаре или занимаясь сразу двумя делами 
+    может начать ответ вводить как команду, если это будет неочевидно. Или не введет
     часть команд, если подумает, что это должен быть такой ответ.
 
     #+BEGIN_SRC sh
@@ -5373,7 +5368,6 @@ void CBaseDevice::disconnectFromCommCtl()
 
     #+BEGIN_SRC sh
       cd /usr/share/postgresql/9.1
-
       cp pg_hba.conf.sample pg_hba.conf
       cp pg_ident.conf.sample pg_ident.conf
       cp pg_service.conf.sample pg_service.conf
@@ -5405,7 +5399,6 @@ void CBaseDevice::disconnectFromCommCtl()
 
     #+BEGIN_SRC sh
       su postgres
-
       psql
     #+END_SRC
 
