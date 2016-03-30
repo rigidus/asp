@@ -262,260 +262,289 @@ uint32_t CDisplayCtl::send(std::vector<uint8_t> sendData)
 	return send(lst);
 }
 
-uint32_t CDisplayCtl::utf8towinstar(std::string *value)
+uint32_t CDisplayCtl::utf8towinstar(std::string* const value)
 {
-	size_t i, j;
-	i = 0;
-	j = 0;
+	std::string::iterator strItWinstar = value->begin();
 
-	for (i = 0; i < value->length(); i++)
+	for (std::string::iterator strItOrig = value->begin(); strItOrig < value->end(); strItOrig++)
 	{
-		switch ((*value)[i])
+		switch ((uint8_t) *strItOrig)
 		{
 		case 0xD0:
-			i++;
-			switch ((*value)[i])
+
+			if (++strItOrig == value->end())
+			{
+				std::cout << "CDisplayCtl::utf2winstar: unexpected end of string " << *strItOrig << std::endl;
+				return 0;
+			}
+
+			switch ((uint8_t) *strItOrig)
 			{
 			case 0x90: //A
-				(*value)[j] = 0x41;
+				*strItWinstar = 0x41;
 				break;
 			case 0x91: //Б
-				(*value)[j] = 0xA0;
+				*strItWinstar = 0xA0;
 				break;
 			case 0x92: //В
-				(*value)[j] = 0x42;
+				*strItWinstar = 0x42;
 				break;
 			case 0x93: //Г
-				(*value)[j] = 0xA1;
+				*strItWinstar = 0xA1;
 				break;
 			case 0x94: //Д
-				(*value)[j] = 0xE0;
+				*strItWinstar = 0xE0;
 				break;
 			case 0x95: //Е
-				(*value)[j] = 0x45;
+				*strItWinstar = 0x45;
 				break;
 			case 0x81: //Ё
-				(*value)[j] = 0xA2;
+				*strItWinstar = 0xA2;
 				break;
 			case 0x96: //Ж
-				(*value)[j] = 0xA3;
+				*strItWinstar = 0xA3;
 				break;
 			case 0x97: //З
-				(*value)[j] = 0xA4;
+				*strItWinstar = 0xA4;
 				break;
 			case 0x98: //И
-				(*value)[j] = 0xA5;
+				*strItWinstar = 0xA5;
 				break;
 			case 0x99: //Й
-				(*value)[j] = 0xA6;
+				*strItWinstar = 0xA6;
 				break;
 			case 0x9A: //К
-				(*value)[j] = 0x4B;
+				*strItWinstar = 0x4B;
 				break;
 			case 0x9B: //Л
-				(*value)[j] = 0xA7;
+				*strItWinstar = 0xA7;
 				break;
 			case 0x9C: //М
-				(*value)[j] = 0x4D;
+				*strItWinstar = 0x4D;
 				break;
 			case 0x9D: //Н
-				(*value)[j] = 0x48;
+				*strItWinstar = 0x48;
 				break;
 			case 0x9E: //О
-				(*value)[j] = 0x4F;
+				*strItWinstar = 0x4F;
 				break;
 			case 0x9F: //П
-				(*value)[j] = 0xA8;
+				*strItWinstar = 0xA8;
 				break;
 			case 0xA0: //Р
-				(*value)[j] = 0x50;
+				*strItWinstar = 0x50;
 				break;
 			case 0xA1: //С
-				(*value)[j] = 0x43;
+				*strItWinstar = 0x43;
 				break;
 			case 0xA2: //Т
-				(*value)[j] = 0x54;
+				*strItWinstar = 0x54;
 				break;
 			case 0xA3: //У
-				(*value)[j] = 0xA9;
+				*strItWinstar = 0xA9;
 				break;
 			case 0xA4: //Ф
-				(*value)[j] = 0xAA;
+				*strItWinstar = 0xAA;
 				break;
 			case 0xA5: //Х
-				(*value)[j] = 0x58;
+				*strItWinstar = 0x58;
 				break;
 			case 0xA6: //Ц
-				(*value)[j] = 0xE1;
+				*strItWinstar = 0xE1;
 				break;
 			case 0xA7: //Ч
-				(*value)[j] = 0xAB;
+				*strItWinstar = 0xAB;
 				break;
 			case 0xA8: //Ш
-				(*value)[j] = 0xAC;
+				*strItWinstar = 0xAC;
 				break;
 			case 0xA9: //Щ
-				(*value)[j] = 0xE2;
+				*strItWinstar = 0xE2;
 				break;
 			case 0xAA: //Ъ
-				(*value)[j] = 0xAD;
+				*strItWinstar = 0xAD;
 				break;
 			case 0xAB: //Ы
-				(*value)[j] = 0xAE;
+				*strItWinstar = 0xAE;
 				break;
 			case 0xAC: //Ь
-				(*value)[j] = 0x62;
+				*strItWinstar = 0x62;
 				break;
 			case 0xAD: //Э
-				(*value)[j] = 0xAF;
+				*strItWinstar = 0xAF;
 				break;
 			case 0xAE: //Ю
-				(*value)[j] = 0xB0;
+				*strItWinstar = 0xB0;
 				break;
 			case 0xAF: //Я
-				(*value)[j] = 0xB1;
+				*strItWinstar = 0xB1;
 				break;
 			case 0xB0: //а
-				(*value)[j] = 0x61;
+				*strItWinstar = 0x61;
 				break;
 			case 0xB1: //б
-				(*value)[j] = 0xB2;
+				*strItWinstar = 0xB2;
 				break;
 			case 0xB2: //в
-				(*value)[j] = 0xB3;
+				*strItWinstar = 0xB3;
 				break;
 			case 0xB3: //г
-				(*value)[j] = 0xB4;
+				*strItWinstar = 0xB4;
 				break;
 			case 0xB4: //д
-				(*value)[j] = 0xE3;
+				*strItWinstar = 0xE3;
 				break;
 			case 0xB5: //е
-				(*value)[j] = 0x65;
+				*strItWinstar = 0x65;
 				break;
 			case 0xB6: //ж
-				(*value)[j] = 0xB6;
+				*strItWinstar = 0xB6;
 				break;
 			case 0xB7: //з
-				(*value)[j] = 0xB7;
+				*strItWinstar = 0xB7;
 				break;
 			case 0xB8: //и
-				(*value)[j] = 0xB8;
+				*strItWinstar = 0xB8;
 				break;
 			case 0xB9: //й
-				(*value)[j] = 0xB9;
+				*strItWinstar = 0xB9;
 				break;
 			case 0xBA: //к
-				(*value)[j] = 0xBA;
+				*strItWinstar = 0xBA;
 				break;
 			case 0xBB: //л
-				(*value)[j] = 0xBB;
+				*strItWinstar = 0xBB;
 				break;
 			case 0xBC: //м
-				(*value)[j] = 0xBC;
+				*strItWinstar = 0xBC;
 				break;
 			case 0xBD: //н
-				(*value)[j] = 0xBD;
+				*strItWinstar = 0xBD;
 				break;
 			case 0xBE: //о
-				(*value)[j] = 0x6F;
+				*strItWinstar = 0x6F;
 				break;
 			case 0xBF: //п
-				(*value)[j] = 0xBE;
+				*strItWinstar = 0xBE;
 				break;
 			default:
-				std::cout << "CDisplayCtl::utf2winstar: wrong decoding D0 " << (*value)[i] << std::endl;
+				std::cout << "CDisplayCtl::utf2winstar: wrong decoding D0 " << *strItOrig << std::endl;
 				break;
 			}
 			break;
+
 		case 0xD1:
-			i++;
-			switch ((*value)[i])
+
+			if (++strItOrig == value->end())
+			{
+				std::cout << "CDisplayCtl::utf2winstar: unexpected end of string " << *strItOrig << std::endl;
+				return 0;
+			}
+
+			switch ((uint8_t)*strItOrig)
 			{
 			case 0x80: //р
-				(*value)[j] = 0x70;
+				*strItWinstar = 0x70;
 				break;
 			case 0x81: //с
-				(*value)[j] = 0x63;
+				*strItWinstar = 0x63;
 				break;
 			case 0x82: //т
-				(*value)[j] = 0xBF;
+				*strItWinstar = 0xBF;
 				break;
 			case 0x83: //у
-				(*value)[j] = 0x79;
+				*strItWinstar = 0x79;
 				break;
 			case 0x84: //ф
-				(*value)[j] = 0xE4;
+				*strItWinstar = 0xE4;
 				break;
 			case 0x85: //х
-				(*value)[j] = 0x78;
+				*strItWinstar = 0x78;
 				break;
 			case 0x86: //ц
-				(*value)[j] = 0xE5;
+				*strItWinstar = 0xE5;
 				break;
 			case 0x87: //ч
-				(*value)[j] = 0xC0;
+				*strItWinstar = 0xC0;
 				break;
 			case 0x88: //ш
-				(*value)[j] = 0xC1;
+				*strItWinstar = 0xC1;
 				break;
 			case 0x89: //щ
-				(*value)[j] = 0xE6;
+				*strItWinstar = 0xE6;
 				break;
 			case 0x8A: //ъ
-				(*value)[j] = 0xC2;
+				*strItWinstar = 0xC2;
 				break;
 			case 0x8B: //ы
-				(*value)[j] = 0xC3;
+				*strItWinstar = 0xC3;
 				break;
 			case 0x8C: //ь
-				(*value)[j] = 0xC4;
+				*strItWinstar = 0xC4;
 				break;
 			case 0x8D: //э
-				(*value)[j] = 0xC5;
+				*strItWinstar = 0xC5;
 				break;
 			case 0x8E: //ю
-				(*value)[j] = 0xC6;
+				*strItWinstar = 0xC6;
 				break;
 			case 0x8F: //я
-				(*value)[j] = 0xC7;
+				*strItWinstar = 0xC7;
 				break;
 			case 0x91: //ё
-				(*value)[j] = 0xB5;
+				*strItWinstar = 0xB5;
 				break;
 			default:
-				std::cout << "CDisplayCtl::utf2winstar: wrong decoding D1 " << (*value)[i] << std::endl;
+				std::cout << "CDisplayCtl::utf2winstar: wrong decoding D1 " << *strItOrig << std::endl;
 				break;
 			}
 			break;
+
 		case 0xE2: //№
-			i++;
-			switch ((*value)[i])
+
+			if (++strItOrig == value->end())
+			{
+				std::cout << "CDisplayCtl::utf2winstar: unexpected end of string " << *strItOrig << std::endl;
+				return 0;
+			}
+
+			switch ((uint8_t) *strItOrig)
 			{
 			case 0x84: //№
-				i++;
-				switch ((*value)[i])
+
+				if (++strItOrig == value->end())
+				{
+					std::cout << "CDisplayCtl::utf2winstar: unexpected end of string " << *strItOrig << std::endl;
+					return 0;
+				}
+
+				switch ((uint8_t) *strItOrig)
 				{
 				case 0x96: //№
-					(*value)[j] = 0xCC;
+					*strItWinstar = 0xCC;
 					break;
 				default:
-					std::cout << "CDisplayCtl::utf2winstar: wrong decoding E284 " << (*value)[i] << std::endl;
+					std::cout << "CDisplayCtl::utf2winstar: wrong decoding E284 " << *strItOrig << std::endl;
 					break;
 				}
 				break;
 			default:
-				std::cout << "CDisplayCtl::utf2winstar: wrong decoding E2 " << (*value)[i] << std::endl;
+				std::cout << "CDisplayCtl::utf2winstar: wrong decoding E2 " << *strItOrig << std::endl;
 				break;
 			}
 			break;
+
 		default:
-			(*value)[j] = (*value)[i];
+			*strItWinstar = *strItOrig;
 			break;
 		}
-		j++;
+
+		strItWinstar++;
+
 	}
-	value->resize(j);
+
+	value->resize(std::distance(value->begin(), strItWinstar));
+
 	return 0;
 }
 

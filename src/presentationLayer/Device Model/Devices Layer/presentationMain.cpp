@@ -38,13 +38,50 @@ int main()
 	CDeviceManager::deviceManagerFactory( settings::getDeviceConfig() );
 	GlobalThreadPool::get();
 
-	for (;;)
-	{
-		boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
-	}
+	sigset_t sigset;
+	int32_t sig;
 
-	GlobalThreadPool::stop();
-	CDeviceManager::destroyDeviceManager();
+	sigemptyset(&sigset);
+	sigaddset(&sigset, SIGINT);
+	sigaddset(&sigset, SIGQUIT);
+	sigaddset(&sigset, SIGTERM);
+	sigaddset(&sigset, SIGTSTP);
+
+	const int32_t signalReloadDeviceConfig = SIGRTMIN;
+	sigaddset(&sigset, signalReloadDeviceConfig);	// This is reload device config signal
+
+	for(;;)
+	{
+
+		sigprocmask(SIG_BLOCK, &sigset, NULL);
+		sigwait(&sigset, &sig);
+
+		if ( sig == signalReloadDeviceConfig)
+		{
+			std::cout << "Main: Catched signal to reload device config" << std::endl;
+			GlobalThreadPool::stop();
+			CDeviceManager::destroyDeviceManager();
+			CDeviceManager::deviceManagerFactory( settings::getDeviceConfig() );
+			GlobalThreadPool::get();
+			continue;
+		}
+
+		switch(sig)
+		{
+		case SIGINT:
+		case SIGQUIT:
+		case SIGTERM:
+		case SIGTSTP:
+			std::cout << "Main: Catched signal to stopping application" << std::endl;
+			GlobalThreadPool::stop();
+			CDeviceManager::destroyDeviceManager();
+			return 0;
+
+		default:
+			std::cout << "ERROR! Main: Catched not registered signal " << sig << std::endl;
+			break;
+		}
+	}
 
 	return 0;
 }
