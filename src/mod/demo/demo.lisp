@@ -1,3 +1,4 @@
+
 (in-package #:asp)
 
 (in-package :asp)
@@ -164,7 +165,7 @@
     "8(812)000-00-00"))
 
 (defun barcode-assembly (param)
-  "1A B4 C5 DE 35")
+  "18446744073709551615")
 
 ;; {
 ;;   "eventid":XX,

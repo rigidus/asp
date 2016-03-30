@@ -164,46 +164,46 @@ public:
 			 {
 				switch (i)
 				{
-				case 0: // WELCOME!
+				case 1: // WELCOME!
 					htmlTicket << "<TH><FONT size=3><B>\n";
 					htmlTicket << valTicket[i].GetString();
 					htmlTicket << "\n</B></FONT></TH></TR><TR>";
 					break;
-				case 1: // skipping horizontal breakers
-				case 7:
-				case 22:
+				case 0:
+				case 2: // skipping horizontal breakers
+				case 8:
+				case 12:
+				case 24:
 					break;
-				case 2: // Number of ticket
+				case 3: // Number of ticket
 					htmlTicket << "<TD align=right><FONT size=4>\n";
 					htmlTicket << valTicket[i].GetString();
 					htmlTicket << "\n</FONT></TD></TR><TR>";
 					break;
-				case 3: // Main data on this ticket
-				case 4:
+				case 4: // Main data on this ticket
 				case 5:
 				case 6:
+				case 7:
 					htmlTicket << "<TD>\n";
 					htmlTicket << valTicket[i].GetString();
 					htmlTicket << "\n</TD></TR><TR>";
 					break;
-				case 8: // Follow to
+				case 9: // Follow to
 					htmlTicket << "<TD align=center>\n";
 					htmlTicket << valTicket[i].GetString();
 					htmlTicket << "\n</TD></TR><TR>";
 					break;
-				case 9: // place# to follow
+				case 10: // place# to follow
 					htmlTicket << "<TD align=center><FONT size=4><B>\n";
 					htmlTicket << valTicket[i].GetString();
 					htmlTicket << "\n</B></FONT></TD></TR><TR>";
 					break;
-				case 10: // sector# to follow
+				case 11: // sector# to follow
 					htmlTicket << "<TD align=center><FONT size=4><B>\n";
 					htmlTicket << valTicket[i].GetString();
 					htmlTicket << "\n</B></FONT></TD></TR><TR>";
 					break;
-				case 11: // Misc info
-				case 12:
-				case 13:
+				case 13:// Misc info
 				case 14:
 				case 15:
 				case 16:
@@ -212,8 +212,10 @@ public:
 				case 19:
 				case 20:
 				case 21:
+				case 22:
 				case 23:
-				case 24:
+				case 25:
+				case 26:
 					htmlTicket << "<TD><FONT size=1>\n";
 					htmlTicket << valTicket[i].GetString();
 					htmlTicket << "\n</FONT></TH></TR><TR>";
