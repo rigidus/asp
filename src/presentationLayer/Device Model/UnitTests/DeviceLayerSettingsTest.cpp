@@ -42,7 +42,8 @@ settings::DeviceConfig shlagbaum1 =
 		"shlagbaum_gpio",
 		"shlagbaum_in",
 		"",
-		{ "gpio12", "gpio18", "gpio8", "uart2" },
+		// (in, out) - UP, (in. out) - DOWN, in - car present
+		{ "gpio66", "gpio67", "gpio68", "gpio69", "gpio45" },
 		enabled_device
 };
 
@@ -53,29 +54,54 @@ settings::DeviceConfig* devices[] =
 		&test_device,
 };
 
-settings::CommGPIOConfig gpio12 =
+settings::CommGPIOConfig gpio66 =
 {
-		"gpio12",
-		true,	// out
+		"gpio66",
+		true,	// in, UP
 		false,	// value = 0
 		3000	// default pulse value, ms
 };
 
-settings::CommGPIOConfig gpio18 =
+settings::CommGPIOConfig gpio67 =
 {
-		"gpio18",
-		true,	// out
+		"gpio67",
+		true,	// out, UP
 		false,	// value = 0
 		3000	// default pulse value, ms
 };
 
-settings::CommGPIOConfig gpio8 =
+settings::CommGPIOConfig gpio68 =
 {
-		"gpio8",
-		false,	// in, signal from car present
-		true,	// value = 1
+		"gpio68",
+		true,	// in, DOWN
+		false,	// value = 0
 		300		// check delay, ms
 };
+
+settings::CommGPIOConfig gpio69 =
+{
+		"gpio69",
+		true,	// out, DOWN
+		false,	// value = 0
+		300		// check delay, ms
+};
+
+settings::CommGPIOConfig gpio45 =
+{
+		"gpio45",
+		true,	// in, signal from car present
+		false,	// value = 0
+		300		// check delay, ms
+};
+
+settings::CommGPIOConfig gpio44 =
+{
+		"gpio44",
+		false,	// in, signal from user button
+		false,	// value = 0
+		300		// check delay, ms
+};
+
 
 settings::CommUARTConfig uart2 =
 {
@@ -86,9 +112,12 @@ settings::CommUARTConfig uart2 =
 
 settings::CommGPIOConfig* gpioConfigs[] =
 {
-		&gpio8,
-		&gpio12,
-		&gpio18
+		&gpio66,
+		&gpio67,
+		&gpio68,
+		&gpio69,
+		&gpio45,
+		&gpio44
 };
 
 settings::CommUARTConfig* uartConfigs[] =

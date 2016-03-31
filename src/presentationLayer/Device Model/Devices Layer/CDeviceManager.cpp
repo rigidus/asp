@@ -157,7 +157,7 @@ void CDeviceManager::setCommandToDevice(uint32_t txid, std::string abstractDevic
 
 }
 
-void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std::string concreteDevice, std::string command, std::string parameters)
+void CDeviceManager::setCommandToClient(SetTo::CommandType eventFlag, std::string concreteDevice, std::string command, std::string parameters)
 {
 	/*
 	 * Событие надо просто разослать всем клиентам с помощью постановки задач
@@ -166,7 +166,7 @@ void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std
 
 	boost::mutex::scoped_lock lock(queMutex);
 
-	if ( eventFlag ==  setCommandTo::CommandType::Transaction )
+	if ( eventFlag ==  SetTo::CommandType::Transaction )
 	{
 		// Transaction
 		DeviceCtl::Task task;
@@ -176,7 +176,7 @@ void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std
 
 			std::stringstream error;
 			error << "ERROR! CDeviceManager::setCommandToClient: Transaction lost.";
-			setCommandTo::sendErrorToClient(error);
+			SetTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;
 			return;
@@ -323,7 +323,7 @@ void CDeviceManager::ackClient(std::string concreteDevice)
 		// Удивиться, что транзакция клиента была профачена. WTF! It's a BUG!
 		std::stringstream error;
 		error << "ERROR! CDeviceManager::ackClient: Transaction for " << concreteDevice << " lost" << std::endl;
-		setCommandTo::sendErrorToClient(error);
+		SetTo::sendErrorToClient(error);
 
 		std::cout << error.str() << std::endl;
 		return;

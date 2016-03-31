@@ -45,7 +45,7 @@ void CBaseDevice::performEvent(std::string& commDeviceName, std::vector<uint8_t>
 	char* endData = (char*) &rcvData[rcvData.size()-1];
 	std::string answer(beginData, endData);
 
-	setCommandTo::Client( setCommandTo::Event, c_name, "answer: ", answer);
+	SetTo::Client( SetTo::Event, c_name, "answer: ", answer);
 }
 
 
@@ -67,7 +67,7 @@ void CBaseDevice::performTransaction(std::vector<uint8_t>& rcvData)
 	char* endData = (char*) &rcvData[rcvData.size()-1];
 	std::string answer(beginData, endData);
 
-	setCommandTo::Client( setCommandTo::Transaction, c_name, "answer: ", answer);
+	SetTo::Client( SetTo::Transaction, c_name, "answer: ", answer);
 }
 
 

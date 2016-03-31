@@ -9,8 +9,9 @@
 #define SETCOMMANDTO_H_
 
 #include <string>
+#include "SeverityLevels.h"
 
-namespace setCommandTo
+namespace SetTo
 {
 
 enum CommandType { Transaction, Event };
@@ -23,6 +24,10 @@ void Client(CommandType eventFlag, std::string device, std::string command, std:
 void Manager(std::string device);
 
 void sendErrorToClient(std::stringstream& errorText);
+
+void CommonLog(severity_level lvl, std::string message);
+void LocalLog(std::string device, severity_level lvl, std::string message);
+
 
 }
 

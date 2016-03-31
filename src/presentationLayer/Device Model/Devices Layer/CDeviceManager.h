@@ -55,7 +55,7 @@ public:
 
 	static void destroyDeviceManager();
 
-	void setCommandToClient(setCommandTo::CommandType eventFlag, std::string device, std::string command, std::string parameters);
+	void setCommandToClient(SetTo::CommandType eventFlag, std::string device, std::string command, std::string parameters);
 
 	static void sendCommand(CAbstractDevice* abstractDevice, std::string command, std::string pars);
 

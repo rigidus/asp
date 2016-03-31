@@ -54,7 +54,7 @@ public:
 				std::cout << "HttpClient::ev_handler: message transferred, response code: " << hm->resp_code << std::endl;
 				s_exit_flag = 1;
 
-				setCommandTo::Manager(HttpClient::s_concreteName);
+				SetTo::Manager(HttpClient::s_concreteName);
 			}
 			break;
 

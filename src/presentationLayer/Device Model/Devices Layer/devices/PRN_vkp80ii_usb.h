@@ -312,7 +312,7 @@ public:
 			std::cout << "ERROR! CPRN_vkp80ii_usb::sendCommand: failed executing send(data) due to nil m_commCtl" << std::endl;
 
 
-		setCommandTo::Manager(c_name);
+		SetTo::Manager(c_name);
 	}
 
 	virtual bool connectToCommCtl()

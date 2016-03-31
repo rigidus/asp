@@ -58,15 +58,15 @@ public:
 				{
 				case '0':
 					answer << "\"state\":\"" << "\"free\"}" << std::endl;
-					setCommandTo::Client( setCommandTo::Transaction, c_name, "answer: ", answer.str());
+					SetTo::Client( SetTo::Transaction, c_name, "answer: ", answer.str());
 					break;
 				case '1':
 					answer << "\"state\":\"" << "\"pushed\"}" << std::endl;
-					setCommandTo::Client( setCommandTo::Transaction, c_name, "answer: ", answer.str());
+					SetTo::Client( SetTo::Transaction, c_name, "answer: ", answer.str());
 					break;
 				default:
 					answer << "\"state\":\"" << "\"gpio error\"}" << std::endl;
-					setCommandTo::Client( setCommandTo::Transaction, c_name, "answer: ", answer.str());
+					SetTo::Client( SetTo::Transaction, c_name, "answer: ", answer.str());
 				}
 
 			}
@@ -94,7 +94,7 @@ public:
 
 			answer << "\"command\" : \"press\"";
 
-			setCommandTo::Client( setCommandTo::Event, c_name, "send", answer.str());
+			SetTo::Client( SetTo::Event, c_name, "send", answer.str());
 
 		}
 	}

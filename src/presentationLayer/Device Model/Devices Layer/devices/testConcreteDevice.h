@@ -37,7 +37,7 @@ public:
 		std::cout << "CTestConcreteDevice::sendCommand: performs command: " << command << "[" << pars << "]" << std::endl;
 
 		// command "up"
-		setCommandTo::Client(setCommandTo::Transaction, c_name, "", pars);
+		SetTo::Client(SetTo::Transaction, c_name, "", pars);
 
 	}
 

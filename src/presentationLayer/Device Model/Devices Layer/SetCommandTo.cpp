@@ -7,16 +7,17 @@
 
 #include "SetCommandTo.h"
 #include "CDeviceManager.h"
+#include "Logger.h"
 
-void setCommandTo::sendErrorToClient(std::stringstream& errorText)
+void SetTo::sendErrorToClient(std::stringstream& errorText)
 {
 	std::stringstream jsonError;
 	jsonError << "{ \"error\":\"" << errorText.str() << "\"}";
 
-	setCommandTo::Client(setCommandTo::Event, BsnsLogic::s_abstractName, "", jsonError.str());
+	SetTo::Client(SetTo::Event, BsnsLogic::s_abstractName, "", jsonError.str());
 }
 
-void setCommandTo::Device(uint32_t txid, std::string device, std::string command,
+void SetTo::Device(uint32_t txid, std::string device, std::string command,
 			std::string parameters, std::string adresat)
 {
 	CDeviceManager* devMgr = CDeviceManager::deviceManager();
@@ -37,7 +38,7 @@ void setCommandTo::Device(uint32_t txid, std::string device, std::string command
 
 }
 
-void setCommandTo::Client(CommandType eventFlag, std::string device, std::string command, std::string parameters)
+void SetTo::Client(CommandType eventFlag, std::string device, std::string command, std::string parameters)
 {
 	CDeviceManager* devMgr = CDeviceManager::deviceManager();
 	if (devMgr)
@@ -57,7 +58,7 @@ void setCommandTo::Client(CommandType eventFlag, std::string device, std::string
 
 }
 
-void setCommandTo::Manager(std::string device)
+void SetTo::Manager(std::string device)
 {
 	CDeviceManager* devMgr = CDeviceManager::deviceManager();
 		if (devMgr)
@@ -71,4 +72,14 @@ void setCommandTo::Manager(std::string device)
 			std::cout << "ERROR! setCommandTo::Manager: Device manager not found." << std::endl;
 		}
 
+}
+
+void SetTo::CommonLog(severity_level level, std::string message)
+{
+	Logger::SetToCommonLog(level, message);
+}
+
+void SetTo::LocalLog(std::string device, severity_level level, std::string message)
+{
+	Logger::SetToLocalLog(device, level, message);
 }

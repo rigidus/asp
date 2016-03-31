@@ -20,6 +20,8 @@
 #include "GlobalThreadPool.h"
 #include "CDeviceManager.h"
 #include "SetCommandTo.h"
+#include "Logger.h"
+#include "Help.h"
 
 using namespace mythreadpool;
 using namespace rapidjson;
@@ -29,9 +31,54 @@ boost::mutex HttpClient::HTTPconnectMutex;
 volatile int HttpDevLayerClient::s_exit_flag = 0;
 boost::mutex HttpDevLayerClient::HTTPconnectMutex;
 
-
-int main()
+void ParameterParser(int argc, char* argv[])
 {
+	uint32_t cnt = argc;
+	uint32_t index = 1;
+	while (cnt > 1)
+	{
+		int32_t len = 0;
+
+		len = Help::Parser(argv[index], argv[index+1]);
+		if (len)
+			exit(0);
+
+		len = Logger::LogParamParser(argv[index], argv[index+1]);
+
+//		if (len == 0)
+//			len == // call next param parser
+
+		if (len == 0)
+			len = 1;
+
+		index += len;
+		cnt -= len;
+	}
+
+}
+
+int main(int argc, char* argv[])
+{
+
+	ParameterParser(argc, argv);
+
+#ifdef NDEBUG
+	Logger::initReleaseLogging();
+#else
+	Logger::initDebugLogging();
+#endif
+
+//  Log examples. It's placed temporary here
+//	SetTo::CommonLog(debug, "Debug Test");
+//	SetTo::LocalLog("printer" , critical, "Car income");
+//	SetTo::CommonLog(info, "Info Test");
+//	SetTo::LocalLog("printer", trace, "Function end");
+//	SetTo::CommonLog(warning, "Warning Test");
+//	SetTo::LocalLog("shlagbaum_in", info, "Car registered");
+//	SetTo::CommonLog(trace, "Trace Test");
+//	SetTo::LocalLog("shlagbaum_in", critical, "Stack overflow");
+//	SetTo::CommonLog(critical, "Critical Test");
+// End Log examples
 
 	boost::thread thrHttpServer = httpserver::startHttpServer();
 

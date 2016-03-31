@@ -51,7 +51,7 @@ class CGPIOShlagbaum: public CBaseDevice
 		{
 			actualState = InError;
 			std::cout << "CGPIOShlagbaum::StateDetector: Set state InError (realClose && realCarPresent)." << std::endl;
-			return InError;
+			return Closed;
 		}
 
 		// если есть машина и шлагбаум поднят, это есть машина
@@ -83,7 +83,7 @@ class CGPIOShlagbaum: public CBaseDevice
 	// TODO: Сделать отправку событий с глобальным счетчиком евентов
 	// TODO: Научиться использовать сериализтор рапидджейсон
 	// TODO: Добавлять нужные поля в менеджере транзакций, отсюда отправлять только параметры
-	void SendAnswerToClient(TState state,  std::string command, setCommandTo::CommandType type = setCommandTo::CommandType::Transaction)
+	void SendAnswerToClient(TState state,  std::string command, SetTo::CommandType type = SetTo::CommandType::Transaction)
 	{
 
 		std::stringstream str;
@@ -91,49 +91,49 @@ class CGPIOShlagbaum: public CBaseDevice
 		if (state == Closed)
 		{
 			str << "\"command\":\"" << command << "\", " << "\"state\" : \"closed\"";
-			setCommandTo::Client(type, c_name, "send", str.str());
+			SetTo::Client(type, c_name, "send", str.str());
 		}
 
 		if (state == Opened)
 		{
 			str << "\"command\":\"" << command << "\", " << "\"state\" : \"opened\", " << "\"car_present\" : \"false\"";
-			setCommandTo::Client(type, c_name, "send", str.str());
+			SetTo::Client(type, c_name, "send", str.str());
 		}
 
 		if (state == InError)
 		{
 			str << "\"command\":\"" << command << "\", " << "\"state\" : \"unknown\"";
-			setCommandTo::Client(type, c_name, "send", str.str());
+			SetTo::Client(type, c_name, "send", str.str());
 		}
 
 		if (state == InErrorCommDevice)
 		{
 			str << "\"command\":\"" << command << "\", " << "\"state\" : \"communication devices failed\"";
-			setCommandTo::Client(type, c_name, "send", str.str());
+			SetTo::Client(type, c_name, "send", str.str());
 		}
 
 		if (state == InProcessUp)
 		{
 			str << "\"command\":\"" << command << "\", " << "\"state\" : \"in process up\", " << "\"car_present\" : \"false\"";
-			setCommandTo::Client(type, c_name, "send", str.str());
+			SetTo::Client(type, c_name, "send", str.str());
 		}
 
 		if (state == InProcessDown)
 		{
 			str << "\"command\":\"" << command << "\", " << "\"state\" : \"in process down\", " << "\"car_present\" : \"false\"";
-			setCommandTo::Client(type, c_name, "send", str.str());
+			SetTo::Client(type, c_name, "send", str.str());
 		}
 
 		if (state == CarPresent)
 		{
 			str << "\"command\":\"" << command << "\", " << "\"state\" : \"opened\", " << "\"car_present\" : \"true\"";
-			setCommandTo::Client(type, c_name, "send", str.str());
+			SetTo::Client(type, c_name, "send", str.str());
 		}
 
 		if (state == Idle)
 		{
 			str << "\"command\":\"" << command << "\", " << "\"state\" : \"idle\"";
-			setCommandTo::Client(type, c_name, "send", str.str());
+			SetTo::Client(type, c_name, "send", str.str());
 		}
 
 		std::cout << "CGPIOShlagbaum::SendAnswerToClient: sent string '" << str.str() << std::endl;
@@ -152,7 +152,7 @@ class CGPIOShlagbaum: public CBaseDevice
 					<< c_name << "'"  << std::endl;
 
 			actualState = InErrorCommDevice;
-			SendAnswerToClient(InErrorCommDevice, "error", setCommandTo::CommandType::Event);
+			SendAnswerToClient(InErrorCommDevice, "error", SetTo::CommandType::Event);
 			return LastFunction;
 		}
 
@@ -184,7 +184,7 @@ public:
 			std::cout << "ERROR! GPIOShlagbaum::sendCommand: communication devices has lost in '" << c_name << "'" << std::endl;
 
 			actualState = InErrorCommDevice;
-			SendAnswerToClient(InErrorCommDevice, "error", setCommandTo::CommandType::Event);
+			SendAnswerToClient(InErrorCommDevice, "error", SetTo::CommandType::Event);
 			return;
 		}
 
@@ -192,7 +192,8 @@ public:
 
 		if ( i == LastFunction)
 		{
-			// TODO Errror
+			// Setup Error
+			std::cout << "GPIOShlagbaum::performEvent: commDevice not found" << std::endl;
 			return;
 		}
 
@@ -210,7 +211,7 @@ public:
 			{
 				std::stringstream str;
 				str << "\"command\":\"up\", " << "\"parameters\":{ \"result\":\"OK\" }";
-				setCommandTo::Client(setCommandTo::CommandType::Event, c_name, "send", str.str());
+				SetTo::Client(SetTo::CommandType::Event, c_name, "send", str.str());
 
 				std::cout << "CGPIOShlagbaum::performEvent: sent string '" << str.str() << std::endl;
 
@@ -226,7 +227,7 @@ public:
 			else
 			{
 				state = StateDetector();
-				SendAnswerToClient(state, "event", setCommandTo::CommandType::Event);
+				SendAnswerToClient(state, "event", SetTo::CommandType::Event);
 				return;
 			}
 		}
@@ -237,7 +238,7 @@ public:
 			{
 				std::stringstream str;
 				str << "\"command\":\"down\", " << "\"parameters\":{ \"result\":\"OK\" }";
-				setCommandTo::Client(setCommandTo::CommandType::Event, c_name, "send", str.str());
+				SetTo::Client(SetTo::CommandType::Event, c_name, "send", str.str());
 
 				std::cout << "CGPIOShlagbaum::performEvent: sent string '" << str.str() << std::endl;
 
@@ -253,7 +254,7 @@ public:
 			else
 			{
 				state = StateDetector();
-				SendAnswerToClient(state, "event", setCommandTo::CommandType::Event);
+				SendAnswerToClient(state, "event", SetTo::CommandType::Event);
 				return;
 			}
 		}
@@ -267,7 +268,7 @@ public:
 			if ( state == CarPresent )
 			{
 				str << "\"command\":\"car_in\", " << "\"state\" : \"opened\", " << "\"car_present\" : \"true\"";
-				setCommandTo::Client(setCommandTo::CommandType::Event, c_name, "send", str.str());
+				SetTo::Client(SetTo::CommandType::Event, c_name, "send", str.str());
 			}
 			else
 			{
@@ -275,16 +276,16 @@ public:
 				{
 				case Opened:
 					str << "\"command\":\"car_out\", " << "\"state\" : \"opened\", " << "\"car_present\" : \"false\"";
-					setCommandTo::Client(setCommandTo::CommandType::Event, c_name, "send", str.str());
+					SetTo::Client(SetTo::CommandType::Event, c_name, "send", str.str());
 					break;
 
 				case Closed:
-					str << "\"command\":\"car_out\", " << "\"state\" : \"closed\", " << "\"car_present\" : \"false\"";
-					setCommandTo::Client(setCommandTo::CommandType::Event, c_name, "send", str.str());
+					str << "\"command\":\"car_out\", " << "\"state\" : \"closed\"";
+					SetTo::Client(SetTo::CommandType::Event, c_name, "send", str.str());
 					break;
 
 				default:
-					SendAnswerToClient(state, "event", setCommandTo::CommandType::Event);
+					SendAnswerToClient(state, "event", SetTo::CommandType::Event);
 					return;
 				}
 			}
@@ -313,7 +314,7 @@ public:
 		TState state = StateDetector();
 
 		// Сообщаем о невозможности работать со шлагбаумом
-		if ( state == InError || state == InProcessUp || state == InProcessDown )
+		if ( state == InError )
 		{
 			SendAnswerToClient(state, command);
 			return;
@@ -410,7 +411,7 @@ public:
 			return;
 		}
 
-		setCommandTo::Manager(c_name);
+		SetTo::Manager(c_name);
 
 	}
 
