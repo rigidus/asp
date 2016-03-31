@@ -25,7 +25,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/thread_time.hpp>
 
-#include "../include/FileLog.h"
+#include "SetCommandTo.h"
 
 typedef unsigned int	u32;
 typedef unsigned char	u08;
@@ -80,7 +80,10 @@ class CTaskQueue
 
 			t = it->second.front();
 			it->second.pop();
-			CFileLog::cfilelog() << "Get task with priority = " << it->first << std::endl;
+
+			std::stringstream log;
+			log << "Get task with priority = " << it->first;
+			SetTo::LocalLog("thread_pool", debug, log.str());
 
 			if (!it->second.size()) qTasks.erase(it);
 
@@ -122,7 +125,12 @@ private:
 	static void WorkerFn(CWorker* mystate)
 	{
 
-		CFileLog::cfilelog() << "Work thread " << mystate->id <<  ": Start" << std::endl;
+		{
+			std::stringstream log;
+			log << "Work thread " << mystate->id <<  ": Start";
+			SetTo::LocalLog("thread_pool", trace, log.str());
+		}
+
 		TTaskFunc fn;
 
 		try
@@ -136,24 +144,41 @@ private:
 				if (mystate->taskqueue->GetTask(fn))
 				{
 
-					CFileLog::cfilelog() << "Work thread " << mystate->id << ": Task running" << std::endl;
+					{
+						std::stringstream log;
+						log << "Work thread " << mystate->id << ": Task running";
+						SetTo::LocalLog("thread_pool", debug, log.str());
+					}
 
 					boost::this_thread::disable_interruption d;
 					fn();
-					CFileLog::cfilelog() << "Work thread " << mystate->id << ": Task ready" << std::endl;
+
+					{
+						std::stringstream log;
+						log << "Work thread " << mystate->id << ": Task ready";
+						SetTo::LocalLog("thread_pool", debug, log.str());
+					}
 
 					if (mystate->IsEnd) break;
 
 				}else{
 
-
-					CFileLog::cfilelog() << "Work thread " << mystate->id << ": Task waiting..." << std::endl;
+					{
+						std::stringstream log;
+						log << "Work thread " << mystate->id << ": Task waiting...";
+						SetTo::LocalLog("thread_pool", debug, log.str());
+					}
 
 					boost::mutex::scoped_lock lock(mystate->mut);
 					if (mystate->IsEnd) break;
 					mystate->taskqueue->cond.wait(lock);
 
-					CFileLog::cfilelog() << "Work thread " << mystate->id << ": Try get new task" << std::endl;
+					{
+						std::stringstream log;
+						log << "Work thread " << mystate->id << ": Try get new task";
+						SetTo::LocalLog("thread_pool", debug, log.str());
+					}
+
 				}
 			}
 
@@ -163,26 +188,46 @@ private:
 
 		catch(boost::thread_interrupted& e)
 		{
-			CFileLog::cfilelog() << "Work thread " << mystate->id << ":  End with exception thread_interrupted" << std::endl;
+			{
+				std::stringstream log;
+				log << "Work thread " << mystate->id << ":  End with exception thread_interrupted";
+				SetTo::LocalLog("thread_pool", error, log.str());
+			}
+
 			mystate->IsFinished = true;
 			return;
 		}
 
 		catch(std::exception& ex)
 		{
-			CFileLog::cfilelog() << "Work thread " << mystate->id << ":  End with std::exception: " << ex.what() << std::endl;
+			{
+				std::stringstream log;
+				log << "Work thread " << mystate->id << ":  End with std::exception: " << ex.what();
+				SetTo::LocalLog("thread_pool", error, log.str());
+			}
+
 			mystate->IsFinished = true;
 			return;
 		}
 
 		catch(...)
 		{
-			CFileLog::cfilelog() << "Work thread " << mystate->id << ":  End with unknown exception" << std::endl;
+			{
+				std::stringstream log;
+				log << "Work thread " << mystate->id << ":  End with unknown exception";
+				SetTo::LocalLog("thread_pool", error, log.str());
+			}
+
 			mystate->IsFinished = true;
 			return;
 		}
 
-		CFileLog::cfilelog() << "Work thread " << mystate->id << ":  End" << std::endl;
+		{
+			std::stringstream log;
+			log << "Work thread " << mystate->id << ":  End";
+			SetTo::LocalLog("thread_pool", trace, log.str());
+		}
+
 		mystate->IsFinished = true;
 
 	}
@@ -191,7 +236,11 @@ public:
 
 	~CWorker()
 	{
-		CFileLog::cfilelog() << "Destructor CWorker: " << id  << std::endl;
+		{
+			std::stringstream log;
+			log << "Destructor CWorker: " << id ;
+			SetTo::LocalLog("thread_pool", trace, log.str());
+		}
 
 		taskqueue->cond.notify_all();
 
@@ -205,9 +254,20 @@ public:
 		if (thr->joinable()) thr->join();
 		thr->detach();
 
-		CFileLog::cfilelog() << "Delete Thread: " << id  << std::endl;
+		{
+			std::stringstream log;
+			log << "Delete Thread: " << id ;
+			SetTo::LocalLog("thread_pool", debug, log.str());
+		}
+
 		delete thr;
-		CFileLog::cfilelog() << "Thread deleted: " << id  << std::endl;
+
+		{
+			std::stringstream log;
+			log << "Thread deleted: " << id ;
+			SetTo::LocalLog("thread_pool", debug, log.str());
+		}
+
 	}
 
 	CWorker(CTaskQueue* tq, u32 n):
@@ -219,7 +279,11 @@ public:
 		id(n)
 	{
 
-		CFileLog::cfilelog() << "Create Thread: " << id << std::endl;
+		{
+			std::stringstream log;
+			log << "Create Thread: " << id ;
+			SetTo::LocalLog("thread_pool", trace, log.str());
+		}
 
 		thr = new boost::thread(WorkerFn, this);
 
@@ -279,7 +343,11 @@ protected:
 
 		catch(...)
 		{
-			CFileLog::cfilelog() << "StartThreads Error!" << std::endl;
+			{
+				std::stringstream log;
+				log << "StartThreads Error!";
+				SetTo::LocalLog("thread_pool", error, log.str());
+			}
 
 			return false;
 		}
@@ -329,8 +397,11 @@ public:
 
 	CThreadPool(u32 thrn, u32 _maxtask, u32 _maxthreads=100): maxtask(_maxtask), maxthreads(_maxthreads)
 	{
-
-		CFileLog::cfilelog() << "Enter to ThreadPool constructor" << std::endl;
+		{
+			std::stringstream log;
+			log << "Enter to ThreadPool constructor";
+			SetTo::LocalLog("thread_pool", trace, log.str());
+		}
 
 		SetThreads(thrn);
 
@@ -340,7 +411,11 @@ public:
 	{
 		boost::mutex::scoped_lock lock(mutChangeThreads);
 
-		CFileLog::cfilelog() << "Enter to ThreadPool destructor" << std::endl;
+		{
+			std::stringstream log;
+			log << "Enter to ThreadPool destructor";
+			SetTo::LocalLog("thread_pool", trace, log.str());
+		}
 
 		InternalForceStop();
 	}
@@ -351,11 +426,19 @@ public:
 
 		if (thrn > maxthreads)
 		{
-			CFileLog::cfilelog() << "Warning: Quantity of work threads more than enabled maximum. Let's set value less or equal than " << maxthreads << std::endl;
+			{
+				std::stringstream log;
+				log << "Warning: Quantity of work threads more than enabled maximum. Let's set value less or equal than " << maxthreads;
+				SetTo::LocalLog("thread_pool", error, log.str());
+			}
 			return false;
 		}
 
-		CFileLog::cfilelog() << "Set Threads(" << thrn  << ")" << std::endl;
+		{
+			std::stringstream log;
+			log << "Set Threads(" << thrn  << ")";
+			SetTo::LocalLog("thread_pool", debug, log.str());
+		}
 
 		if (thrn < vWorks.size() )
 			return StopThreads(thrn);
@@ -371,14 +454,27 @@ public:
 
 		if (qTasks.size() >= maxtask )
 		{
-			CFileLog::cfilelog() << "Warning: Task adding failed because maximum tasks have inserted already" << std::endl;
+			{
+				std::stringstream log;
+				log << "Warning: Task adding failed because maximum tasks have inserted already";
+				SetTo::LocalLog("thread_pool", debug, log.str());
+			}
+
 			return false;
 		}
 
 		if (!vWorks.size())
-			CFileLog::cfilelog() << "Warning: Quantity of work threads = 0" << std::endl;
+		{
+			std::stringstream log;
+			log << "Warning: Quantity of work threads = 0";
+			SetTo::LocalLog("thread_pool", debug, log.str());
+		}
 
-		CFileLog::cfilelog() << "Add Task with priority=" << priority << std::endl;
+		{
+			std::stringstream log;
+			log << "Add Task with priority=" << priority;
+			SetTo::LocalLog("thread_pool", debug, log.str());
+		}
 
 		PriorityTask p(priority, func);
 
@@ -392,7 +488,11 @@ public:
 	{
 		boost::mutex::scoped_lock lock(mutChangeThreads);
 
-		CFileLog::cfilelog() << "Force Stop" << std::endl;
+		{
+			std::stringstream log;
+			log << "Force Stop";
+			SetTo::LocalLog("thread_pool", trace, log.str());
+		}
 
 		InternalForceStop();
 	}
@@ -402,7 +502,11 @@ public:
 
 		boost::mutex::scoped_lock lock(mutChangeThreads);
 
-		CFileLog::cfilelog() << "Do Tasks And Stop" << std::endl;
+		{
+			std::stringstream log;
+			log << "Do Tasks And Stop";
+			SetTo::LocalLog("thread_pool", trace, log.str());
+		}
 
 		for (std::list<CWorker*>::iterator it=vWorks.begin(); it != vWorks.end(); ++it)
 		{
@@ -416,7 +520,11 @@ public:
 	{
 		boost::mutex::scoped_lock lock(mutAddTask);
 
-		CFileLog::cfilelog() << "Set MaxTasks(" << n  << ")" << std::endl;
+		{
+			std::stringstream log;
+			log << "Set MaxTasks(" << n  << ")";
+			SetTo::LocalLog("thread_pool", trace, log.str());
+		}
 
 		maxtask = n;
 	}
