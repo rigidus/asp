@@ -29,16 +29,19 @@ const std::vector< shared_ptr<CBaseCommCtl> >& CBaseDevice::getCommCtl(){
 
 void CBaseDevice::performEvent(std::string& commDeviceName, std::vector<uint8_t>& rcvData)
 {
-	std::cout << "CBaseDevice::performEvent: performs Event from device: " << c_name << ": ";
-
 	if (rcvData.size() == 0)
 	{
-		std::cout << "ERROR! CBaseDevice::performEvent: Data size = 0" << std::endl;
+		SetTo::LocalLog("base_device", error, "ERROR! CBaseDevice::performEvent: Data size = 0");
 		return;
 	}
 
-	for (auto v: rcvData) std::cout << v << " ";
-	std::cout << std::endl;
+	{
+		std::stringstream log;
+		log << "CBaseDevice::performEvent: performs Event from device: " << c_name << ": ";
+		for (auto v: rcvData) log << v << " ";
+
+		SetTo::LocalLog("base_device", trace, log.str());
+	}
 
 	// TODO: Вызвать установку задачи для клиента по имени абстрактного девайса
 	char* beginData = (char*) &rcvData[0];
@@ -51,16 +54,19 @@ void CBaseDevice::performEvent(std::string& commDeviceName, std::vector<uint8_t>
 
 void CBaseDevice::performTransaction(std::vector<uint8_t>& rcvData)
 {
-	std::cout << "CBaseDevice::performTransaction: performs Transaction from device: " << c_name << ": " << std::endl;
-
 	if (rcvData.size() == 0)
 	{
-		std::cout << "ERROR! CBaseDevice::performTransaction: Data size = 0" << std::endl;
+		SetTo::LocalLog("base_device", error, "ERROR! CBaseDevice::performTransaction: Data size = 0");
 		return;
 	}
 
-	for (auto v: rcvData) std::cout << v << " ";
-	std::cout << std::endl;
+	{
+		std::stringstream log;
+		log << "CBaseDevice::performTransaction: performs Transaction from device: " << c_name << ": ";
+		for (auto v: rcvData) log << v << " ";
+
+		SetTo::LocalLog("base_device", trace, log.str());
+	}
 
 	// Вызвать установку задачи для клиента по имени абстрактного девайса
 	char* beginData = (char*) &rcvData[0];
@@ -77,7 +83,11 @@ void CBaseDevice::addCommDevice(shared_ptr<CBaseCommCtl> commCtl)
 	{
 		m_commCtl.push_back(commCtl);
 
-		std::cout << "CBaseDevice::addCommDevice: " << commCtl->m_commName << " was added to " << c_name << std::endl;
+		{
+			std::stringstream log;
+			log << "CBaseDevice::addCommDevice: " << commCtl->m_commName << " was added to " << c_name;
+			SetTo::LocalLog(c_name, debug, log.str());
+		}
 	}
 }
 
@@ -89,7 +99,11 @@ bool CBaseDevice::connectToCommCtl()
 
 	for (auto comm: commNames)
 	{
-		std::cout << "CBaseDevice::connectToCommCtl: " << c_name << " connected to " << comm << std::endl;
+		{
+			std::stringstream log;
+			log << "CBaseDevice::connectToCommCtl: " << c_name << " is trying to connect to " << comm;
+			SetTo::LocalLog(c_name, trace, log.str());
+		}
 
 		addCommDevice( takeCommDevice<CPinCtl>(comm) );
 		addCommDevice( takeCommDevice<CSerialPortCtl>(comm) );

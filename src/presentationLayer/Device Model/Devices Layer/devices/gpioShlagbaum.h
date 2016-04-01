@@ -42,7 +42,7 @@ class CGPIOShlagbaum: public CBaseDevice
 		if ( realOpen == realClose)
 		{
 			actualState = InError;
-			std::cout << "CGPIOShlagbaum::StateDetector: Set state InError (realOpen == realClose)." << std::endl;
+			SetTo::LocalLog(c_name, debug, "CGPIOShlagbaum::StateDetector: Set state InError (realOpen == realClose).");
 			return InError;
 		}
 
@@ -50,7 +50,7 @@ class CGPIOShlagbaum: public CBaseDevice
 		if ( realClose && realCarPresent )
 		{
 			actualState = InError;
-			std::cout << "CGPIOShlagbaum::StateDetector: Set state InError (realClose && realCarPresent)." << std::endl;
+			SetTo::LocalLog(c_name, debug, "CGPIOShlagbaum::StateDetector: Set state InError (realClose && realCarPresent).");
 			return Closed;
 		}
 
@@ -58,21 +58,21 @@ class CGPIOShlagbaum: public CBaseDevice
 		if ( realOpen && realCarPresent )
 		{
 			actualState = CarPresent;
-			std::cout << "CGPIOShlagbaum::StateDetector: Set state CarPresent." << std::endl;
+			SetTo::LocalLog(c_name, debug, "CGPIOShlagbaum::StateDetector: Set state CarPresent.");
 			return CarPresent;
 		}
 
 		if ( realOpen && !realCarPresent )
 		{
 			actualState = Opened;
-			std::cout << "CGPIOShlagbaum::StateDetector: Set state Opened." << std::endl;
+			SetTo::LocalLog(c_name, debug, "CGPIOShlagbaum::StateDetector: Set state Opened.");
 			return Opened;
 		}
 
 		if ( realClose && !realCarPresent )
 		{
 			actualState = Closed;
-			std::cout << "CGPIOShlagbaum::StateDetector: Set state Closed." << std::endl;
+			SetTo::LocalLog(c_name, debug, "CGPIOShlagbaum::StateDetector: Set state Closed.");
 			return Closed;
 		}
 
@@ -136,7 +136,11 @@ class CGPIOShlagbaum: public CBaseDevice
 			SetTo::Client(type, c_name, "send", str.str());
 		}
 
-		std::cout << "CGPIOShlagbaum::SendAnswerToClient: sent string '" << str.str() << std::endl;
+		{
+			std::stringstream log;
+			log << "CGPIOShlagbaum::SendAnswerToClient: sent string '" << str.str();
+			SetTo::LocalLog(c_name, debug, log.str());
+		}
 
 	}
 
@@ -148,8 +152,12 @@ class CGPIOShlagbaum: public CBaseDevice
 
 		if ( i == m_commCtl.size())
 		{
-			std::cout << "ERROR! GPIOShlagbaum::sendCommand: communication device '" << name << "' has lost in '"
-					<< c_name << "'"  << std::endl;
+			{
+				std::stringstream log;
+				log << "ERROR! GPIOShlagbaum::sendCommand: communication device '" << name << "' has lost in '"
+						<< c_name << "'";
+				SetTo::LocalLog(c_name, error, log.str());
+			}
 
 			actualState = InErrorCommDevice;
 			SendAnswerToClient(InErrorCommDevice, "error", SetTo::CommandType::Event);
@@ -177,11 +185,19 @@ public:
 	// составить параметры команды и отправить на клиента
 	virtual void performEvent(std::string& commDeviceName, std::vector<uint8_t>& rcvData)
 	{
-		std::cout << "GPIOShlagbaum::performEvent: from '" << commDeviceName << "'" << std::endl;
+		{
+			std::stringstream log;
+			log << "GPIOShlagbaum::performEvent: from '" << commDeviceName << "'";
+			SetTo::LocalLog(c_name, trace, log.str());
+		}
 
 		if (m_commCtl.size() < LastFunction)
 		{
-			std::cout << "ERROR! GPIOShlagbaum::sendCommand: communication devices has lost in '" << c_name << "'" << std::endl;
+			{
+				std::stringstream log;
+				log << "ERROR! GPIOShlagbaum::sendCommand: communication devices has lost in '" << c_name << "'";
+				SetTo::LocalLog(c_name, error, log.str());
+			}
 
 			actualState = InErrorCommDevice;
 			SendAnswerToClient(InErrorCommDevice, "error", SetTo::CommandType::Event);
@@ -193,7 +209,7 @@ public:
 		if ( i == LastFunction)
 		{
 			// Setup Error
-			std::cout << "GPIOShlagbaum::performEvent: commDevice not found" << std::endl;
+			SetTo::LocalLog(c_name, error, "GPIOShlagbaum::performEvent: commDevice not found");
 			return;
 		}
 
@@ -213,7 +229,11 @@ public:
 				str << "\"command\":\"up\", " << "\"parameters\":{ \"result\":\"OK\" }";
 				SetTo::Client(SetTo::CommandType::Event, c_name, "send", str.str());
 
-				std::cout << "CGPIOShlagbaum::performEvent: sent string '" << str.str() << std::endl;
+				{
+					std::stringstream log;
+					log << "CGPIOShlagbaum::performEvent: sent string '" << str.str();
+					SetTo::LocalLog(c_name, debug, log.str());
+				}
 
 				actualState = Opened;
 
@@ -240,7 +260,11 @@ public:
 				str << "\"command\":\"down\", " << "\"parameters\":{ \"result\":\"OK\" }";
 				SetTo::Client(SetTo::CommandType::Event, c_name, "send", str.str());
 
-				std::cout << "CGPIOShlagbaum::performEvent: sent string '" << str.str() << std::endl;
+				{
+					std::stringstream log;
+					log << "CGPIOShlagbaum::performEvent: sent string '" << str.str();
+					SetTo::LocalLog(c_name, debug, log.str());
+				}
 
 				actualState = Closed;
 
@@ -290,7 +314,11 @@ public:
 				}
 			}
 
-			std::cout << "CGPIOShlagbaum::performEvent: sent string '" << str.str() << std::endl;
+			{
+				std::stringstream log;
+				log << "CGPIOShlagbaum::performEvent: sent string '" << str.str();
+				SetTo::LocalLog(c_name, debug, log.str());
+			}
 
 		}
 
@@ -298,13 +326,21 @@ public:
 
 	virtual void sendCommand(const std::string command, const std::string pars)
 	{
-		std::cout << "GPIOShlagbaum::sendCommand: performs command: " << command << "[" << pars << "]" << std::endl;
+		{
+			std::stringstream log;
+			log << "GPIOShlagbaum::sendCommand: performs command: " << command << "[" << pars << "]";
+			SetTo::LocalLog(c_name, trace, log.str());
+		}
 
 		std::list<std::vector<uint8_t> > data;
 
 		if (m_commCtl.size() < LastFunction)
 		{
-			std::cout << "ERROR! GPIOShlagbaum::sendCommand: communication devices has lost" << std::endl;
+			{
+				std::stringstream log;
+				log << "ERROR! GPIOShlagbaum::sendCommand: communication devices has lost";
+				SetTo::LocalLog(c_name, error, log.str());
+			}
 
 			actualState = InErrorCommDevice;
 			SendAnswerToClient(InErrorCommDevice, command);
