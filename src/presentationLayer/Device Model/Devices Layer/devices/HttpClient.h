@@ -43,7 +43,12 @@ public:
 
 		case MG_EV_CONNECT:
 			if (* (int *) ev_data != 0) {
-				std::cout << "HttpClient::ev_handler: Connect to businness logic failed: " << strerror(* (int *) ev_data);
+				{
+					std::stringstream log;
+					log << "HttpClient::ev_handler: Connect to businness logic failed: " << strerror(* (int *) ev_data);
+					SetTo::LocalLog(HttpClient::s_concreteName, error, log.str());
+				}
+
 				s_exit_flag = 1;
 			}
 			break;
@@ -51,7 +56,11 @@ public:
 		case MG_EV_HTTP_REPLY:
 			{
 				nc->flags |= MG_F_CLOSE_IMMEDIATELY;
-				std::cout << "HttpClient::ev_handler: message transferred, response code: " << hm->resp_code << std::endl;
+				{
+					std::stringstream log;
+					log << "HttpClient::ev_handler: message transferred, response code: " << hm->resp_code;
+					SetTo::LocalLog(HttpClient::s_concreteName, trace, log.str());
+				}
 				s_exit_flag = 1;
 
 				SetTo::Manager(HttpClient::s_concreteName);
@@ -69,7 +78,11 @@ public:
 
 		boost::mutex::scoped_lock lock(HTTPconnectMutex);
 
-		std::cout << "HttpClient::sendCommand: Business logic client performs command: " << command << "[" << pars << "]" << std::endl;
+		{
+			std::stringstream log;
+			log << "HttpClient::sendCommand: Business logic client performs command: " << command << "[" << pars << "]";
+			SetTo::LocalLog(c_name, trace, log.str());
+		}
 
 		// TODO Здесь пока что сделана синхронка for example, но нужна Асинхронная передача на сервер
 		// Для чего надо ставить задачу на отправку тредпулу, а подтверждение обрабатывать в коллбэке

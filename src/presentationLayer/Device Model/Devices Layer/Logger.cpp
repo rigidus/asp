@@ -112,13 +112,13 @@ src::severity_logger_mt< severity_level >& Logger::getMyLogger()
 	return lg;
 }
 
-inline void Logger::CommonLog(severity_level level, std::string message)
+inline void Logger::CommonLog(severity_level level, const std::string& message)
 {
 	src::severity_logger_mt< severity_level >& lg = getMyLogger();
 	BOOST_LOG_SEV(lg, level) << message;
 }
 
-inline void Logger::LocalLog(std::string name, severity_level level, std::string message)
+inline void Logger::LocalLog(const std::string& name, severity_level level, const std::string& message)
 {
 	BOOST_LOG_SCOPED_THREAD_TAG("RequestID", name);
 	src::severity_logger_mt< severity_level >& lg = getMyLogger();
@@ -127,7 +127,7 @@ inline void Logger::LocalLog(std::string name, severity_level level, std::string
 }
 
 
-void Logger::SetToCommonLog(severity_level level, std::string message)
+void Logger::SetToCommonLog(severity_level level, const std::string& message)
 {
 	std::cout << " lineid = " << line_id << std::endl;
 
@@ -138,7 +138,7 @@ void Logger::SetToCommonLog(severity_level level, std::string message)
 #endif
 }
 
-void Logger::SetToLocalLog(std::string name, severity_level level, std::string message)
+void Logger::SetToLocalLog(const std::string& name, severity_level level, const std::string& message)
 {
 	std::cout << " lineid = " << line_id << std::endl;
 

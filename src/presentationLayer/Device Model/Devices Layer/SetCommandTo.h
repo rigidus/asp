@@ -9,6 +9,7 @@
 #define SETCOMMANDTO_H_
 
 #include <string>
+#include <sstream>
 #include "SeverityLevels.h"
 
 namespace SetTo
@@ -25,8 +26,8 @@ void Manager(std::string device);
 
 void sendErrorToClient(std::stringstream& errorText);
 
-void CommonLog(severity_level lvl, std::string message);
-void LocalLog(std::string device, severity_level lvl, std::string message);
+void CommonLog(severity_level lvl, const std::string message);
+void LocalLog(const std::string device, severity_level lvl, const std::string message);
 
 
 }

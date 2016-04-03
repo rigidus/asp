@@ -43,7 +43,11 @@ public:
 
 		case MG_EV_CONNECT:
 			if (* (int *) ev_data != 0) {
-				std::cout << "HttpDevLayerClient::ev_handler: Connect to businness logic failed: " << strerror(* (int *) ev_data);
+				{
+					std::stringstream log;
+					log << "HttpDevLayerClient::ev_handler: Connect to businness logic failed: " << strerror(* (int *) ev_data);
+					SetTo::LocalLog(HttpDevLayerClient::s_concreteName, trace, log.str());
+				}
 				s_exit_flag = 1;
 			}
 			break;
@@ -51,7 +55,11 @@ public:
 		case MG_EV_HTTP_REPLY:
 			{
 				nc->flags |= MG_F_CLOSE_IMMEDIATELY;
-				std::cout << "HttpDevLayerClient::ev_handler: message transferred, response code: " << hm->resp_code << std::endl;
+				{
+					std::stringstream log;
+					log << "HttpDevLayerClient::ev_handler: message transferred, response code: " << hm->resp_code;
+					SetTo::LocalLog(HttpDevLayerClient::s_concreteName, trace, log.str());
+				}
 				s_exit_flag = 1;
 
 				SetTo::Manager(HttpDevLayerClient::s_concreteName);
@@ -69,9 +77,11 @@ public:
 
 		boost::mutex::scoped_lock lock(HTTPconnectMutex);
 
-		std::cout << "HttpDevLayerClient::sendCommand: Business logic client performs command: " << command << "[" << pars << "]" << std::endl;
-
-		// TODO Сериализация JSON
+		{
+			std::stringstream log;
+			log << "HttpDevLayerClient::sendCommand: Business logic client performs command: " << command << "[" << pars << "]";
+			SetTo::LocalLog(c_name, trace, log.str());
+		}
 
 		// TODO Здесь пока что сделана синхронка for example, но нужна Асинхронная передача на сервер
 		// Для чего надо ставить задачу на отправку тредпулу, а подтверждение обрабатывать в коллбэке
@@ -85,7 +95,11 @@ public:
 			mg_mgr_poll(&mgr, 1000);
 		}
 
-		std::cout << "HttpDevLayerClient::sendCommand: Business logic client end command: " << command << "[" << pars << "]" << std::endl;
+		{
+			std::stringstream log;
+			log << "HttpDevLayerClient::sendCommand: Business logic client end command: " << command << "[" << pars << "]";
+			SetTo::LocalLog(c_name, trace, log.str());
+		}
 
 	}
 

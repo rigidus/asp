@@ -99,10 +99,10 @@ namespace Logger
 	void initReleaseLogging();
 
 	src::severity_logger_mt< severity_level >& getMyLogger();
-	inline void CommonLog(severity_level level, std::string message);
-	inline void LocalLog(std::string name, severity_level level, std::string message);
-	void SetToCommonLog(severity_level level, std::string message);
-	void SetToLocalLog(std::string name, severity_level level, std::string message);
+	inline void CommonLog(severity_level level, const std::string& message);
+	inline void LocalLog(const std::string& name, severity_level level, const std::string& message);
+	void SetToCommonLog(severity_level level, const std::string& message);
+	void SetToLocalLog(const std::string& name, severity_level level, const std::string& message);
 
 	template<typename T>
 	T getArg(std::string str)
