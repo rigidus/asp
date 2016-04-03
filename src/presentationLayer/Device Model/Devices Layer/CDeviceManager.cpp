@@ -26,14 +26,14 @@ CDeviceManager::CDeviceManager(std::vector<settings::DeviceConfig> devConfig) {
 		{
 			std::stringstream log;
 			log << "CDeviceManager constructor: for " << v.abstractName << " started";
-			SetTo::CommonLog(trace, log.str());
+			SetTo::CommonLog(debug, log.str());
 		}
 
 		if (v.proto.size() != 0)
 		{
 			std::stringstream log;
 			log << "- " << v.proto;
-			SetTo::CommonLog(trace, log.str());
+			SetTo::CommonLog(debug, log.str());
 		}
 
 		DeviceCtl devCtl;
@@ -55,14 +55,14 @@ CDeviceManager::CDeviceManager(std::vector<settings::DeviceConfig> devConfig) {
 	{
 		std::stringstream log;
 		log << "CDeviceManager constructor: Created device list:";
-		SetTo::CommonLog(trace, log.str());
+		SetTo::CommonLog(debug, log.str());
 	}
 
 	for (auto v: devices)
 	{
 		std::stringstream log;
 		log << "- " << v.first << "[" << v.second.devInstance.get() << "]";
-		SetTo::CommonLog(trace, log.str());
+		SetTo::CommonLog(debug, log.str());
 	}
 
 }
@@ -173,7 +173,7 @@ void CDeviceManager::setCommandToDevice(uint32_t txid, std::string abstractDevic
 				{
 					std::stringstream log;
 					log << "CDeviceManager::setCommandToDevice: task added to " << abstractDevice;
-					SetTo::CommonLog(trace, log.str());
+					SetTo::CommonLog(debug, log.str());
 				}
 
 				/*
@@ -188,13 +188,13 @@ void CDeviceManager::setCommandToDevice(uint32_t txid, std::string abstractDevic
 			{
 				std::stringstream log;
 				log << "CDeviceManager::setCommandToDevice: " << abstractDevice << " not found in device list.";
-				SetTo::CommonLog(trace, log.str());
+				SetTo::CommonLog(debug, log.str());
 			}
 		}
 	}
 	else
 	{
-		SetTo::CommonLog(trace, "No instanced devices found" );
+		SetTo::CommonLog(error, "No instanced devices found" );
 	}
 
 }
@@ -268,7 +268,7 @@ void CDeviceManager::setCommandToClient(SetTo::CommandType eventFlag, std::strin
 					{
 						std::stringstream log;
 						log << "CDeviceManager::setCommandToClient: task added to " << itAdresat->first;
-						SetTo::CommonLog(trace, log.str());
+						SetTo::CommonLog(debug, log.str());
 					}
 
 					/*
@@ -304,7 +304,7 @@ void CDeviceManager::setCommandToClient(SetTo::CommandType eventFlag, std::strin
 					{
 						std::stringstream log;
 						log << "CDeviceManager::setCommandToClient: task added to " << abstractName;
-						SetTo::CommonLog(trace, log.str());
+						SetTo::CommonLog(debug, log.str());
 					}
 				}
 
@@ -315,7 +315,7 @@ void CDeviceManager::setCommandToClient(SetTo::CommandType eventFlag, std::strin
 			{
 				std::stringstream log;
 				log << "CDeviceManager::setCommandToClient: Adresat '" << task.adresat << "'  not found in device list.";
-				SetTo::CommonLog(trace, log.str());
+				SetTo::CommonLog(debug, log.str());
 			}
 		}
 	}
@@ -336,7 +336,8 @@ void CDeviceManager::setCommandToClient(SetTo::CommandType eventFlag, std::strin
 
 			{
 				std::stringstream log;
-				log << "CDeviceManager::setCommandToClient: Set event to '" << clientTask.abstract <<"' from " << concreteDevice << " as Event.";
+				log << "CDeviceManager::setCommandToClient: Set event to '"
+						<< clientTask.abstract <<"' from " << concreteDevice << " as Event.";
 				SetTo::CommonLog(trace, log.str());
 			}
 
@@ -372,7 +373,7 @@ void CDeviceManager::setCommandToClient(SetTo::CommandType eventFlag, std::strin
 				{
 					std::stringstream log;
 					log << "CDeviceManager::setCommandToDevice: task added to " << itAdresat->first;
-					SetTo::CommonLog(trace, log.str());
+					SetTo::CommonLog(debug, log.str());
 				}
 
 				/*
@@ -445,7 +446,7 @@ void CDeviceManager::ackClient(std::string concreteDevice)
 				{
 					std::stringstream log;
 					log << "CDeviceManager::ackClient: task added to '" << abstractName << "'";
-					SetTo::CommonLog(trace, log.str());
+					SetTo::CommonLog(debug, log.str());
 				}
 			}
 			else
@@ -453,7 +454,7 @@ void CDeviceManager::ackClient(std::string concreteDevice)
 				{
 					std::stringstream log;
 					log << "CDeviceManager::ackClient: queue of device '" << abstractName << "' is empty.";
-					SetTo::CommonLog(trace, log.str());
+					SetTo::CommonLog(debug, log.str());
 				}
 			}
 

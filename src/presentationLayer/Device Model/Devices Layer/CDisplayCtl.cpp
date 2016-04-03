@@ -13,9 +13,6 @@ namespace boostfs = boost::filesystem;
 
 const std::string CDisplayCtl::s_name = "klcd";
 const std::string CDisplayCtl::displayPath = "/dev/";
-//std::map<std::string, shared_ptr<CBaseCommCtl> > CDisplayCtl::busyDisplays;
-//boost::thread* CDisplayCtl::thrNotify = nullptr;
-//bool CDisplayCtl::stopFlag = false;
 
 bool CDisplayCtl::checkFiles()
 {
@@ -23,91 +20,34 @@ bool CDisplayCtl::checkFiles()
 
 	if ( CDisplayCtl::fileIsExist( displayPath ) == false)
 	{
-		std::cout << "ERROR! CDisplayCtl::takeCommCtl getting '" << m_DisplayData.name << "'  failed: file not found" << std::endl;
-		return false;
-	}
-/*
-	if ( CPinCtl::fileIsExist( pinPath+"value" ) == false)
-	{
-		std::cout << "ERROR! CPinCtl::takeCommCtl getting '" << m_PinData.name << "' failed: value not found" << std::endl;
-		return false;
-	}
-
-	if ( CPinCtl::fileIsExist( pinPath+"edge" ) == false)
-	{
-		std::cout << "ERROR! CPinCtl::takeCommCtl getting '" << m_PinData.name << "' failed: edge not found" << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CDisplayCtl::takeCommCtl getting '" << m_DisplayData.name << "'  failed: file not found";
+			SetTo::LocalLog(m_deviceName, error, log.str());
+		}
 		return false;
 	}
 
-	if ( CPinCtl::fileIsExist( pinPath+"active_low" ) == false)
-	{
-		std::cout << "ERROR! CPinCtl::takeCommCtl getting '" << m_PinData.name << "' failed: active_low not found" << std::endl;
-		return false;
-	}
-	// OK! pin is present
-*/
 	return true;
 }
 
 
 void CDisplayCtl::setupDisplay()
 {
-
-	std::cout << "CDisplayCtl::setupDisplay: " << m_DisplayData.name << std::endl;
-
-	//const settings::CommDisplayConfig& config = m_Config; //!!!fix: use it
+	{
+		std::stringstream log;
+		log << "CDisplayCtl::setupDisplay: " << m_DisplayData.name;
+		SetTo::LocalLog(m_deviceName, trace, log.str());
+	}
 
 	std::string displayPath = CDisplayCtl::displayPath + "/" + m_DisplayData.name;
 
 	//!!!fix display setup
-	std::cout << "CDisplayCtl::setupDisplay: setting on = " << displayPath << " [fake]" << std::endl;
-/*
 	{
-		std::string strActiveLow("0");
-//		boostio::stream_buffer<boostio::file_sink> bufExport(pinPath+"active_low");
-		std::ostream fileExport(&bufExport);
-
-//		std::cout << "CDisplayCtl::setupDisplay: active_low = " << strActiveLow << std::endl;
-
-		fileExport << strActiveLow;
+		std::stringstream log;
+		log << "CDisplayCtl::setupDisplay: setting on = " << displayPath << " [fake]";
+		SetTo::LocalLog(m_deviceName, debug, log.str());
 	}
-
-	{
-		std::string strDir("in");
-		if (config.direction)
-			strDir = "out";
-
-		boostio::stream_buffer<boostio::file_sink> bufExport(pinPath+"direction");
-		std::ostream fileExport(&bufExport);
-
-		std::cout << "CPinCtl::setupGPIO: direction = " << strDir << std::endl;
-
-		fileExport << strDir;
-	}
-
-	{
-		std::string strEdge("both");
-		boostio::stream_buffer<boostio::file_sink> bufExport(pinPath+"edge");
-		std::ostream fileExport(&bufExport);
-
-		std::cout << "CPinCtl::setupGPIO: edge = " << strEdge << std::endl;
-
-		fileExport << strEdge;
-	}
-
-	{
-		std::string strDef("0");
-		if (config.def_value)
-			strDef = "1";
-
-		boostio::stream_buffer<boostio::file_sink> bufExport(pinPath+"value");
-		std::ostream fileExport(&bufExport);
-
-		std::cout << "CPinCtl::setupGPIO: default value = " << strDef << std::endl;
-
-		fileExport << strDef;
-	}
-*/
 }
 
 
@@ -121,14 +61,24 @@ settings::CommDisplayConfig CDisplayCtl::getDisplayConfig(CBaseDevice* device, c
 	{
 		if ( v.name == displayName )
 		{
-			std::cout << "getDisplayConfig: " << displayName << std::endl;
+			{
+				std::stringstream log;
+				log << "CDisplayCtl::getDisplayConfig: " << displayName;
+				SetTo::LocalLog(device->c_name, debug, log.str());
+			}
 
 			return v;
 		}
 	}
 
 	settings::CommDisplayConfig empty = { displayName, "/dev/klcd" }; //!!!fix hardcode
-	std::cout << "getDisplayConfig: returning EMPTY! " << displayName << std::endl;
+
+	{
+		std::stringstream log;
+		log << "CDisplayCtl::getDisplayConfig: returning EMPTY! " << displayName;
+		SetTo::LocalLog(device->c_name, error, log.str());
+	}
+
 	return empty;
 }
 
@@ -136,20 +86,28 @@ settings::CommDisplayConfig CDisplayCtl::getDisplayConfig(CBaseDevice* device, c
 shared_ptr<CBaseCommCtl> CDisplayCtl::takeCommCtl(CBaseDevice* device, const std::string& displayName)
 {
 
-	std::cout << "CDisplayCtl::takeCommCtl try to take " << displayName << std::endl;
+	{
+		std::stringstream log;
+		log << "CDisplayCtl::takeCommCtl try to take " << displayName;
+		SetTo::LocalLog(device->c_name, trace, log.str());
+	}
 
 	try{
 
-		std::cout << "ATTENTION! CDisplayCtl::takeCommCtl: getting " << displayPath << displayName << std::endl;
+		{
+			std::stringstream log;
+			log << "CDisplayCtl::takeCommCtl: getting " << displayPath << displayName;
+			SetTo::LocalLog(device->c_name, trace, log.str());
+		}
 		boostio::stream_buffer<boostio::file_sink> bufExport(displayPath+displayName);
 		std::ostream fileExport(&bufExport);
 
-		// TODO: grabli, значимая фиксированная позиция в строке
-//		fileExport << &gpioName[4]; // 4 - is gpio number position
-
 		// Create TPinData
-//		std::string displayPath = CDisplayCtl::displayPath + "/" + displayName + "/";
-		std::cout << "ATTENTION! CDisplayCtl::takeCommCtl: create fname " << displayPath << displayName << std::endl;
+		{
+			std::stringstream log;
+			log << "CDisplayCtl::takeCommCtl: create fname " << displayPath << displayName;
+			SetTo::LocalLog(device->c_name, trace, log.str());
+		}
 		std::string fname(CDisplayCtl::displayPath + displayName);
 
 		TDisplayData display;
@@ -157,39 +115,60 @@ shared_ptr<CBaseCommCtl> CDisplayCtl::takeCommCtl(CBaseDevice* device, const std
 		display.fd = -1;
 		display.name = displayName;
 
-		std::cout << "ATTENTION! CDisplayCtl::takeCommCtl: getDisplayConfig " << displayPath << displayName << std::endl;
+		{
+			std::stringstream log;
+			log << "CDisplayCtl::takeCommCtl: getDisplayConfig " << displayPath << displayName;
+			SetTo::LocalLog(device->c_name, trace, log.str());
+		}
 		settings::CommDisplayConfig config = getDisplayConfig(device, displayName);
 
 		// create CDisplayCtl for displayNum
-		std::cout << "ATTENTION! CDisplayCtl::takeCommCtl: New CDisplayCtl " << displayPath << displayName << std::endl;
+		{
+			std::stringstream log;
+			log << "CDisplayCtl::takeCommCtl: New CDisplayCtl " << displayPath << displayName;
+			SetTo::LocalLog(device->c_name, trace, log.str());
+		}
 
 		shared_ptr<CBaseCommCtl> displayCtl( (CBaseCommCtl*) new CDisplayCtl(device, config, display) );
-		std::cout << "ATTENTION! CDisplayCtl::takeCommCtl: pr(displayName, displayCtl) " << displayPath << displayName << std::endl;
+		{
+			std::stringstream log;
+			log << "CDisplayCtl::takeCommCtl: pr(displayName, displayCtl) " << displayPath << displayName;
+			SetTo::LocalLog(device->c_name, trace, log.str());
+		}
 		std::pair<std::string, shared_ptr<CBaseCommCtl> > pr(displayName, displayCtl);
-//		busyPins.insert(pr);
-//
-		// OK! pin is made as busied and stored
 
-		std::cout << "CDisplayCtl::takeCommCtl: take " << displayName << " successfully [fake]" << std::endl;
+		{
+			std::stringstream log;
+			log << "CDisplayCtl::takeCommCtl: take " << displayName << " successfully [fake]";
+			SetTo::LocalLog(device->c_name, debug, log.str());
+		}
 
 		return displayCtl;
 	}
 
 	catch(boost::exception& ex)
 	{
-		std::cout << "ERROR! CDisplayCtl::takeCommCtl: exception: " << boost::diagnostic_information(ex) << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CDisplayCtl::takeCommCtl: exception: " << boost::diagnostic_information(ex);
+			SetTo::LocalLog(device->c_name, error, log.str());
+		}
 		return nullptr;
 	}
 
 	catch(std::exception& ex)
 	{
-		std::cout << "ERROR! CDisplayCtl::takeCommCtl: exception: " << ex.what() << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CDisplayCtl::takeCommCtl: exception: " << ex.what();
+			SetTo::LocalLog(device->c_name, error, log.str());
+		}
 		return nullptr;
 	}
 
 	catch(...)
 	{
-		std::cout << "ERROR! CDisplayCtl::takeCommCtl unknown exception: " << std::endl;
+		SetTo::LocalLog(device->c_name, error, "ERROR! CDisplayCtl::takeCommCtl unknown exception");
 		return nullptr;
 	}
 
@@ -200,34 +179,19 @@ shared_ptr<CBaseCommCtl> CDisplayCtl::takeCommCtl(CBaseDevice* device, const std
 void CDisplayCtl::freeCommCtl(CBaseDevice* device, const std::string& displayName)
 {
 
+	{
+		std::stringstream log;
+		log << "CDisplayCtl::freeCommCtl: getDisplayCtl try to free " << displayName;
+		SetTo::LocalLog(device->c_name, trace, log.str());
+	}
+
 	if (device == nullptr) return;
 
-	std::cout << "CDisplayCtl::freeCommCtl: getDisplayCtl try to free " << displayName << std::endl;
-
-//	// check busy device
-//
-//	auto it = busyPins.find(gpioName);
-//
-//	if ( it == busyPins.end())
-//	{
-//		return;
-//	}
-//	// OK! pin is busy
-//
-//	shared_ptr<CBaseCommCtl> displayCtl(it->second);
-//	if ( displayCtl->m_deviceName != device->c_name)
-//	{
-//		return;
-//	}
-//
-//	// free pin
-//	boostio::stream_buffer<boostio::file_sink> bufExport(gpioPath+"unexport");
-//	std::ostream fileExport(&bufExport);
-//	fileExport << gpioName;
-
-	std::cout << "CDisplayCtl::freeCommCtl: " << displayName << " is free [fake]" << std::endl;
-
-//	busyPins.erase(it);
+	{
+		std::stringstream log;
+		log << "CDisplayCtl::freeCommCtl: " << displayName << " is free [fake]";
+		SetTo::LocalLog(device->c_name, debug, log.str());
+	}
 }
 
 
@@ -256,7 +220,11 @@ CDisplayCtl::~CDisplayCtl(){
 uint32_t CDisplayCtl::send(std::vector<uint8_t> sendData)
 {
 	std::list<std::vector<uint8_t> > lst;
-	std::cout << "CDisplayCtl::send: <vector> sendData.size == " << sendData.size() << std::endl;
+	{
+		std::stringstream log;
+		log << "CDisplayCtl::send: <vector> sendData.size == " << sendData.size();
+		SetTo::LocalLog(m_deviceName, trace, log.str());
+	}
 	lst.push_back(sendData);
 
 	return send(lst);
@@ -273,7 +241,11 @@ uint32_t CDisplayCtl::utf8towinstar(std::string* const value)
 
 			if (++iUTF8 == value->size())
 			{
-				std::cout << "CDisplayCtl::utf8towinstar: unexpected end of string " << value[iUTF8] << std::endl;
+				{
+					std::stringstream log;
+					log << "CDisplayCtl::utf8towinstar: unexpected end of string " << value[iUTF8];
+					SetTo::LocalLog(m_deviceName, error, log.str());
+				}
 				return 0;
 			}
 
@@ -427,7 +399,11 @@ uint32_t CDisplayCtl::utf8towinstar(std::string* const value)
 				(*value)[iWnstr] = 0xBE;
 				break;
 			default:
-				std::cout << "CDisplayCtl::utf8towinstar: wrong decoding D0 " << value[iUTF8] << std::endl;
+				{
+					std::stringstream log;
+					log << "CDisplayCtl::utf8towinstar: wrong decoding D0 " << value[iUTF8];
+					SetTo::LocalLog(m_deviceName, error, log.str());
+				}
 				break;
 			}
 			break;
@@ -436,7 +412,11 @@ uint32_t CDisplayCtl::utf8towinstar(std::string* const value)
 
 			if (++iUTF8 == value->size())
 			{
-				std::cout << "CDisplayCtl::utf8towinstar: unexpected end of string " << value[iUTF8] << std::endl;
+				{
+					std::stringstream log;
+					log << "CDisplayCtl::utf8towinstar: unexpected end of string " << value[iUTF8];
+					SetTo::LocalLog(m_deviceName, error, log.str());
+				}
 				return 0;
 			}
 
@@ -494,7 +474,11 @@ uint32_t CDisplayCtl::utf8towinstar(std::string* const value)
 				(*value)[iWnstr] = 0xB5;
 				break;
 			default:
-				std::cout << "CDisplayCtl::utf8towinstar: wrong decoding D1 " << value[iUTF8] << std::endl;
+				{
+					std::stringstream log;
+					log << "CDisplayCtl::utf8towinstar: wrong decoding D1 " << value[iUTF8];
+					SetTo::LocalLog(m_deviceName, error, log.str());
+				}
 				break;
 			}
 			break;
@@ -503,7 +487,11 @@ uint32_t CDisplayCtl::utf8towinstar(std::string* const value)
 
 			if (++iUTF8 == value->size())
 			{
-				std::cout << "CDisplayCtl::utf8towinstar: unexpected end of string " << value[iUTF8] << std::endl;
+				{
+					std::stringstream log;
+					log << "CDisplayCtl::utf8towinstar: unexpected end of string " << value[iUTF8];
+					SetTo::LocalLog(m_deviceName, error, log.str());
+				}
 				return 0;
 			}
 
@@ -513,7 +501,11 @@ uint32_t CDisplayCtl::utf8towinstar(std::string* const value)
 
 				if (++iUTF8 == value->size())
 				{
-					std::cout << "CDisplayCtl::utf8towinstar: unexpected end of string " << value[iUTF8] << std::endl;
+					{
+						std::stringstream log;
+						log << "CDisplayCtl::utf8towinstar: unexpected end of string " << value[iUTF8];
+						SetTo::LocalLog(m_deviceName, error, log.str());
+					}
 					return 0;
 				}
 
@@ -523,12 +515,20 @@ uint32_t CDisplayCtl::utf8towinstar(std::string* const value)
 					(*value)[iWnstr] = 0xCC;
 					break;
 				default:
-					std::cout << "CDisplayCtl::utf8towinstar: wrong decoding E284 " << value[iUTF8] << std::endl;
+					{
+						std::stringstream log;
+						log << "CDisplayCtl::utf8towinstar: wrong decoding E284 " << value[iUTF8];
+						SetTo::LocalLog(m_deviceName, error, log.str());
+					}
 					break;
 				}
 				break;
 			default:
-				std::cout << "CDisplayCtl::utf8towinstar: wrong decoding E2 " << value[iUTF8] << std::endl;
+				{
+					std::stringstream log;
+					log << "CDisplayCtl::utf8towinstar: wrong decoding E2 " << value[iUTF8];
+					SetTo::LocalLog(m_deviceName, error, log.str());
+				}
 				break;
 			}
 			break;
@@ -546,14 +546,22 @@ uint32_t CDisplayCtl::utf8towinstar(std::string* const value)
 
 uint32_t CDisplayCtl::send(std::list<std::vector<uint8_t> > sendData)
 {
-	std::cout << "CDisplayCtl::send: command 'write data' to '" << m_DisplayData.name << "'." << std::endl;
+	{
+		std::stringstream log;
+		log << "CDisplayCtl::send: command 'write data' to '" << m_DisplayData.name << "'.";
+		SetTo::LocalLog(m_deviceName, trace, log.str());
+	}
 
 	/*
 	 * Парсинг команды записи в конкретный файл пина
 	 * value, direction, edge, active_low
 	 */
 
-	std::cout << "CDisplayCtl::send: list<vector> sendData.size == " << sendData.size() << std::endl;
+	{
+		std::stringstream log;
+		log << "CDisplayCtl::send: list<vector> sendData.size == " << sendData.size();
+		SetTo::LocalLog(m_deviceName, trace, log.str());
+	}
 
 	if ( sendData.size() == 1 ) //!!!fix "&& sendData.begin()->size() > 2 )"
 	{
@@ -561,19 +569,25 @@ uint32_t CDisplayCtl::send(std::list<std::vector<uint8_t> > sendData)
 
 		std::vector<uint8_t>& data = sendData.back();
 
-		std::cout << "CDisplayCtl::send: data.size is " << data.size() << std::endl;
+		{
+			std::stringstream log;
+			log << "CDisplayCtl::send: data.size is " << data.size();
+			SetTo::LocalLog(m_deviceName, trace, log.str());
+		}
 
 		uint8_t cmdtype = data[0];
 		uint8_t screenId;
 
-//		char* beginData = (char*) &data[1];
-//		char* endData = (char*) &data[data.size()-1];
 		std::string value; //(beginData, endData);
 
 		int32_t fd = open( fname.c_str(), O_WRONLY | O_NONBLOCK);
 		if (fd == -1)
 		{
-			std::cout << "ERROR! CDisplayCtl::send: File '" << fname << "' isn't opened for writing." << std::endl;
+			{
+				std::stringstream log;
+				log << "ERROR! CDisplayCtl::send: File '" << fname << "' isn't opened for writing.";
+				SetTo::LocalLog(m_deviceName, error, log.str());
+			}
 			return 0;
 		}
 
@@ -582,9 +596,18 @@ uint32_t CDisplayCtl::send(std::list<std::vector<uint8_t> > sendData)
 		switch(cmdtype) //!!!fix
 		{
 		case '0': // clear
-			std::cout << "CDisplayCtl::send: cmdtype is CLEAR" << std::endl;
+			{
+				std::stringstream log;
+				log <<"CDisplayCtl::send: cmdtype is CLEAR";
+				SetTo::LocalLog(m_deviceName, trace, log.str());
+			}
+
 			if( ioctl( fd, (unsigned int) IOCTL_CLEAR_DISPLAY, value.c_str()) < 0)
-				std::cout << "ERROR! CDisplayCtl::send: IOCTL_CLEAR_DISPLAY" << std::endl;
+			{
+				std::stringstream log;
+				log <<"ERROR! CDisplayCtl::send: IOCTL_CLEAR_DISPLAY";
+				SetTo::LocalLog(m_deviceName, trace, log.str());
+			}
 
 			close(fd);
 
@@ -592,52 +615,72 @@ uint32_t CDisplayCtl::send(std::list<std::vector<uint8_t> > sendData)
 			break;
 
 		case '1': // show
-			std::cout << "CDisplayCtl::send: cmdtype is SHOW" << std::endl;
+			{
+				std::stringstream log;
+				log <<"CDisplayCtl::send: cmdtype is SHOW";
+				SetTo::LocalLog(m_deviceName, trace, log.str());
+			}
 
 			screenId = data[1];
 
-//			std::cout << "CDisplayCtl::send: screenId is " <<  << std::endl;
-
-			switch (screenId)
 			{
-			case 0:
-				std::cout << "CDisplayCtl::send: showing screenId 0" << std::endl;
-				value = "Нажмите кнопку";
-				break;
-			case 1:
-				std::cout << "CDisplayCtl::send: showing screenId 1" << std::endl;
-				value = "Печатаем...";
-				break;
-			case 2:
-				std::cout << "CDisplayCtl::send: showing screenId 2" << std::endl;
-				value = "Заберите билет";
-				break;
-			case 3:
-				std::cout << "CDisplayCtl::send: showing screenId 3" << std::endl;
-				value = "Открываем...";
-				break;
-			case 4:
-				std::cout << "CDisplayCtl::send: showing screenId 4" << std::endl;
-				value = "Проезжайте!";
-				break;
-			case 5:
-				std::cout << "CDisplayCtl::send: showing screenId 5" << std::endl;
-				value = "Закрываем...";
-				break;
+				std::stringstream log;
 
-			default:
-				std::cout << "ERROR: CDisplayCtl::send: no matching screenId!" << std::endl;
+				switch (screenId)
+				{
+				case 0:
+					log << "CDisplayCtl::send: showing screenId 0" << std::endl;
+					SetTo::LocalLog(m_deviceName, trace, log.str());
+					value = "Нажмите кнопку";
+					break;
+				case 1:
+					log << "CDisplayCtl::send: showing screenId 1" << std::endl;
+					SetTo::LocalLog(m_deviceName, trace, log.str());
+					value = "Печатаем...";
+					break;
+				case 2:
+					log << "CDisplayCtl::send: showing screenId 2" << std::endl;
+					SetTo::LocalLog(m_deviceName, trace, log.str());
+					value = "Заберите билет";
+					break;
+				case 3:
+					log << "CDisplayCtl::send: showing screenId 3" << std::endl;
+					SetTo::LocalLog(m_deviceName, trace, log.str());
+					value = "Открываем...";
+					break;
+				case 4:
+					log << "CDisplayCtl::send: showing screenId 4" << std::endl;
+					SetTo::LocalLog(m_deviceName, trace, log.str());
+					value = "Проезжайте!";
+					break;
+				case 5:
+					log << "CDisplayCtl::send: showing screenId 5" << std::endl;
+					SetTo::LocalLog(m_deviceName, trace, log.str());
+					value = "Закрываем...";
+					break;
+
+				default:
+					log << "ERROR: CDisplayCtl::send: no matching screenId!";
+					SetTo::LocalLog(m_deviceName, error, log.str());
+					break;
+				}
 			}
-
-
 			break;
 		default:
-			std::cout << "ERROR! CDisplayCtl::send: cmdtype " << cmdtype << " incorrect" << std::endl;
+			{
+				std::stringstream log;
+				log << "ERROR! CDisplayCtl::send: cmdtype " << cmdtype << " incorrect";
+				SetTo::LocalLog(m_deviceName, error, log.str());
+			}
 			return 0;
 		}
 
 		if( ioctl( fd, (unsigned int) IOCTL_CLEAR_DISPLAY, value.c_str()) < 0)
-			std::cout << "ERROR! CDisplayCtl::send: IOCTL_CLEAR_DISPLAY" << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CDisplayCtl::send: IOCTL_CLEAR_DISPLAY";
+			SetTo::LocalLog(m_deviceName, error, log.str());
+		}
 
 		close(fd);
 
@@ -645,16 +688,35 @@ uint32_t CDisplayCtl::send(std::list<std::vector<uint8_t> > sendData)
 		fd = open( fname.c_str(), O_WRONLY | O_NONBLOCK);
 		if (fd == -1)
 		{
-			std::cout << "ERROR! CDisplayCtl::send: File '" << fname << "' isn't opened for writing." << std::endl;
+			{
+				std::stringstream log;
+				log << "ERROR! CDisplayCtl::send: File '" << fname << "' isn't opened for writing.";
+				SetTo::LocalLog(m_deviceName, error, log.str());
+			}
 			return 0;
 		}
-		std::cout << "CDisplayCtl::send: to " << fname.c_str() << " command " << IOCTL_PRINT_ON_FIRSTLINE << " line " << value.c_str() << std::endl;
+
+		{
+			std::stringstream log;
+			log << "CDisplayCtl::send: to " << fname.c_str() << " command "
+					<< IOCTL_PRINT_ON_FIRSTLINE << " line " << value.c_str();
+			SetTo::LocalLog(m_deviceName, trace, log.str());
+		}
 		utf8towinstar(&value);
-		std::cout << "CDisplayCtl::send: to " << fname.c_str() << " command " << IOCTL_PRINT_ON_FIRSTLINE << " processed line " << value.c_str() << std::endl;
+
+		{
+			std::stringstream log;
+			log << "CDisplayCtl::send: to " << fname.c_str() << " command "
+					<< IOCTL_PRINT_ON_FIRSTLINE << " processed line " << value.c_str();
+			SetTo::LocalLog(m_deviceName, trace, log.str());
+		}
 
 		if( ioctl( fd, (unsigned int) IOCTL_PRINT_ON_FIRSTLINE, value.c_str()) < 0)
-			std::cout << "ERROR! CDisplayCtl::send: IOCTL_PRINT_DISPLAY" << std::endl;
-//		write(fd, value.c_str(), value.size());
+		{
+			std::stringstream log;
+			log << "ERROR! CDisplayCtl::send: IOCTL_PRINT_DISPLAY";
+			SetTo::LocalLog(m_deviceName, error, log.str());
+		}
 
 		close(fd);
 
@@ -663,14 +725,18 @@ uint32_t CDisplayCtl::send(std::list<std::vector<uint8_t> > sendData)
 
 	if ( sendData.size() != 1) //!!!fix
 	{
-		std::cout << "ERROR! CDisplayCtl::send: Incorrect argument size: list size = "
-				<< sendData.size() << std::endl;
+		std::stringstream log;
+		log << "ERROR! CDisplayCtl::send: Incorrect argument size: list size = "
+				<< sendData.size();
+		SetTo::LocalLog(m_deviceName, error, log.str());
 	}
 	else
 	if ( sendData.begin()->size() < 2 ) //!!!fix
 	{
-		std::cout << "ERROR! CDisplayCtl::send: Incorrect argument size: vector size = "
-		<< sendData.begin()->size() << std::endl;
+		std::stringstream log;
+		log << "ERROR! CDisplayCtl::send: Incorrect argument size: vector size = "
+				<< sendData.begin()->size();
+		SetTo::LocalLog(m_deviceName, error, log.str());
 	}
 
 	return  0;
