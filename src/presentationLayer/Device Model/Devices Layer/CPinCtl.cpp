@@ -24,25 +24,41 @@ bool CPinCtl::checkFiles()
 
 	if ( CPinCtl::fileIsExist( pinPath+"direction" ) == false)
 	{
-		std::cout << "ERROR! CPinCtl::takeCommCtl getting '" << m_PinData.name << "'  failed: direction not found" << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CPinCtl::takeCommCtl getting '" << m_PinData.name << "'  failed: direction not found";
+			SetTo::LocalLog(m_deviceName, error, log.str());
+		}
 		return false;
 	}
 
 	if ( CPinCtl::fileIsExist( pinPath+"value" ) == false)
 	{
-		std::cout << "ERROR! CPinCtl::takeCommCtl getting '" << m_PinData.name << "' failed: value not found" << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CPinCtl::takeCommCtl getting '" << m_PinData.name << "' failed: value not found";
+			SetTo::LocalLog(m_deviceName, error, log.str());
+		}
 		return false;
 	}
 
 	if ( CPinCtl::fileIsExist( pinPath+"edge" ) == false)
 	{
-		std::cout << "ERROR! CPinCtl::takeCommCtl getting '" << m_PinData.name << "' failed: edge not found" << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CPinCtl::takeCommCtl getting '" << m_PinData.name << "' failed: edge not found";
+			SetTo::LocalLog(m_deviceName, error, log.str());
+		}
 		return false;
 	}
 
 	if ( CPinCtl::fileIsExist( pinPath+"active_low" ) == false)
 	{
-		std::cout << "ERROR! CPinCtl::takeCommCtl getting '" << m_PinData.name << "' failed: active_low not found" << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CPinCtl::takeCommCtl getting '" << m_PinData.name << "' failed: active_low not found";
+			SetTo::LocalLog(m_deviceName, error, log.str());
+		}
 		return false;
 	}
 	// OK! pin is present
@@ -54,7 +70,11 @@ bool CPinCtl::checkFiles()
 void CPinCtl::setupGPIO()
 {
 
-	std::cout << "CPinCtl::setupGPIO: " << m_PinData.name << std::endl;
+	{
+		std::stringstream log;
+		log << "CPinCtl::setupGPIO: " << m_PinData.name;
+		SetTo::LocalLog(m_deviceName, trace, log.str());
+	}
 
 	const settings::CommGPIOConfig& config = m_Config;
 
@@ -65,7 +85,11 @@ void CPinCtl::setupGPIO()
 		boostio::stream_buffer<boostio::file_sink> bufExport(pinPath+"active_low");
 		std::ostream fileExport(&bufExport);
 
-		std::cout << "CPinCtl::setupGPIO: active_low = " << strActiveLow << std::endl;
+		{
+			std::stringstream log;
+			log << "CPinCtl::setupGPIO: active_low = " << strActiveLow;
+			SetTo::LocalLog(m_deviceName, trace, log.str());
+		}
 
 		fileExport << strActiveLow;
 	}
@@ -78,7 +102,11 @@ void CPinCtl::setupGPIO()
 		boostio::stream_buffer<boostio::file_sink> bufExport(pinPath+"direction");
 		std::ostream fileExport(&bufExport);
 
-		std::cout << "CPinCtl::setupGPIO: direction = " << strDir << std::endl;
+		{
+			std::stringstream log;
+			log << "CPinCtl::setupGPIO: direction = " << strDir;
+			SetTo::LocalLog(m_deviceName, trace, log.str());
+		}
 
 		fileExport << strDir;
 	}
@@ -88,7 +116,11 @@ void CPinCtl::setupGPIO()
 		boostio::stream_buffer<boostio::file_sink> bufExport(pinPath+"edge");
 		std::ostream fileExport(&bufExport);
 
-		std::cout << "CPinCtl::setupGPIO: edge = " << strEdge << std::endl;
+		{
+			std::stringstream log;
+			log << "CPinCtl::setupGPIO: edge = " << strEdge;
+			SetTo::LocalLog(m_deviceName, trace, log.str());
+		}
 
 		fileExport << strEdge;
 	}
@@ -101,7 +133,11 @@ void CPinCtl::setupGPIO()
 		boostio::stream_buffer<boostio::file_sink> bufExport(pinPath+"value");
 		std::ostream fileExport(&bufExport);
 
-		std::cout << "CPinCtl::setupGPIO: default value = " << strDef << std::endl;
+		{
+			std::stringstream log;
+			log << "CPinCtl::setupGPIO: default value = " << strDef;
+			SetTo::LocalLog(m_deviceName, trace, log.str());
+		}
 
 		fileExport << strDef;
 	}
@@ -129,20 +165,33 @@ settings::CommGPIOConfig CPinCtl::getGPIOConfig(CBaseDevice* device, const std::
 shared_ptr<CBaseCommCtl> CPinCtl::takeCommCtl(CBaseDevice* device, const std::string& gpioName)
 {
 
-	std::cout << "CPinCtl::takeCommCtl try to take " << gpioName << std::endl;
+	{
+		std::stringstream log;
+		log << "CPinCtl::takeCommCtl try to take " << gpioName;
+		SetTo::LocalLog(device->c_name, trace, log.str());
+	}
 
 	try{
 
+		// Проверка длины имени, потому что значимая позиция пина по индексу 4 расположена
 		if (gpioName.size() < 5)
 		{
-			std::cout << "ERROR! CPinCtl::takeCommCtl: gpio name size < 5" << std::endl;
+			{
+				std::stringstream log;
+				log << "ERROR! CPinCtl::takeCommCtl: gpio name size < 5" << gpioName;
+				SetTo::LocalLog(device->c_name, error, log.str());
+			}
 			return nullptr;
 		}
 
 		// check busy pin
 		if (busyPins.find(gpioName) != busyPins.end())
 		{
-			std::cout << "ERROR! CPinCtl::takeCommCtl: getting " << gpioName << " failed: gpio is busy or not existing" << std::endl;
+			{
+				std::stringstream log;
+				log << "ERROR! CPinCtl::takeCommCtl: getting " << gpioName << " failed: gpio is busy or not existing";
+				SetTo::LocalLog(device->c_name, error, log.str());
+			}
 			return nullptr;
 		}
 		// OK! pin is free
@@ -176,26 +225,38 @@ shared_ptr<CBaseCommCtl> CPinCtl::takeCommCtl(CBaseDevice* device, const std::st
 
 		// OK! pin is made as busied and stored
 
-		std::cout << "CPinCtl::takeCommCtl: take " << gpioName << " successfully" << std::endl;
+		{
+			std::stringstream log;
+			log << "CPinCtl::takeCommCtl: take " << gpioName << " successfully";
+			SetTo::LocalLog(device->c_name, trace, log.str());
+		}
 
 		return pinCtl;
 	}
 
 	catch(boost::exception& ex)
 	{
-		std::cout << "ERROR! CPinCtl::takeCommCtl: exception: " << boost::diagnostic_information(ex) << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CPinCtl::takeCommCtl: exception: " << boost::diagnostic_information(ex);
+			SetTo::LocalLog(device->c_name, error, log.str());
+		}
 		return nullptr;
 	}
 
 	catch(std::exception& ex)
 	{
-		std::cout << "ERROR! CPinCtl::takeCommCtl: exception: " << ex.what() << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CPinCtl::takeCommCtl: exception: " << ex.what();
+			SetTo::LocalLog(device->c_name, error, log.str());
+		}
 		return nullptr;
 	}
 
 	catch(...)
 	{
-		std::cout << "ERROR! CPinCtl::takeCommCtl unknown exception: " << std::endl;
+		SetTo::LocalLog(device->c_name, error, "ERROR! CPinCtl::takeCommCtl: unknown exception");
 		return nullptr;
 	}
 
@@ -206,9 +267,17 @@ shared_ptr<CBaseCommCtl> CPinCtl::takeCommCtl(CBaseDevice* device, const std::st
 void CPinCtl::freeCommCtl(CBaseDevice* device, const std::string& gpioName)
 {
 
-	if (device == nullptr) return;
+	if (device == nullptr)
+	{
+		SetTo::CommonLog(error, "CPinCtl::freeCommCtl: No device");
+		return;
+	}
 
-	std::cout << "CPinCtl::freeCommCtl: getPinCtl try to free " << gpioName << std::endl;
+	{
+		std::stringstream log;
+		log << "CPinCtl::freeCommCtl: getPinCtl try to free " << gpioName;
+		SetTo::LocalLog(device->c_name, trace, log.str());
+	}
 
 	// check busy pin
 
@@ -216,6 +285,11 @@ void CPinCtl::freeCommCtl(CBaseDevice* device, const std::string& gpioName)
 
 	if ( it == busyPins.end())
 	{
+		{
+			std::stringstream log;
+			log << "CPinCtl::freeCommCtl: pin not found " << gpioName;
+			SetTo::LocalLog(device->c_name, error, log.str());
+		}
 		return;
 	}
 	// OK! pin is busy
@@ -223,6 +297,11 @@ void CPinCtl::freeCommCtl(CBaseDevice* device, const std::string& gpioName)
 	shared_ptr<CBaseCommCtl> pinCtl(it->second);
 	if ( pinCtl->m_deviceName != device->c_name)
 	{
+		{
+			std::stringstream log;
+			log << "CPinCtl::freeCommCtl: " << gpioName << " not connected to device ";
+			SetTo::LocalLog(device->c_name, error, log.str());
+		}
 		return;
 	}
 
@@ -231,7 +310,11 @@ void CPinCtl::freeCommCtl(CBaseDevice* device, const std::string& gpioName)
 	std::ostream fileExport(&bufExport);
 	fileExport << gpioName;
 
-	std::cout << "CPinCtl::freeCommCtl: " << gpioName << " is free" << std::endl;
+	{
+		std::stringstream log;
+		log << "CPinCtl::freeCommCtl: " << gpioName << " is free";
+		SetTo::LocalLog(device->c_name, debug, log.str());
+	}
 
 	busyPins.erase(it);
 }
@@ -271,19 +354,31 @@ uint32_t CPinCtl::send(std::vector<uint8_t> sendData)
 uint32_t CPinCtl::send(std::list<std::vector<uint8_t> > sendData)
 {
 
-	std::cout << "CPinCtl::send: command 'write value' to '" << m_PinData.name << "'." << std::endl;
+	{
+		std::stringstream log;
+		log << "CPinCtl::send: command 'write value' to '" << m_PinData.name << "'.";
+		SetTo::LocalLog(m_deviceName, trace, log.str());
+	}
 
 	if ( sendData.size() != 1)
 	{
-		std::cout << "ERROR! CPinCtl::send: Incorrect argument size: list size = "
-				<< sendData.size() << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CPinCtl::send: Incorrect argument size: list size = "
+					<< sendData.size();
+			SetTo::LocalLog(m_deviceName, error, log.str());
+		}
 		return  0;
 	}
 	else
 	if ( sendData.begin()->size() < 2 )
 	{
-		std::cout << "ERROR! CPinCtl::send: Incorrect argument size: vector size = "
-				<< sendData.begin()->size() << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CPinCtl::send: Incorrect argument size: vector size = "
+					<< sendData.begin()->size();
+			SetTo::LocalLog(m_deviceName, error, log.str());
+		}
 		return  0;
 	}
 
@@ -303,7 +398,11 @@ uint32_t CPinCtl::send(std::list<std::vector<uint8_t> > sendData)
 		data.push_back(0);
 		std::string value((char*) &data[1]);
 
-		std::cout << "CPinCtl::send: writing value = " << value << std::endl;
+		{
+			std::stringstream log;
+			log << "CPinCtl::send: writing value = " << value;
+			SetTo::LocalLog(m_deviceName, debug, log.str());
+		}
 
 		switch(filetype)
 		{
@@ -317,14 +416,22 @@ uint32_t CPinCtl::send(std::list<std::vector<uint8_t> > sendData)
 			fname += "edge";
 			break;
 		default:
-			std::cout << "ERROR! CPinCtl::send: File type " << filetype << " incorrect" << std::endl;
+			{
+				std::stringstream log;
+				log << "ERROR! CPinCtl::send: File type " << filetype << " incorrect";
+				SetTo::LocalLog(m_deviceName, error, log.str());
+			}
 			return 0;
 		}
 
 		int32_t fd = open( fname.c_str(), O_WRONLY | O_NONBLOCK);
 		if (fd == -1)
 		{
-			std::cout << "ERROR! CPinCtl::send: File '" << fname << "' don't opened for writing." << std::endl;
+			{
+				std::stringstream log;
+				log << "ERROR! CPinCtl::send: File '" << fname << "' don't opened for writing.";
+				SetTo::LocalLog(m_deviceName, error, log.str());
+			}
 			return 0;
 		}
 
@@ -341,7 +448,11 @@ uint32_t CPinCtl::send(std::list<std::vector<uint8_t> > sendData)
 
 int8_t CPinCtl::getPinValue()
 {
-	std::cout << "CPinCtl::getPinValue: From " << m_PinData.filename << std::endl;
+	{
+		std::stringstream log;
+		log << "CPinCtl::getPinValue: From " << m_PinData.filename;
+		SetTo::LocalLog(m_deviceName, trace, log.str());
+	}
 
 	lseek(m_PinData.fd, 0, SEEK_SET);
 
@@ -350,11 +461,19 @@ int8_t CPinCtl::getPinValue()
 
 	if (size != 1)
 	{
-		std::cout << "ERROR! CPinCtl::getPinValue: Not successful read from " << m_PinData.filename << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CPinCtl::getPinValue: Not successful read from " << m_PinData.filename;
+			SetTo::LocalLog(m_deviceName, error, log.str());
+		}
 		return -1;
 	}
 
-	std::cout << "CPinCtl::getPinValue: From " << m_PinData.filename <<", got value = " << Value << std::endl;
+	{
+		std::stringstream log;
+		log << "CPinCtl::getPinValue: From " << m_PinData.filename <<", got value = " << Value;
+		SetTo::LocalLog(m_deviceName, trace, log.str());
+	}
 
 	return Value;
 }
@@ -380,20 +499,32 @@ void CPinCtl::Notifier()
 
 	int d_inoty = inotify_init();
 
-	std::cout << "GPIO Notifier started with " << busyPins.size() << " pin controls" << std::endl;
+	{
+		std::stringstream log;
+		log << "GPIO Notifier started with " << busyPins.size() << " pin controls";
+		SetTo::CommonLog(debug, log.str());
+	}
 
 	for (auto busyPin: busyPins)
 	{
 		CPinCtl* pctl = (CPinCtl*) busyPin.second.get();
 		if ( pctl == nullptr)
 		{
-			std::cout << "ERROR! CPinCtl::Notifier didn't find pointer to GPIO device: " << busyPin.first << ". Notifier exits." << std::endl;
+			{
+				std::stringstream log;
+				log << "ERROR! CPinCtl::Notifier didn't find pointer to GPIO device: " << busyPin.first << ". Notifier exits.";
+				SetTo::CommonLog(error, log.str());
+			}
  			return;
 		}
 
 		if (pctl->checkFiles() == false)
 		{
-			std::cout << "ERROR! CPinCtl::Notifier didn't find important file of GPIO device: " << busyPin.first << ". Notifier exits." << std::endl;
+			{
+				std::stringstream log;
+				log << "ERROR! CPinCtl::Notifier didn't find important file of GPIO device: " << busyPin.first << ". Notifier exits.";
+				SetTo::CommonLog(error, log.str());
+			}
  			return;
 		}
 
@@ -403,7 +534,11 @@ void CPinCtl::Notifier()
 		PinData.fd = open( PinData.filename.c_str(), O_RDONLY | O_NONBLOCK);
 		if (PinData.fd == -1)
 		{
-			std::cout << "ERROR! CPinCtl::Notifier didn't open file: " << PinData.filename << ". Notifier exits." << std::endl;
+			{
+				std::stringstream log;
+				log << "ERROR! CPinCtl::Notifier didn't open file: " << PinData.filename << ". Notifier exits.";
+				SetTo::CommonLog(error, log.str());
+			}
  			return;
 		}
 
@@ -430,18 +565,30 @@ void CPinCtl::Notifier()
 				{
 					PinData.oldvalue = Value;
 
-					std::cout << "GPIO Notifier: GPIO was changed: " << PinData.name << " = " << Value << std::endl;
+					{
+						std::stringstream log;
+						log << "GPIO Notifier: GPIO was changed: " << PinData.name << " = " << Value;
+						SetTo::CommonLog(error, log.str());
+					}
 					std::vector<uint8_t> data;
 					data.push_back(Value);
 
 					auto it = busyPins.find(PinData.name);
 					if ( it != busyPins.end())
 					{
-						std::cout << "GPIO Notifier: Call Device Event for: " << it->second->myDevice().c_name << std::endl;
+						{
+							std::stringstream log;
+							log << "GPIO Notifier: Call Device Event for: " << it->second->myDevice().c_name;
+							SetTo::LocalLog(it->second->myDevice().c_name, trace, log.str());
+						}
 
 						it->second->myDevice().performEvent(PinData.name, data);
 
-						std::cout << "GPIO Notifier: Device Event Ready for: " << it->second->myDevice().c_name << std::endl;
+						{
+							std::stringstream log;
+							log << "GPIO Notifier: Device Event Ready for: " << it->second->myDevice().c_name;
+							SetTo::LocalLog(it->second->myDevice().c_name, trace, log.str());
+						}
 					}
 				}
 			}
@@ -516,6 +663,10 @@ void CPinCtl::Notifier()
 //		}
 	}
 
-	std::cout << "Notifier exits" << std::endl;
+	{
+		std::stringstream log;
+		log << "Notifier exit";
+		SetTo::CommonLog(debug, log.str());
+	}
 
 }

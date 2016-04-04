@@ -15,6 +15,7 @@
 #include "abstract/UserButtonAbstract.h"
 #include "abstract/DisplayAbstract.h"
 #include "abstract/PrinterAbstract.h"
+#include "abstract/ScannerAbstract.h"
 
 class CDeviceFactory
 {
@@ -38,6 +39,12 @@ public:
 
 	CAbstractDevice* deviceFactory(const std::string& abstractName, const std::string& devName)
 	{
+		{
+			std::stringstream log;
+			log << "CDeviceFactory::deviceFactory started";
+			SetTo::LocalLog("device_factory", trace, log.str());
+		}
+
 		std::vector<CAbstractDevice*> devs;
 
 		CAbstractDevice* dev = nullptr;
@@ -59,6 +66,9 @@ public:
 			dev = createAbstractDevice<AbstractDisplay>(abstractName, devName);
 			if (dev) devs.push_back(dev);
 
+			dev = createAbstractDevice<AbstractScanner>(abstractName, devName);
+			if (dev) devs.push_back(dev);
+
 //			dev = createAbstractDevice<AbstractPassSensor>(abstractName, devName);
 //			if (dev) devs.push_back(dev);
 //			dev = createAbstractDevice<AbstractPresentSensor>(abstractName, devName);
@@ -75,7 +85,11 @@ public:
 
 		if (devs.size() > 1)
 		{
-			std::cout << "ERROR! CDeviceFactory::deviceFactory: detected device configuration error: more than 1 abstract device created" << std::endl;
+			{
+				std::stringstream log;
+				log << "ERROR! CDeviceFactory::deviceFactory: detected device configuration error: more than 1 abstract device created";
+				SetTo::LocalLog("device_factory", error, log.str());
+			}
 
 			for (CAbstractDevice* d: devs)
 				delete d;
@@ -85,12 +99,20 @@ public:
 
 		if (devs.size() == 0)
 		{
-			std::cout << "ERROR! CDeviceFactory::deviceFactory detected device configuration error: no device created" << std::endl;
+			{
+				std::stringstream log;
+				log << "ERROR! CDeviceFactory::deviceFactory detected device configuration error: no device created";
+				SetTo::LocalLog("device_factory", error, log.str());
+			}
 
 			return nullptr;
 		}
 
-		std::cout << "CDeviceFactory::deviceFactory created device: " << abstractName << std::endl;
+		{
+			std::stringstream log;
+			log << "CDeviceFactory::deviceFactory created device: " << abstractName ;
+			SetTo::LocalLog("device_factory", debug, log.str());
+		}
 
 		return devs[0];
 	}
@@ -107,7 +129,11 @@ private:
 	{
 		CAbstractDevice* dev = nullptr;
 
-		std::cout << "CDeviceFactory::createAbstractDevice: Try create abstract device '" << abstractName << "' as '" << T::s_abstractName << "'" << std::endl;
+		{
+			std::stringstream log;
+			log << "CDeviceFactory::createAbstractDevice: Try create abstract device '" << abstractName << "' as '" << T::s_abstractName << "'" ;
+			SetTo::LocalLog("device_factory", trace, log.str());
+		}
 
 		if ( abstractName.find(T::s_abstractName) != std::string::npos)
 		{

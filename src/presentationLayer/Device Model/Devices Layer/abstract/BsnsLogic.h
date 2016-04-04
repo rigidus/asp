@@ -26,7 +26,11 @@ public:
 	static CAbstractDevice* createDevice(const std::string& abstractName, const std::string& devName)
 	{
 
-		std::cout << "BsnsLogic::createDevice: Create concrete device " << devName << std::endl;
+		{
+			std::stringstream log;
+			log << "BsnsLogic::createDevice: Create concrete device " << devName;
+			SetTo::LocalLog("device_factory", trace, log.str());
+		}
 
 		CBaseDevice* cDev = nullptr;
 
@@ -56,7 +60,12 @@ public:
 
 	virtual void sendCommand(const std::string& command, const std::string& pars)
 	{
-		std::cout << "BsnsLogic::sendCommand: " << command << "; " << pars << std::endl;
+		{
+			std::stringstream log;
+			log << "BsnsLogic::sendCommand: " << command << "; " << pars;
+			SetTo::LocalLog(c_abstractName, trace, log.str());
+		}
+
 		device()->sendCommand(command, pars);
 	}
 };

@@ -150,4 +150,36 @@ const std::vector<CommPrinterConfig> getPrinterByDevice(const std::string device
 	return devs;
 }
 
+const std::vector<CommCharDevConfig> getCharDevsByDevice(const std::string deviceName)
+{
+	// make config and return it
+	std::vector<settings::CommCharDevConfig> devs;
+
+	std::cout << "getCharDevsByDevice: " << deviceName << std::endl;
+	for (settings::DeviceConfig* v: settings::deviceList)
+	{
+		if (v->concreteName == deviceName)
+		{
+
+			// find device
+			// iteration for comms
+			for (std::string commName: v->comm)
+			{
+				// find config by comm name
+				uint32_t size = settings::chardevsConfigList.size();
+				for (uint32_t i = 0; i < size; ++i)
+				{
+					if (commName == settings::chardevsConfigList[i]->name)
+					{
+						std::cout << "getCharDevsByDevice: found " << commName << std::endl;
+						devs.push_back(*settings::chardevsConfigList[i]);
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	return devs;
+}
 } /* namespace database */

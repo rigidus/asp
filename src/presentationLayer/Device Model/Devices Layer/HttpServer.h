@@ -71,7 +71,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 			// отправить назад сообщение, что body не существует
 			std::stringstream error;
 			error << "ERROR! httpServer::cb_HttpServer: POST body size is NULL.";
-			setCommandTo::sendErrorToClient(error);
+			SetTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;
 
@@ -94,7 +94,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 			// отправить назад сообщение, что json не распарсился
 			std::stringstream error;
 			error << "ERROR! httpServer::cb_HttpServer: JSON has wrong format: " << &jsonArray[0];
-			setCommandTo::sendErrorToClient(error);
+			SetTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;
 
@@ -128,7 +128,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 				std::stringstream error;
 				error << "Error has received but value isn't String";
 
-				setCommandTo::sendErrorToClient(error);
+				SetTo::sendErrorToClient(error);
 				std::cout << error.str() << std::endl;
 			}
 
@@ -140,7 +140,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 			// отправить сообщение, что txid не найден и выйти
 			std::stringstream error;
 			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrTxId << "' not found.";
-			setCommandTo::sendErrorToClient(error);
+			SetTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;
 
@@ -152,7 +152,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 			// отправить сообщение, что device не найден и выйти
 			std::stringstream error;
 			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrDev << "' not found.";
-			setCommandTo::sendErrorToClient(error);
+			SetTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;
 
@@ -164,7 +164,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 			// отправить сообщение, что command не найден и выйти
 			std::stringstream error;
 			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrCmd << "' not found.";
-			setCommandTo::sendErrorToClient(error);
+			SetTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;
 
@@ -188,7 +188,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 			// отправить сообщение, что txid не число и выйти
 			std::stringstream error;
 			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrTxId << "' isn't number type" << std::endl;
-			setCommandTo::sendErrorToClient(error);
+			SetTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;
 
@@ -200,7 +200,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 			// отправить сообщение, что девайс не строка и выйти
 			std::stringstream error;
 			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrDev << "' isn't string type" << std::endl;
-			setCommandTo::sendErrorToClient(error);
+			SetTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;
 
@@ -212,7 +212,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 			// отправить назад сообщение, что команда не строка и выйти
 			std::stringstream error;
 			error << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrCmd << "' isn't string type" << std::endl;
-			setCommandTo::sendErrorToClient(error);
+			SetTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;
 
@@ -224,7 +224,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 			// отправить назад сообщение, что параметры не объект и выйти
 			std::stringstream error;
 			std::cout << "ERROR! httpServer::cb_HttpServer: JSON attribute '" << attrPars << "' isn't object type" << std::endl;
-			setCommandTo::sendErrorToClient(error);
+			SetTo::sendErrorToClient(error);
 
 			std::cout << error.str() << std::endl;
 
@@ -256,7 +256,7 @@ void cb_HttpServer(struct mg_connection* nc, int ev, void* p)
 
 		std::cout << "httpServer::cb_HttpServer: JSON OK!" << std::endl;
 
-		setCommandTo::Device(TxId, Device, Command, strParams.GetString(), "logic_bsns_layer");
+		SetTo::Device(TxId, Device, Command, strParams.GetString(), "logic_bsns_layer");
 
 	}
 

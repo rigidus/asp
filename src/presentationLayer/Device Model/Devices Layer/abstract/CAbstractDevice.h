@@ -12,7 +12,7 @@
 
 class CAbstractDevice: private noncopyable
 {
-private:
+protected:
 	CBaseDevice* concreteDevice;
 	const std::string c_abstractName;
 
@@ -20,9 +20,13 @@ public:
 
 	CAbstractDevice(CBaseDevice* pDevice, const std::string& abstractName):
 		concreteDevice(pDevice),
-		c_abstractName(abstractName) {
-
-		std::cout << "CAbstractDevice constructor: Abstract Device: " << abstractName << " created." << std::endl;
+		c_abstractName(abstractName)
+	{
+		{
+			std::stringstream log;
+			log << "CAbstractDevice constructor: Abstract Device: " << abstractName << " created.";
+			SetTo::LocalLog("device_factory", debug, log.str());
+		}
 	}
 
 	virtual ~CAbstractDevice()

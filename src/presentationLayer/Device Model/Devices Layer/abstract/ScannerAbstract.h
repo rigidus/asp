@@ -1,23 +1,23 @@
 /*
- * PrinterAbstract.h
+ * ScannerAbstract.h
  *
- *  Created on: 18 марта 2016 г.
+ *  Created on: 1 april 2016 г.
  *      Author: bvl
  */
 
-#ifndef PRINTERABSTRACT_H_
-#define PRINTERABSTRACT_H_
+#ifndef _SCANNERABSTRACT_H_
+#define _SCANNERABSTRACT_H_
 
 #include "CAbstractDevice.h"
 #include <devices/CBaseDevice.h>
-#include <devices/PRN_vkp80ii_usb.h>
+#include <devices/SCN_quantumT_usb.h>
 
-class AbstractPrinter: public CAbstractDevice
+class AbstractScanner: public CAbstractDevice
 {
 
 public:
 
-	AbstractPrinter(CBaseDevice* pDevice, const std::string& abstractName):
+	AbstractScanner(CBaseDevice* pDevice, const std::string& abstractName):
 		CAbstractDevice(pDevice, abstractName) {}
 
 	static const std::string s_abstractName;
@@ -25,11 +25,7 @@ public:
 	static CAbstractDevice* createDevice(const std::string& abstractName, const std::string& devName)
 	{
 
-		{
-			std::stringstream log;
-			log << "AbstractPrinter::createDevice: Create concrete device " << devName;
-			SetTo::LocalLog("device_factory", trace, log.str());
-		}
+		std::cout << "AbstractScanner::createDevice: Create concrete device " << devName << std::endl;
 
 		CBaseDevice* cDev = nullptr;
 
@@ -37,14 +33,14 @@ public:
 		{
 
 			// Создание конкретного такого абстракного типа шлагбаума с конкретной моделью "палка"
-			if ( CPRN_vkp80ii_usb::s_concreteName == devName)
+			if ( CSCN_quantumT_usb::s_concreteName == devName)
 			{
-				cDev = reinterpret_cast<CBaseDevice*> (new CPRN_vkp80ii_usb());
+				cDev = reinterpret_cast<CBaseDevice*> (new CSCN_quantumT_usb());
 
 				// Connect concrete device to communication devices
 				if (cDev->connectToCommCtl())
 				{
-					return new AbstractPrinter(cDev, abstractName);
+					return new AbstractScanner(cDev, abstractName);
 				}
 			}
 
@@ -56,14 +52,11 @@ public:
 
 	virtual void sendCommand(const std::string& command, const std::string& pars)
 	{
-		{
-			std::stringstream log;
-			log << "AbstractPrinter::sendCommand: " << command << "; " << pars;
-			SetTo::LocalLog(c_abstractName, trace, log.str());
-		}
-
+		std::cout << "AbstractScanner::sendCommand: " << command << "; " << pars << std::endl;
 		device()->sendCommand(command, pars);
 	}
+
 };
 
-#endif /* PRINTERABSTRACT_H_ */
+
+#endif /* _SCANNERABSTRACT_H_ */

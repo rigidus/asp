@@ -22,6 +22,7 @@ using namespace boost;
 #include <CDisplayCtl.h>
 #include <CPrnCtl.h>
 #include <CSerialPortCtl.h>
+#include <CCharDevCtl.h>
 #include <SetCommandTo.h>
 
 class CBaseDevice: private noncopyable
@@ -58,7 +59,11 @@ protected:
 
 		if ( commName.find(T::s_name) != std::string::npos)
 		{
-			std::cout << "CBaseDevice::takeCommDevice: Take communication device: " << commName << std::endl;
+			{
+				std::stringstream log;
+				log << "CBaseDevice::takeCommDevice: Take communication device: " << commName;
+				SetTo::LocalLog(c_name, trace, log.str());
+			}
 
 			return T::takeCommCtl(this, commName);
 		}

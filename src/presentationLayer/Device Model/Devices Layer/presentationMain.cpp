@@ -20,6 +20,8 @@
 #include "GlobalThreadPool.h"
 #include "CDeviceManager.h"
 #include "SetCommandTo.h"
+#include "Logger.h"
+#include "Help.h"
 
 using namespace mythreadpool;
 using namespace rapidjson;
@@ -30,8 +32,75 @@ volatile int HttpDevLayerClient::s_exit_flag = 0;
 boost::mutex HttpDevLayerClient::HTTPconnectMutex;
 
 
-int main()
+std::ostream& operator<< (std::ostream& strm, severity_level level)
 {
+	static const char* strings[] =
+	{
+		"trace",
+		"debug",
+		"warning",
+		"error",
+		"info",
+		"critical"
+	};
+
+	if (static_cast< std::size_t >(level) < sizeof(strings) / sizeof(*strings))
+		strm << strings[level];
+	else
+		strm << (int)level;
+
+	return strm;
+}
+
+
+void ParameterParser(int argc, char* argv[])
+{
+	uint32_t cnt = argc;
+	uint32_t index = 1;
+	while (cnt > 1)
+	{
+		int32_t len = 0;
+
+		len = Help::Parser(argv[index], argv[index+1]);
+		if (len)
+			exit(0);
+
+		len = Logger::LogParamParser(argv[index], argv[index+1]);
+
+//		if (len == 0)
+//			len == // call next param parser
+
+		if (len == 0)
+			len = 1;
+
+		index += len;
+		cnt -= len;
+	}
+
+}
+
+int main(int argc, char* argv[])
+{
+
+	ParameterParser(argc, argv);
+
+#ifdef NDEBUG
+	Logger::initReleaseLogging();
+#else
+	Logger::initDebugLogging();
+#endif
+
+//  Log examples. It's placed temporary here
+//	SetTo::CommonLog(debug, "Debug Test");
+//	SetTo::LocalLog("printer" , critical, "Car income");
+//	SetTo::CommonLog(info, "Info Test");
+//	SetTo::LocalLog("printer", trace, "Function end");
+//	SetTo::CommonLog(warning, "Warning Test");
+//	SetTo::LocalLog("shlagbaum_in", info, "Car registered");
+//	SetTo::CommonLog(trace, "Trace Test");
+//	SetTo::LocalLog("shlagbaum_in", critical, "Stack overflow");
+//	SetTo::CommonLog(critical, "Critical Test");
+// End Log examples
 
 	boost::thread thrHttpServer = httpserver::startHttpServer();
 
@@ -58,7 +127,11 @@ int main()
 
 		if ( sig == signalReloadDeviceConfig)
 		{
-			std::cout << "Main: Catched signal to reload device config" << std::endl;
+			{
+				std::stringstream log;
+				log << "Main: Catched signal to reload device config";
+				SetTo::CommonLog(info, log.str());
+			}
 			GlobalThreadPool::stop();
 			CDeviceManager::destroyDeviceManager();
 			CDeviceManager::deviceManagerFactory( settings::getDeviceConfig() );
@@ -72,13 +145,21 @@ int main()
 		case SIGQUIT:
 		case SIGTERM:
 		case SIGTSTP:
-			std::cout << "Main: Catched signal to stopping application" << std::endl;
+			{
+				std::stringstream log;
+				log << "Main: Catched signal to stopping application";
+				SetTo::CommonLog(info, log.str());
+			}
 			GlobalThreadPool::stop();
 			CDeviceManager::destroyDeviceManager();
 			return 0;
 
 		default:
-			std::cout << "ERROR! Main: Catched not registered signal " << sig << std::endl;
+			{
+				std::stringstream log;
+				log << "ERROR! Main: Catched not registered signal " << sig;
+				SetTo::CommonLog(error, log.str());
+			}
 			break;
 		}
 	}

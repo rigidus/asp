@@ -31,13 +31,17 @@ public:
 
 	virtual void sendCommand(const std::string command, const std::string pars)
 	{
-		std::cout << "UserButton::sendCommand: performs command: " << command << "[" << pars << "]" << std::endl;
+		{
+			std::stringstream log;
+			log << "UserButton::sendCommand: performs command: " << command << "[" << pars << "]";
+			SetTo::LocalLog(c_name, trace, log.str());
+		}
 
 		std::list<std::vector<uint8_t> > data;
 
 		if (m_commCtl.size() == 0)
 		{
-			std::cout << "ERROR! UserButton::sendCommand: communication devices has lost" << std::endl;
+			SetTo::LocalLog(c_name, trace, "ERROR! UserButton::sendCommand: communication devices has lost");
 			return;
 		}
 
@@ -58,15 +62,15 @@ public:
 				{
 				case '0':
 					answer << "\"state\":\"" << "\"free\"}" << std::endl;
-					setCommandTo::Client( setCommandTo::Transaction, c_name, "answer: ", answer.str());
+					SetTo::Client( SetTo::Transaction, c_name, "answer: ", answer.str());
 					break;
 				case '1':
 					answer << "\"state\":\"" << "\"pushed\"}" << std::endl;
-					setCommandTo::Client( setCommandTo::Transaction, c_name, "answer: ", answer.str());
+					SetTo::Client( SetTo::Transaction, c_name, "answer: ", answer.str());
 					break;
 				default:
 					answer << "\"state\":\"" << "\"gpio error\"}" << std::endl;
-					setCommandTo::Client( setCommandTo::Transaction, c_name, "answer: ", answer.str());
+					SetTo::Client( SetTo::Transaction, c_name, "answer: ", answer.str());
 				}
 
 			}
@@ -82,9 +86,14 @@ public:
 
 	virtual void performEvent(std::string& commDeviceName, std::vector<uint8_t>& rcvData)
 	{
-		std::cout << "CUserButton::performEvent: performs Event from device: " << c_name << ": ";
-		for (auto v: rcvData) std::cout << v << " ";
-		std::cout << std::endl;
+		{
+			std::stringstream log;
+			log << "CUserButton::performEvent: performs Event from device: " << c_name << ": ";
+			for (auto v: rcvData) log << v << " ";
+
+			SetTo::LocalLog(c_name, trace, log.str());
+		}
+
 
 		if (rcvData.size() == 1 && rcvData[0] =='1')
 		{
@@ -94,7 +103,7 @@ public:
 
 			answer << "\"command\" : \"press\"";
 
-			setCommandTo::Client( setCommandTo::Event, c_name, "send", answer.str());
+			SetTo::Client( SetTo::Event, c_name, "send", answer.str());
 
 		}
 	}

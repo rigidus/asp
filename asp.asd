@@ -25,6 +25,7 @@
                #:optima
                #:fare-quasiquote-extras
                #:fare-quasiquote-optima
+               #:bit-smasher
                )
   :description "asp"
   :author "Glukhov Mikhail"
@@ -34,6 +35,7 @@
                (:static-file "templates.htm")
                (:file "prepare")    ;; подготовка к старту
                (:file "util")       ;; файл с утилитами
+               (:file "m-util")     ;; файл с макроутилитами
                (:file "globals")    ;; файл с глобальными определеями
                (:file "bricks")     ;; компоненты для создания интерфейсов
                ;; Модуль сущностей, автоматов и их тестов
