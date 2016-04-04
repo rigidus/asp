@@ -22,6 +22,7 @@ using namespace boost;
 #include <CDisplayCtl.h>
 #include <CPrnCtl.h>
 #include <CSerialPortCtl.h>
+#include <CCharDevCtl.h>
 #include <SetCommandTo.h>
 
 class CBaseDevice: private noncopyable

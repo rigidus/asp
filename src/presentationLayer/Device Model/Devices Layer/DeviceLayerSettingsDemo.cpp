@@ -56,6 +56,15 @@ settings::DeviceConfig printer =
 		enabled_device
 };
 
+settings::DeviceConfig scanner =
+{
+		"scanner_quantumT_usb",
+		"scanner",
+		"",
+		{"scn_usb"},
+		enabled_device
+};
+
 settings::DeviceConfig display =
 {
 		"symbol_LCD_winstar_16x2",
@@ -82,7 +91,8 @@ settings::DeviceConfig* devices[] =
 		&shlagbaum1,
 		&printer,
 		&display,
-		&userbutton
+		&userbutton,
+		&scanner
 };
 
 settings::CommGPIOConfig gpio66 =
@@ -152,6 +162,12 @@ settings::CommPrinterConfig prn_usb =
 		"/dev/usb/lp0"
 };
 
+settings::CommCharDevConfig scn_usb =
+{
+		"scn_usb",
+		"/dev/input/event1"
+};
+
 settings::CommGPIOConfig* gpioConfigs[] =
 {
 		&gpio66,
@@ -177,10 +193,16 @@ settings::CommPrinterConfig* printerConfigs[] =
 		&prn_usb
 };
 
+settings::CommCharDevConfig* chardevConfigs[] =
+{
+		&scn_usb
+};
+
 
 std::vector<settings::CommGPIOConfig*> settings::gpioConfigList(gpioConfigs, &gpioConfigs[sizeof(gpioConfigs)/sizeof(gpioConfigs[0])]);
 std::vector<settings::CommUARTConfig*> settings::uartConfigList(uartConfigs, &uartConfigs[sizeof(uartConfigs)/sizeof(uartConfigs[0])]);
 std::vector<settings::CommDisplayConfig*> settings::displayConfigList(displayConfigs, &displayConfigs[sizeof(displayConfigs)/sizeof(displayConfigs[0])]);
 std::vector<settings::CommPrinterConfig*> settings::printerConfigList(printerConfigs, &printerConfigs[sizeof(printerConfigs)/sizeof(printerConfigs[0])]);
+std::vector<settings::CommCharDevConfig*> settings::chardevsConfigList(chardevConfigs, &chardevConfigs[sizeof(chardevConfigs)/sizeof(chardevConfigs[0])]);
 std::vector<settings::DeviceConfig*> settings::deviceList(devices, &devices[sizeof(devices)/sizeof(devices[0])]);
 

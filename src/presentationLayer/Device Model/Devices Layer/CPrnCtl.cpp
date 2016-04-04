@@ -271,7 +271,7 @@ uint32_t CPrnCtl::send(std::list<std::vector<uint8_t> > sendData)
 		uint8_t cmdtype = data[0];
 
 		uint32_t len = 0;
-		int32_t fd;
+//		int32_t fd;
 		char* beginData = (char*) &data[1];
 		char* endData = (char*) &data[data.size()-1];
 		std::string value(beginData, endData);

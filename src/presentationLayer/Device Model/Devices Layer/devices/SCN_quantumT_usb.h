@@ -1,17 +1,17 @@
 /*
  * winstar16x2.h
  *
- *  Created on: 16 марта 2016 г.
+ *  Created on: 30 марта 2016 г.
  *      Author: bvl
  */
 
-#ifndef _WINSTAR16x2_H_
-#define _WINSTAR16x2_H_
+#ifndef _QUANTUMT_USB_H_
+#define _QUANTUMT_USB_H_
 
 
+#include "CCharDevCtl.h"
 #include "devices/CBaseDevice.h"
 #include "GlobalThreadPool.h"
-#include "CDisplayCtl.h"
 #include "SetCommandTo.h"
 
 #include "rapidjson/document.h"
@@ -19,16 +19,16 @@
 #include "rapidjson/stringbuffer.h"
 
 
-class CSLCDWinstar16x2: public CBaseDevice
+class CSCN_quantumT_usb: public CBaseDevice
 {
 
 // CodecType protoCodec;
 
 public:
 
-	CSLCDWinstar16x2(): CBaseDevice(s_concreteName) {}
+	CSCN_quantumT_usb(): CBaseDevice(s_concreteName) {}
 
-	~CSLCDWinstar16x2()
+	~CSCN_quantumT_usb()
 	{
 		CBaseDevice::disconnectFromCommCtl();
 	}
@@ -44,22 +44,14 @@ public:
 		const std::string attrError("error"); // Опциональный атрибут, отменяет все остальные атрибуты
 		const std::string attrScreen("screen"); // Опциональный атрибут, отменяет все остальные атрибуты
 
-		{
-			std::stringstream log;
-			log << "CSLCDWinstar16x2::sendCommand: performs command: " << command << "[" << pars << "]";
-			SetTo::LocalLog(c_name, trace, log.str());
-		}
+		std::cout << "CSLCDWinstar16x2::sendCommand: performs command: " << command << "[" << pars << "]" << std::endl;
 
 //		std::list<std::vector<uint8_t> > data;
 		std::vector<uint8_t> data;
 
 		if (m_commCtl.size() == 0)
 		{
-			{
-				std::stringstream log;
-				log << "ERROR! CSLCDWinstar16x2::sendCommand: communication devices has lost";
-				SetTo::LocalLog(c_name, error, log.str());
-			}
+			std::cout << "ERROR! CSLCDWinstar16x2::sendCommand: communication devices has lost" << std::endl;
 			return;
 		}
 
@@ -89,28 +81,19 @@ public:
 				error << "ERROR! CSLCDWinstar16x2::sendCommand: parameters JSON has wrong format: " << &jsonArray[0];
 //				setCommandTo::sendErrorToClient(error);
 
-				SetTo::LocalLog(c_name, severity_level::error, error.str());
+				std::cout << error.str() << std::endl;
 
 				return;
 			}
 
 
-			{
-				std::stringstream log;
-				log << "CSLCDWinstar16x2::sendCommand: JSON was parsed correctly.";
-				SetTo::LocalLog(c_name, trace, log.str());
-			}
+			std::cout << "CSLCDWinstar16x2::sendCommand: JSON was parsed correctly." << std::endl;
 
 			// Stringify the DOM
 			StringBuffer buffer;
 			Writer<StringBuffer> writer(buffer);
 			d.Accept(writer);
-
-			{
-				std::stringstream log;
-				log << "CSLCDWinstar16x2::sendCommand: string buffer = " << buffer.GetString();
-				SetTo::LocalLog(c_name, trace, log.str());
-			}
+			std::cout << buffer.GetString() << std::endl;
 
 			if (d.HasMember(attrError.c_str()) == true)
 			{
@@ -122,7 +105,8 @@ public:
 					error << "Error has received: " << valError.GetString();
 
 					// TODO: Error parser from logic
-					SetTo::LocalLog(c_name, severity_level::error, error.str());
+
+					std::cout << error.str() << std::endl;
 				}
 				else
 				{
@@ -130,7 +114,7 @@ public:
 					error << "Error has received but value isn't String";
 
 //					setCommandTo::sendErrorToClient(error);
-					SetTo::LocalLog(c_name, severity_level::error, error.str());
+					std::cout << error.str() << std::endl;
 				}
 
 				return;
@@ -143,7 +127,7 @@ public:
 				error << "ERROR! CSLCDWinstar16x2::sendCommand: JSON attribute '" << attrScreen << "' not found.";
 //				setCommandTo::sendErrorToClient(error);
 
-				SetTo::LocalLog(c_name, severity_level::error, error.str());
+				std::cout << error.str() << std::endl;
 
 				return;
 			}
@@ -157,34 +141,26 @@ public:
 				error << "ERROR! CSLCDWinstar16x2::sendCommand: JSON attribute '" << attrScreen << "' isn't number type";
 //				setCommandTo::sendErrorToClient(error);
 
-				SetTo::LocalLog(c_name, severity_level::error, error.str());
+				std::cout << error.str() << std::endl;
 
 				return;
 			}
 
 			uint32_t screenId = (uint32_t) valScreen.GetInt();
 
-			{
-				std::stringstream log;
-				log << "CSLCDWinstar16x2::sendCommand: screenId is " << screenId;
-				SetTo::LocalLog(c_name, trace, log.str());
-			}
+			std::cout << "CSLCDWinstar16x2::sendCommand: screenId is " << screenId << std::endl;
+
 
 			data.push_back(screenId);
 //			data.push_back();
 		}
-
-		{
-			std::stringstream log;
-			log << "CSLCDWinstar16x2::sendCommand: data.size == " << data.size();
-			SetTo::LocalLog(c_name, trace, log.str());
-		}
+		std::cout << "CSLCDWinstar16x2::sendCommand: data.size == " << data.size() << std::endl;
 
 		// command "up"
 		if (m_commCtl[0])
 			m_commCtl[0]->send(data);
 
-		SetTo::Manager(c_name);
+		setCommandTo::Manager(c_name);
 
 	}
 
@@ -193,6 +169,26 @@ public:
 		return CBaseDevice::connectToCommCtl();
 	}
 
+	virtual void performEvent(std::string& commDeviceName, std::vector<uint8_t>& rcvData)
+	{
+		std::cout << "CSCN_quantumT_usb::performEvent: performs Event from device: " << c_name << ": ";
+		for (auto v: rcvData) std::cout << v << " ";
+		std::cout << std::endl;
+
+		if (rcvData.size() == 1 && rcvData[0] =='1')
+		{
+			// TODO: Вызывать установку задачи для клиента по имени абстрактного девайса
+			// Сейчас вызывается по конкретному
+			std::stringstream answer;
+
+			answer << "\"command\" : \"press\"";
+
+			setCommandTo::Client( setCommandTo::Event, c_name, "send", answer.str());
+
+		}
+	}
+
+
 };
 
-#endif /* _WINSTAR16x2_H_ */
+#endif /* _QUANTUMT_USB_H_ */
