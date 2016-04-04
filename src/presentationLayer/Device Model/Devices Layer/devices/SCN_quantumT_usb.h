@@ -160,7 +160,7 @@ public:
 		if (m_commCtl[0])
 			m_commCtl[0]->send(data);
 
-		setCommandTo::Manager(c_name);
+		SetTo::Manager(c_name);
 
 	}
 
@@ -183,7 +183,7 @@ public:
 
 			answer << "\"command\" : \"press\"";
 
-			setCommandTo::Client( setCommandTo::Event, c_name, "send", answer.str());
+			SetTo::Client( SetTo::Event, c_name, "send", answer.str());
 
 		}
 	}
