@@ -4,5 +4,5 @@
 
 USER_OBJS :=
 
-LIBS := -lpthread -lboost_log -lboost_log_setup -lboost_filesystem -lboost_thread -lboost_system
+LIBS := -lboost_filesystem -lboost_thread -lboost_system -lboost_log -lboost_log_setup -lpthread
 

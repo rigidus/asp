@@ -8,7 +8,9 @@
 #ifndef LOGGER_H_
 #define LOGGER_H_
 
-#define BOOST_LOG_DYN_LINK 1
+#ifndef ARM_STATIC_BUILD
+	#define BOOST_LOG_DYN_LINK 1
+#endif
 
 #include <iostream>
 #include <string>
