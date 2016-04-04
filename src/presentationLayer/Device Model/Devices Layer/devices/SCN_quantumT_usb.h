@@ -79,7 +79,7 @@ public:
 				// отправить назад сообщение, что json не распарсился
 				std::stringstream error;
 				error << "ERROR! CSLCDWinstar16x2::sendCommand: parameters JSON has wrong format: " << &jsonArray[0];
-//				setCommandTo::sendErrorToClient(error);
+//				SetTo::sendErrorToClient(error);
 
 				std::cout << error.str() << std::endl;
 
@@ -113,7 +113,7 @@ public:
 					std::stringstream error;
 					error << "Error has received but value isn't String";
 
-//					setCommandTo::sendErrorToClient(error);
+//					SetTo::sendErrorToClient(error);
 					std::cout << error.str() << std::endl;
 				}
 
@@ -125,7 +125,7 @@ public:
 				// отправить сообщение, что txid не найден и выйти
 				std::stringstream error;
 				error << "ERROR! CSLCDWinstar16x2::sendCommand: JSON attribute '" << attrScreen << "' not found.";
-//				setCommandTo::sendErrorToClient(error);
+//				SetTo::sendErrorToClient(error);
 
 				std::cout << error.str() << std::endl;
 
@@ -139,7 +139,7 @@ public:
 				// отправить сообщение, что txid не число и выйти
 				std::stringstream error;
 				error << "ERROR! CSLCDWinstar16x2::sendCommand: JSON attribute '" << attrScreen << "' isn't number type";
-//				setCommandTo::sendErrorToClient(error);
+//				SetTo::sendErrorToClient(error);
 
 				std::cout << error.str() << std::endl;
 
@@ -160,7 +160,7 @@ public:
 		if (m_commCtl[0])
 			m_commCtl[0]->send(data);
 
-		setCommandTo::Manager(c_name);
+		SetTo::Manager(c_name);
 
 	}
 
@@ -183,7 +183,7 @@ public:
 
 			answer << "\"command\" : \"press\"";
 
-			setCommandTo::Client( setCommandTo::Event, c_name, "send", answer.str());
+			SetTo::Client( SetTo::Event, c_name, "send", answer.str());
 
 		}
 	}

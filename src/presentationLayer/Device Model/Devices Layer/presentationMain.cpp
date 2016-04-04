@@ -31,6 +31,28 @@ boost::mutex HttpClient::HTTPconnectMutex;
 volatile int HttpDevLayerClient::s_exit_flag = 0;
 boost::mutex HttpDevLayerClient::HTTPconnectMutex;
 
+
+std::ostream& operator<< (std::ostream& strm, severity_level level)
+{
+	static const char* strings[] =
+	{
+		"trace",
+		"debug",
+		"warning",
+		"error",
+		"info",
+		"critical"
+	};
+
+	if (static_cast< std::size_t >(level) < sizeof(strings) / sizeof(*strings))
+		strm << strings[level];
+	else
+		strm << (int)level;
+
+	return strm;
+}
+
+
 void ParameterParser(int argc, char* argv[])
 {
 	uint32_t cnt = argc;

@@ -1,9 +1,11 @@
-/*
- * Logger.cpp
- *
- *  Created on: 31 марта 2016 г.
- *      Author: alex
- */
+//============================================================================
+// Name        : Logger.cpp
+// Author      : aav
+// Created on  : 31 марта 2016 г.
+// Version     :
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : File logger based by boost library libboost_log
+//============================================================================
 
 #include "Logger.h"
 
@@ -15,26 +17,6 @@ namespace
 	int logSize = 1024*1024;
 	std::string logFileName = "release_%2N_%d.%m.%Y-%H:%M:%S.log";
 
-}
-
-std::ostream& operator<< (std::ostream& strm, severity_level level)
-{
-	static const char* strings[] =
-	{
-		"trace",
-		"debug",
-		"warning",
-		"error",
-		"info",
-		"critical"
-	};
-
-	if (static_cast< std::size_t >(level) < sizeof(strings) / sizeof(*strings))
-		strm << strings[level];
-	else
-		strm << (int)level;
-
-	return strm;
 }
 
 void Logger::init(severity_level level)

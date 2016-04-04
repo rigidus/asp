@@ -1,9 +1,11 @@
-/*
- * MyThreadPool.h
- *
- *  Created on: 9 февр. 2016 г.
- *      Author: alex
- */
+//============================================================================
+// Name        : MyThreadPool.h
+// Author      : aav
+// Created on  : 9 февр. 2016 г.
+// Version     : v.0.2
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : File logger based by boost library libboost_log
+//============================================================================
 
 #ifndef MYTHREADPOOL_H_
 #define MYTHREADPOOL_H_
