@@ -57,43 +57,63 @@ int CSerialPortCtl::setSettings(std::string deviceName){
 shared_ptr<CBaseCommCtl> CSerialPortCtl::takeCommCtl(CBaseDevice* device, const std::string& uartName)
 {
 	// TODO: realize function
-	std::cout << "CSerialPortCtl::takeCommCtl try to take " << uartName << std::endl;
+	{
+		std::stringstream log;
+		log << "CSerialPortCtl::takeCommCtl try to take " << uartName;
+		SetTo::LocalLog(device->c_name, trace, log.str());
+	}
 
 	try{
 		// check busy pin
 		if (busyUarts.find(uartName) != busyUarts.end())
 		{
-			std::cout << "CSerialPortCtl::takeCommCtl getting " << uartName << " failed: gpio is busy or not existing" << std::endl;
+			{
+				std::stringstream log;
+				log << "CSerialPortCtl::takeCommCtl getting " << uartName << " failed: gpio is busy or not existing";
+				SetTo::LocalLog(device->c_name, error, log.str());
+			}
 			return nullptr;
 		}
-		// OK! pin is free
+		// OK! uart is free
 
 		// create CPinCtl for pinNum
 		shared_ptr<CBaseCommCtl> uartCtl((CBaseCommCtl*) new CSerialPortCtl(device, uartName));
 		std::pair<std::string, shared_ptr<CBaseCommCtl> > pr(uartName, uartCtl);
 		busyUarts.insert(pr);
-		// OK! pin is made as busied and stored
+		// OK! uart is made as busied and stored
 
-		std::cout << "CSerialPortCtl::takeCommCtl take " << uartName << " successfully" << std::endl;
+		{
+			std::stringstream log;
+			log << "CSerialPortCtl::takeCommCtl take " << uartName << " successfully";
+			SetTo::LocalLog(device->c_name, debug, log.str());
+		}
 
 		return uartCtl;
 	}
 
 	catch(boost::exception& ex)
 	{
-		std::cout << "CSerialPortCtl::takeCommCtl exception: " << boost::diagnostic_information(ex) << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CSerialPortCtl::takeCommCtl: exception: " << boost::diagnostic_information(ex);
+			SetTo::LocalLog(device->c_name, error, log.str());
+		}
 		return nullptr;
 	}
 
 	catch(std::exception& ex)
 	{
-		std::cout << "CSerialPortCtl::takeCommCtl exception: " << ex.what() << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CSerialPortCtl::takeCommCtl: exception: " << ex.what();
+			SetTo::LocalLog(device->c_name, error, log.str());
+		}
 		return nullptr;
 	}
 
 	catch(...)
 	{
-		std::cout << "CSerialPortCtl::takeCommCtl unknown exception: " << std::endl;
+		SetTo::LocalLog(device->c_name, error, "ERROR! CSerialPortCtl::takeCommCtl: unknown exception");
 		return nullptr;
 	}
 
@@ -102,9 +122,17 @@ shared_ptr<CBaseCommCtl> CSerialPortCtl::takeCommCtl(CBaseDevice* device, const 
 
 void CSerialPortCtl::freeCommCtl(CBaseDevice* device, const std::string& uartName)
 {
-	if (device == nullptr) return;
+	if (device == nullptr);
+	{
+		SetTo::CommonLog(error, "CSerialPortCtl::freeCommCtl: No device");
+		return;
+	}
 
-	std::cout << "freeUartCtl try to free " << uartName << std::endl;
+	{
+		std::stringstream log;
+		log << "CSerialPortCtl::getCommCtl: try to free " << uartName;
+		SetTo::LocalLog(device->c_name, trace, log.str());
+	}
 
 	// check busy pin
 
@@ -112,6 +140,11 @@ void CSerialPortCtl::freeCommCtl(CBaseDevice* device, const std::string& uartNam
 
 	if ( it == busyUarts.end())
 	{
+		{
+			std::stringstream log;
+			log << "ERROR: CSerialPortCtl::freeCommCtl uart " << uartName << " not busy or not exist";
+			SetTo::LocalLog(device->c_name, error, log.str());
+		}
 		return;
 	}
 	// OK! uart is busy
@@ -119,11 +152,20 @@ void CSerialPortCtl::freeCommCtl(CBaseDevice* device, const std::string& uartNam
 	shared_ptr<CBaseCommCtl> uartCtl(it->second);
 	if ( uartCtl->m_deviceName != device->c_name)
 	{
+		{
+			std::stringstream log;
+			log << "ERROR: CSerialPortCtl::freeCommCtl: found " << uartName << " isn't connected to device " << device->c_name;
+			SetTo::LocalLog(device->c_name, error, log.str());
+		}
 		return;
 	}
 
 	// free uart
-	std::cout << "getUartCtl " << uartName << " is free" << std::endl;
+	{
+		std::stringstream log;
+		log << "CSerialPortCtl::freeCommCtl: " << uartName << " is free";
+		SetTo::LocalLog(device->c_name, error, log.str());
+	}
 
 	busyUarts.erase(it);
 

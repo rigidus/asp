@@ -22,7 +22,11 @@ bool CPrnCtl::checkFiles()
 
 	if ( CPrnCtl::fileIsExist( printerPath ) == false)
 	{
-		std::cout << "ERROR! CPrnCtl::takeCommCtl getting '" << m_PrinterData.name << "'  failed: file not found" << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CPrnCtl::takeCommCtl getting '" << m_PrinterData.name << "'  failed: file not found";
+			SetTo::LocalLog(m_deviceName, error, log.str());
+		}
 		return false;
 	}
 
@@ -32,14 +36,21 @@ bool CPrnCtl::checkFiles()
 void CPrnCtl::setupPrinter()
 {
 
-	std::cout << "CPrnCtl::setupPrinter: " << m_PrinterData.name << std::endl;
+	{
+		std::stringstream log;
+		log << "CPrnCtl::setupPrinter: " << m_PrinterData.name;
+		SetTo::LocalLog(m_deviceName, trace, log.str());
+	}
 
 	//const settings::CommDisplayConfig& config = m_Config; //!!!fix: use it
 
 	std::string printerPath = CPrnCtl::printerPath + "/" + m_PrinterData.name;
 
-	//!!!fix display setup
-	std::cout << "CPrnCtl::setupPrinter: setting on = " << printerPath << " [fake]" << std::endl;
+	{
+		std::stringstream log;
+		log << "CPrnCtl::setupPrinter: setting on = " << printerPath << " [fake]";
+		SetTo::LocalLog(m_deviceName, debug, log.str());
+	}
 
 }
 
@@ -53,34 +64,54 @@ settings::CommPrinterConfig CPrnCtl::getPrinterConfig(CBaseDevice* device, const
 	{
 		if ( v.name == printerName )
 		{
-			std::cout << "getPrinterConfig: " << printerName << std::endl;
+			{
+				std::stringstream log;
+				log << "getPrinterConfig: " << printerName;
+				SetTo::LocalLog(device->c_name, trace, log.str());
+			}
 
 			return v;
 		}
 	}
 
 	settings::CommPrinterConfig empty = { printerName, "/dev/usb/lp0" }; //!!!fix hardcode
-	std::cout << "getPrinterConfig: returning EMPTY! " << printerName << std::endl;
+
+	{
+		std::stringstream log;
+		log << "getPrinterConfig: returning EMPTY! " << printerName;
+		SetTo::LocalLog(device->c_name, error, log.str());
+	}
+
 	return empty;
 }
 
 shared_ptr<CBaseCommCtl> CPrnCtl::takeCommCtl(CBaseDevice* device, const std::string& printerName)
 {
 
-	std::cout << "CPrinterCtl::takeCommCtl try to take " << printerName << std::endl;
+	{
+		std::stringstream log;
+		log << "CPrinterCtl::takeCommCtl try to take " << printerName;
+		SetTo::LocalLog(device->c_name, trace, log.str());
+	}
 
 	try{
 
-		std::cout << "ATTENTION! CPrinterCtl::takeCommCtl: getting " << printerPath << printerName << std::endl;
+		{
+			std::stringstream log;
+			log << "CPrinterCtl::takeCommCtl: getting " << printerPath << printerName;
+			SetTo::LocalLog(device->c_name, trace, log.str());
+		}
+
 		boostio::stream_buffer<boostio::file_sink> bufExport(printerPath+printerName);
 		std::ostream fileExport(&bufExport);
 
-		// TODO: grabli, значимая фиксированная позиция в строке
-//		fileExport << &gpioName[4]; // 4 - is gpio number position
 
 		// Create TPinData
-//		std::string displayPath = CDisplayCtl::displayPath + "/" + displayName + "/";
-		std::cout << "ATTENTION! CPrnCtl::takeCommCtl: create fname " << printerPath << printerName << std::endl;
+		{
+			std::stringstream log;
+			log << "CPrnCtl::takeCommCtl: create fname " << printerPath << printerName;
+			SetTo::LocalLog(device->c_name, trace, log.str());
+		}
 		std::string fname(CPrnCtl::printerPath + printerName);
 
 		TPrinterData printer;
@@ -88,39 +119,62 @@ shared_ptr<CBaseCommCtl> CPrnCtl::takeCommCtl(CBaseDevice* device, const std::st
 		printer.fd = -1;
 		printer.name = printerName;
 
-		std::cout << "ATTENTION! CPrinterCtl::takeCommCtl: getPrinterConfig " << printerPath << printerName << std::endl;
+		{
+			std::stringstream log;
+			log << "CPrinterCtl::takeCommCtl: getPrinterConfig " << printerPath << printerName << printerName;
+			SetTo::LocalLog(device->c_name, trace, log.str());
+		}
 		settings::CommPrinterConfig config = getPrinterConfig(device, printerName);
 
 		// create CDisplayCtl for displayNum
-		std::cout << "ATTENTION! CPrinterCtl::takeCommCtl: New CPrnCtl " << printerPath << printerName << std::endl;
+		{
+			std::stringstream log;
+			log << "ATTENTION! CPrinterCtl::takeCommCtl: New CPrnCtl " << printerPath << printerName;
+			SetTo::LocalLog(device->c_name, trace, log.str());
+		}
 
 		shared_ptr<CBaseCommCtl> printerCtl( (CBaseCommCtl*) new CPrnCtl(device, config, printer) );
-		std::cout << "ATTENTION! CPrnCtl::takeCommCtl: pr(printerName, printerCtl) " << printerPath << printerName << std::endl;
-		std::pair<std::string, shared_ptr<CBaseCommCtl> > pr(printerName, printerCtl);
-//		busyPins.insert(pr);
-//
-		// OK! pin is made as busied and stored
 
-		std::cout << "CPrnCtl::takeCommCtl: take " << printerName << " successfully [fake]" << std::endl;
+		{
+			std::stringstream log;
+			log << "ATTENTION! CPrnCtl::takeCommCtl: pr(printerName, printerCtl) " << printerPath << printerName;
+			SetTo::LocalLog(device->c_name, trace, log.str());
+		}
+
+		std::pair<std::string, shared_ptr<CBaseCommCtl> > pr(printerName, printerCtl);
+
+		{
+			std::stringstream log;
+			log << "CPrnCtl::takeCommCtl: take " << printerName << " successfully [fake]";
+			SetTo::LocalLog(device->c_name, trace, log.str());
+		}
 
 		return printerCtl;
 	}
 
 	catch(boost::exception& ex)
 	{
-		std::cout << "ERROR! CPrnCtl::takeCommCtl: exception: " << boost::diagnostic_information(ex) << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CPrnCtl::takeCommCtl: exception: " << boost::diagnostic_information(ex);
+			SetTo::LocalLog(device->c_name, error, log.str());
+		}
 		return nullptr;
 	}
 
 	catch(std::exception& ex)
 	{
-		std::cout << "ERROR! CPrnCtl::takeCommCtl: exception: " << ex.what() << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CPrnCtl::takeCommCtl: exception: " << ex.what();
+			SetTo::LocalLog(device->c_name, error, log.str());
+		}
 		return nullptr;
 	}
 
 	catch(...)
 	{
-		std::cout << "ERROR! CPrnCtl::takeCommCtl unknown exception: " << std::endl;
+		SetTo::LocalLog(device->c_name, error, "ERROR! CPrnCtl::takeCommCtl: unknown exception");
 		return nullptr;
 	}
 
@@ -130,11 +184,23 @@ shared_ptr<CBaseCommCtl> CPrnCtl::takeCommCtl(CBaseDevice* device, const std::st
 void CPrnCtl::freeCommCtl(CBaseDevice* device, const std::string& printerName)
 {
 
-	if (device == nullptr) return;
+	if (device == nullptr)
+	{
+		SetTo::CommonLog(error, "CPrnCtl::freeCommCtl: No device");
+		return;
+	}
 
-	std::cout << "CPrnCtl::freeCommCtl: getPrinterCtl try to free " << printerName << std::endl;
+	{
+		std::stringstream log;
+		log << "CPrnCtl::freeCommCtl: Try to free " << printerName;
+		SetTo::LocalLog(device->c_name, trace, log.str());
+	}
 
-	std::cout << "CPrnCtl::freeCommCtl: " << printerName << " is free [fake]" << std::endl;
+	{
+		std::stringstream log;
+		log << "CPrnCtl::freeCommCtl: " << printerName << " is free [fake]";
+		SetTo::LocalLog(device->c_name, debug, log.str());
+	}
 
 }
 
@@ -161,7 +227,13 @@ CPrnCtl::~CPrnCtl(){
 uint32_t CPrnCtl::send(std::vector<uint8_t> sendData)
 {
 	std::list<std::vector<uint8_t> > lst;
-	std::cout << "CPrnCtl::send: <vector> sendData.size == " << sendData.size() << std::endl;
+
+	{
+		std::stringstream log;
+		log << "CPrnCtl::send: <vector> sendData.size == " << sendData.size();
+		SetTo::LocalLog(m_deviceName, trace, log.str());
+	}
+
 	lst.push_back(sendData);
 
 	return send(lst);
@@ -169,25 +241,34 @@ uint32_t CPrnCtl::send(std::vector<uint8_t> sendData)
 
 uint32_t CPrnCtl::send(std::list<std::vector<uint8_t> > sendData)
 {
-	std::cout << "CPrnCtl::send: command 'write data' to '" << m_PrinterData.name << "'." << std::endl;
+	{
+		std::stringstream log;
+		log << "CPrnCtl::send: command 'write data' to '" << m_PrinterData.name << "'." << sendData.size();
+		SetTo::LocalLog(m_deviceName, trace, log.str());
+	}
 
 	/*
 	 * Парсинг команды записи в конкретный файл пина
 	 * value, direction, edge, active_low
 	 */
 
-	std::cout << "CPrnCtl::send: list<vector> sendData.size == " << sendData.size() << std::endl;
+	{
+		std::stringstream log;
+		log << "CPrnCtl::send: list<vector> sendData.size == " << sendData.size();
+		SetTo::LocalLog(m_deviceName, trace, log.str());
+	}
 
 	if ( sendData.size() == 1 ) //!!!fix "&& sendData.begin()->size() > 2 )"
 	{
-//		std::string fname(printerPath + m_PrinterData.name);
-
 		std::vector<uint8_t>& data = sendData.back();
 
-		std::cout << "CPrnCtl::send: data.size is " << data.size() << std::endl;
+		{
+			std::stringstream log;
+			log << "CPrnCtl::send: data.size is " << data.size();
+			SetTo::LocalLog(m_deviceName, trace, log.str());
+		}
 
 		uint8_t cmdtype = data[0];
-//		uint8_t screenId;
 
 		uint32_t len = 0;
 //		int32_t fd;
@@ -195,22 +276,31 @@ uint32_t CPrnCtl::send(std::list<std::vector<uint8_t> > sendData)
 		char* endData = (char*) &data[data.size()-1];
 		std::string value(beginData, endData);
 		std::ofstream myfile ("/aspp/tmpcheck.html");
-//		std::string fname("/aspp/tmpcheck.html");
 
 		switch(cmdtype) //!!!fix
 		{
 		case '0': // clear - not listed
-			std::cout << "CPrnCtl::send: cmdtype is CLEAR" << std::endl;
-
-
+			{
+				std::stringstream log;
+				log << "CPrnCtl::send: cmdtype is CLEAR";
+				SetTo::LocalLog(m_deviceName, debug, log.str());
+			}
 			break;
-		case '1': // print
-			std::cout << "CPrnCtl::send: cmdtype is PRINT" << std::endl;
 
-//			fd = open( fname.c_str(), O_WRONLY | O_NONBLOCK);
+		case '1': // print
+			{
+				std::stringstream log;
+				log << "CPrnCtl::send: cmdtype is PRINT";
+				SetTo::LocalLog(m_deviceName, debug, log.str());
+			}
+
 			if (!(myfile.is_open()))
 			{
-				std::cout << "ERROR! CPrnCtl::send: File '" << "/aspp/tmpcheck.html" << "' isn't opened for writing." << std::endl;
+				{
+					std::stringstream log;
+					log << "ERROR! CPrnCtl::send: File '" << "/aspp/tmpcheck.html" << "' isn't opened for writing.";
+					SetTo::LocalLog(m_deviceName, error, log.str());
+				}
 				return 0;
 			}
 
@@ -223,7 +313,11 @@ uint32_t CPrnCtl::send(std::list<std::vector<uint8_t> > sendData)
 
 			break;
 		default:
-			std::cout << "ERROR! CPrnCtl::send: cmdtype " << cmdtype << " incorrect" << std::endl;
+			{
+				std::stringstream log;
+				log << "ERROR! CPrnCtl::send: cmdtype " << cmdtype << " incorrect";
+				SetTo::LocalLog(m_deviceName, error, log.str());
+			}
 			return 0;
 		}
 
@@ -233,14 +327,22 @@ uint32_t CPrnCtl::send(std::list<std::vector<uint8_t> > sendData)
 
 	if ( sendData.size() != 1) //!!!fix
 	{
-		std::cout << "ERROR! CPrnCtl::send: Incorrect argument size: list size = "
-				<< sendData.size() << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CPrnCtl::send: Incorrect argument size: list size = "
+					<< sendData.size();
+			SetTo::LocalLog(m_deviceName, error, log.str());
+		}
 	}
 	else
 	if ( sendData.begin()->size() < 2 ) //!!!fix
 	{
-		std::cout << "ERROR! CPrnCtl::send: Incorrect argument size: vector size = "
-		<< sendData.begin()->size() << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CPrnCtl::send: Incorrect argument size: vector size = "
+					<< sendData.begin()->size();
+			SetTo::LocalLog(m_deviceName, error, log.str());
+		}
 	}
 
 	return  0;

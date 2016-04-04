@@ -34,10 +34,14 @@ public:
 
 	virtual void sendCommand(const std::string command, const std::string pars)
 	{
-		std::cout << "CTestConcreteDevice::sendCommand: performs command: " << command << "[" << pars << "]" << std::endl;
+		{
+			std::stringstream log;
+			log << "CTestConcreteDevice::sendCommand: performs command: " << command << "[" << pars << "]";
+			SetTo::LocalLog(c_name, trace, log.str());
+		}
 
 		// command "up"
-		setCommandTo::Client(setCommandTo::Transaction, c_name, "", pars);
+		SetTo::Client(SetTo::Transaction, c_name, "", pars);
 
 	}
 

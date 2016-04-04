@@ -148,7 +148,7 @@ void CDevicesLayerTest::CTestSendReceiveLoop::runTest()
 
 		strPar << "{\"txid\":" << i << ", \"device\":\"abstract_device\", \"command\":\"down\", \"parameters\":{\"state\":\"open\", \"car\":\"present\"} }";
 
-		setCommandTo::Device(0, "logic_dev_layer", "", strPar.str(), "");
+		SetTo::Device(0, "logic_dev_layer", "", strPar.str(), "");
 	}
 
 	while (stopServer.load(boost::memory_order_relaxed) < maxCommands)

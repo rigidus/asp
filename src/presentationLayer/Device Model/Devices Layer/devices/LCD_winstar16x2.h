@@ -44,14 +44,22 @@ public:
 		const std::string attrError("error"); // Опциональный атрибут, отменяет все остальные атрибуты
 		const std::string attrScreen("screen"); // Опциональный атрибут, отменяет все остальные атрибуты
 
-		std::cout << "CSLCDWinstar16x2::sendCommand: performs command: " << command << "[" << pars << "]" << std::endl;
+		{
+			std::stringstream log;
+			log << "CSLCDWinstar16x2::sendCommand: performs command: " << command << "[" << pars << "]";
+			SetTo::LocalLog(c_name, trace, log.str());
+		}
 
 //		std::list<std::vector<uint8_t> > data;
 		std::vector<uint8_t> data;
 
 		if (m_commCtl.size() == 0)
 		{
-			std::cout << "ERROR! CSLCDWinstar16x2::sendCommand: communication devices has lost" << std::endl;
+			{
+				std::stringstream log;
+				log << "ERROR! CSLCDWinstar16x2::sendCommand: communication devices has lost";
+				SetTo::LocalLog(c_name, error, log.str());
+			}
 			return;
 		}
 
@@ -81,19 +89,28 @@ public:
 				error << "ERROR! CSLCDWinstar16x2::sendCommand: parameters JSON has wrong format: " << &jsonArray[0];
 //				setCommandTo::sendErrorToClient(error);
 
-				std::cout << error.str() << std::endl;
+				SetTo::LocalLog(c_name, severity_level::error, error.str());
 
 				return;
 			}
 
 
-			std::cout << "CSLCDWinstar16x2::sendCommand: JSON was parsed correctly." << std::endl;
+			{
+				std::stringstream log;
+				log << "CSLCDWinstar16x2::sendCommand: JSON was parsed correctly.";
+				SetTo::LocalLog(c_name, trace, log.str());
+			}
 
 			// Stringify the DOM
 			StringBuffer buffer;
 			Writer<StringBuffer> writer(buffer);
 			d.Accept(writer);
-			std::cout << buffer.GetString() << std::endl;
+
+			{
+				std::stringstream log;
+				log << "CSLCDWinstar16x2::sendCommand: string buffer = " << buffer.GetString();
+				SetTo::LocalLog(c_name, trace, log.str());
+			}
 
 			if (d.HasMember(attrError.c_str()) == true)
 			{
@@ -105,8 +122,7 @@ public:
 					error << "Error has received: " << valError.GetString();
 
 					// TODO: Error parser from logic
-
-					std::cout << error.str() << std::endl;
+					SetTo::LocalLog(c_name, severity_level::error, error.str());
 				}
 				else
 				{
@@ -114,7 +130,7 @@ public:
 					error << "Error has received but value isn't String";
 
 //					setCommandTo::sendErrorToClient(error);
-					std::cout << error.str() << std::endl;
+					SetTo::LocalLog(c_name, severity_level::error, error.str());
 				}
 
 				return;
@@ -127,7 +143,7 @@ public:
 				error << "ERROR! CSLCDWinstar16x2::sendCommand: JSON attribute '" << attrScreen << "' not found.";
 //				setCommandTo::sendErrorToClient(error);
 
-				std::cout << error.str() << std::endl;
+				SetTo::LocalLog(c_name, severity_level::error, error.str());
 
 				return;
 			}
@@ -141,26 +157,34 @@ public:
 				error << "ERROR! CSLCDWinstar16x2::sendCommand: JSON attribute '" << attrScreen << "' isn't number type";
 //				setCommandTo::sendErrorToClient(error);
 
-				std::cout << error.str() << std::endl;
+				SetTo::LocalLog(c_name, severity_level::error, error.str());
 
 				return;
 			}
 
 			uint32_t screenId = (uint32_t) valScreen.GetInt();
 
-			std::cout << "CSLCDWinstar16x2::sendCommand: screenId is " << screenId << std::endl;
-
+			{
+				std::stringstream log;
+				log << "CSLCDWinstar16x2::sendCommand: screenId is " << screenId;
+				SetTo::LocalLog(c_name, trace, log.str());
+			}
 
 			data.push_back(screenId);
 //			data.push_back();
 		}
-		std::cout << "CSLCDWinstar16x2::sendCommand: data.size == " << data.size() << std::endl;
+
+		{
+			std::stringstream log;
+			log << "CSLCDWinstar16x2::sendCommand: data.size == " << data.size();
+			SetTo::LocalLog(c_name, trace, log.str());
+		}
 
 		// command "up"
 		if (m_commCtl[0])
 			m_commCtl[0]->send(data);
 
-		setCommandTo::Manager(c_name);
+		SetTo::Manager(c_name);
 
 	}
 

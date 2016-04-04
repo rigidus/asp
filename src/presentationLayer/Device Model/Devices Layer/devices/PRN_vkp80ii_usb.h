@@ -45,14 +45,21 @@ public:
 		const std::string attrTicket("ticket"); // Опциональный атрибут, отменяет все остальные атрибуты
 		const std::string attrBarcode("barcode"); // Опциональный атрибут, отменяет все остальные атрибуты
 
-		std::cout << "CPRN_vkp80ii_usb::sendCommand: performs command: " << command << "[" << pars << "]" << std::endl;
+		{
+			std::stringstream log;
+			log << "CPRN_vkp80ii_usb::sendCommand: performs command: " << command << "[" << pars << "]";
+			SetTo::LocalLog(c_name, trace, log.str());
+		}
 
-//		std::list<std::vector<uint8_t> > data;
 		std::vector<uint8_t> data;
 
 		if (m_commCtl.size() == 0)
 		{
-			std::cout << "ERROR! CPRN_vkp80ii_usb::sendCommand: communication devices has lost" << std::endl;
+			{
+				std::stringstream log;
+				log << "ERROR! CPRN_vkp80ii_usb::sendCommand: communication devices has lost";
+				SetTo::LocalLog(c_name, error, log.str());
+			}
 			return;
 		}
 
@@ -82,18 +89,27 @@ public:
 				error << "ERROR! CPRN_vkp80ii_usb::sendCommand: parameters JSON has wrong format: " << &jsonArray[0];
 //				setCommandTo::sendErrorToClient(error);
 
-				std::cout << error.str() << std::endl;
-// */
+				SetTo::LocalLog(c_name, severity_level::error, error.str());
+
 				return;
 			}
 
-			std::cout << "CPRN_vkp80ii_usb::sendCommand: JSON was parsed correctly." << std::endl;
+			{
+				std::stringstream log;
+				log << "CPRN_vkp80ii_usb::sendCommand: JSON was parsed correctly.";
+				SetTo::LocalLog(c_name, trace, log.str());
+			}
 
 			// Stringify the DOM
 			StringBuffer buffer;
 			Writer<StringBuffer> writer(buffer);
 			d.Accept(writer);
-			std::cout << buffer.GetString() << std::endl;
+
+			{
+				std::stringstream log;
+				log << "CPRN_vkp80ii_usb::sendCommand: string buffer = " << buffer.GetString();
+				SetTo::LocalLog(c_name, trace, log.str());
+			}
 
 			if (d.HasMember(attrError.c_str()) == true)
 			{
@@ -106,7 +122,7 @@ public:
 
 					// TODO: Error parser from logic
 
-					std::cout << error.str() << std::endl;
+					SetTo::LocalLog(c_name, severity_level::error, error.str());
 				}
 				else
 				{
@@ -114,7 +130,7 @@ public:
 					error << "Error has received but value isn't String";
 
 //					setCommandTo::sendErrorToClient(error);
-					std::cout << error.str() << std::endl;
+					SetTo::LocalLog(c_name, severity_level::error, error.str());
 				}
 
 				return;
@@ -127,7 +143,7 @@ public:
 				error << "ERROR! CPRN_vkp80ii_usb::sendCommand: JSON attribute '" << attrTicket << "' not found.";
 //				setCommandTo::sendErrorToClient(error);
 
-				std::cout << error.str() << std::endl;
+				SetTo::LocalLog(c_name, severity_level::error, error.str());
 
 				return;
 			}
@@ -141,7 +157,7 @@ public:
 				error << "ERROR! CPRN_vkp80ii_usb::sendCommand: JSON attribute '" << attrTicket << "' isn't Array type";
 //				setCommandTo::sendErrorToClient(error);
 
-				std::cout << error.str() << std::endl;
+				SetTo::LocalLog(c_name, severity_level::error, error.str());
 
 				return;
 			}
@@ -234,11 +250,19 @@ public:
 */
 			if (d.HasMember(attrBarcode.c_str()) == false)
 			{
-				std::cout << "CPRN_vkp80ii_usb::sendCommand: JSON attribute '" << attrBarcode << "' not found." << std::endl;
+				{
+					std::stringstream log;
+					log << "CPRN_vkp80ii_usb::sendCommand: JSON attribute '" << attrBarcode << "' not found.";
+					SetTo::LocalLog(c_name, trace, log.str());
+				}
 			}
 			else
 			{
-				std::cout << "CPRN_vkp80ii_usb::sendCommand: JSON attribute '" << attrBarcode << "' found!" << std::endl;
+				{
+					std::stringstream log;
+					log << "CPRN_vkp80ii_usb::sendCommand: JSON attribute '" << attrBarcode << "' found!";
+					SetTo::LocalLog(c_name, trace, log.str());
+				}
 
 				Value& valBarcode = d[attrBarcode.c_str()];
 				char bcgenStr[90];
@@ -255,12 +279,16 @@ public:
 					std::stringstream error;
 					error << "ERROR! CPRN_vkp80ii_usb::sendCommand: JSON attribute '" << attrBarcode << "' isn't String type";
 	//				setCommandTo::sendErrorToClient(error);
-					std::cout << error.str() << std::endl;
+					SetTo::LocalLog(c_name, severity_level::error, error.str());
 	//				return;
 				}
 				else
 				{
-					std::cout << "CPRN_vkp80ii_usb::sendCommand: barcode is '" << valBarcode.GetString() << "' found!" << std::endl;
+					{
+						std::stringstream log;
+						log << "CPRN_vkp80ii_usb::sendCommand: barcode is '" << valBarcode.GetString() << "' found!";
+						SetTo::LocalLog(c_name, trace, log.str());
+					}
 
 					strcpy(tmpstr1, valBarcode.GetString());
 
@@ -274,12 +302,28 @@ public:
 							j++;
 						}
 					}
-					std::cout << "CPRN_vkp80ii_usb::sendCommand: compressed barcode is " << tmpstr2 << std::endl;
+
 					sprintf(bcgenStr, "barcode -e \"code128c\" -b \"%s\" -p 110x297mm -t 1x6 -o /aspp/barcode.ps", tmpstr2); //valBarcode.GetString());
-					std::cout << "CPRN_vkp80ii_usb::sendCommand: barcode returned: " << std::system(bcgenStr) << std::endl;
-					std::cout << "CPRN_vkp80ii_usb::sendCommand: gs returned: " << std::system("gs -dQUIET -dSAFER -dBATCH "
-							"-dNOPAUSE -dNOPROMPT -dMaxBitmap=500000000 -dAlignToPixels=0 -dGridFitTT=2 -dTextAlphaBits=4 "
-							"-dGraphicsAlphaBits=4 -sDEVICE=jpeg -sOutputFile=/aspp/barcode.jpg /aspp/barcode.ps") << std::endl;
+
+					{
+						std::stringstream log;
+						log << "CPRN_vkp80ii_usb::sendCommand: compressed barcode is " << tmpstr2;
+						SetTo::LocalLog(c_name, trace, log.str());
+					}
+
+					{
+						std::stringstream log;
+						log << "CPRN_vkp80ii_usb::sendCommand: barcode returned: " << std::system(bcgenStr);
+						SetTo::LocalLog(c_name, trace, log.str());
+					}
+
+					{
+						std::stringstream log;
+						log << "CPRN_vkp80ii_usb::sendCommand: gs returned: " << std::system("gs -dQUIET -dSAFER -dBATCH "
+								"-dNOPAUSE -dNOPROMPT -dMaxBitmap=500000000 -dAlignToPixels=0 -dGridFitTT=2 -dTextAlphaBits=4 "
+								"-dGraphicsAlphaBits=4 -sDEVICE=jpeg -sOutputFile=/aspp/barcode.jpg /aspp/barcode.ps");
+						SetTo::LocalLog(c_name, trace, log.str());
+					}
 
 //					htmlTicket.unget();htmlTicket.unget(); // removing ">\n"
 					htmlTicket << "<TD background=\"./barcode.jpg\"  height=200 width=310>\n</TD>";
@@ -307,14 +351,21 @@ public:
 		// command "up"
 		if (m_commCtl[0])
 		{
-			std::cout << "CPRN_vkp80ii_usb::sendCommand: executing send(data)..." << std::endl;
+			{
+				std::stringstream log;
+				log << "CPRN_vkp80ii_usb::sendCommand: executing send(data)...";
+				SetTo::LocalLog(c_name, trace, log.str());
+			}
 			m_commCtl[0]->send(data);
 		}
 		else
-			std::cout << "ERROR! CPRN_vkp80ii_usb::sendCommand: failed executing send(data) due to nil m_commCtl" << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CPRN_vkp80ii_usb::sendCommand: failed executing send(data) due to nil m_commCtl";
+			SetTo::LocalLog(c_name, error, log.str());
+		}
 
-
-		setCommandTo::Manager(c_name);
+		SetTo::Manager(c_name);
 	}
 
 	virtual bool connectToCommCtl()

@@ -23,9 +23,18 @@ CDeviceManager::CDeviceManager(std::vector<settings::DeviceConfig> devConfig) {
 		if (v.abstractName.size() == 0) continue;
 		if (v.enable == false) continue;
 
-		std::cout << "CDeviceManager constructor: for " << v.abstractName << " started" << std::endl;
+		{
+			std::stringstream log;
+			log << "CDeviceManager constructor: for " << v.abstractName << " started";
+			SetTo::CommonLog(debug, log.str());
+		}
 
-		if (v.proto.size() != 0) std::cout << " " << v.proto << std::endl;
+		if (v.proto.size() != 0)
+		{
+			std::stringstream log;
+			log << "- " << v.proto;
+			SetTo::CommonLog(debug, log.str());
+		}
 
 		DeviceCtl devCtl;
 		boost::shared_ptr<CAbstractDevice> sPtr( factory.deviceFactory(v.abstractName, v.concreteName) );
@@ -43,10 +52,17 @@ CDeviceManager::CDeviceManager(std::vector<settings::DeviceConfig> devConfig) {
 		CPinCtl::startNotifier();
 	}
 
-	std::cout << "CDeviceManager constructor: Created device list:" << std::endl;
+	{
+		std::stringstream log;
+		log << "CDeviceManager constructor: Created device list:";
+		SetTo::CommonLog(debug, log.str());
+	}
+
 	for (auto v: devices)
 	{
-		std::cout << "- " << v.first << "[" << v.second.devInstance.get() << "]" << std::endl;
+		std::stringstream log;
+		log << "- " << v.first << "[" << v.second.devInstance.get() << "]";
+		SetTo::CommonLog(debug, log.str());
 	}
 
 }
@@ -69,7 +85,11 @@ CDeviceManager* CDeviceManager::deviceManagerFactory( std::vector<settings::Devi
 CDeviceManager* CDeviceManager::deviceManager()
 {
 	if (ptr == nullptr)
-		std::cout << "ERROR! CDeviceManager::deviceManager: is NULL" << std::endl;
+	{
+		std::stringstream log;
+		log << "ERROR! CDeviceManager::deviceManager: is NULL";
+		SetTo::CommonLog(error, log.str());
+	}
 
 	return ptr;
 }
@@ -89,11 +109,19 @@ void CDeviceManager::sendCommand(CAbstractDevice* abstractDevice, std::string co
 {
 	if (abstractDevice == nullptr)
 	{
-		std::cout << "CDeviceManager::sendCommand: abstractDevice is null" << std::endl;
+		{
+			std::stringstream log;
+			log << "ERROR! CDeviceManager::sendCommand: abstractDevice is null";
+			SetTo::CommonLog(error, log.str());
+		}
 		return;
 	}
 
-	std::cout << "CDeviceManager::sendCommand: Start Task for '" << abstractDevice->device()->c_name << "'" << std::endl;
+	{
+		std::stringstream log;
+		log << "CDeviceManager::sendCommand: Start Task for '" << abstractDevice->device()->c_name << "'";
+		SetTo::CommonLog(trace, log.str());
+	}
 
 	abstractDevice->sendCommand(command, pars);
 }
@@ -113,7 +141,11 @@ void CDeviceManager::setCommandToDevice(uint32_t txid, std::string abstractDevic
 		if ( it != devices.end() )
 		{
 
-			std::cout << "CDeviceManager::setCommandToDevice: device " << abstractDevice << " found." << std::endl;
+			{
+				std::stringstream log;
+				log << "CDeviceManager::setCommandToDevice: device " << abstractDevice << " found.";
+				SetTo::CommonLog(trace, log.str());
+			}
 
 			DeviceCtl::Task task;
 			task.txId = txid;
@@ -128,12 +160,21 @@ void CDeviceManager::setCommandToDevice(uint32_t txid, std::string abstractDevic
 			/*
 			 * Если задача в очереди одна, то отправку на устройство сделать незамедлительно
 			 */
-			std::cout << "INFO! CDeviceManager::setCommandToDevice: " << it->first << " queue has "
-					<< it->second.taskQue.size() << " task(s)." << std::endl;
+			{
+				std::stringstream log;
+				log << "CDeviceManager::setCommandToDevice: " << it->first << " queue has "
+						<< it->second.taskQue.size() << " task(s).";
+				SetTo::CommonLog(trace, log.str());
+			}
+
 			if (it->second.taskQue.size() == 1)
 			{
 
-				std::cout << "CDeviceManager::setCommandToDevice: task added to " << abstractDevice << std::endl;
+				{
+					std::stringstream log;
+					log << "CDeviceManager::setCommandToDevice: task added to " << abstractDevice;
+					SetTo::CommonLog(debug, log.str());
+				}
 
 				/*
 				 *  Постановка задачи на отправку команды на абстрактное устройство.
@@ -144,20 +185,21 @@ void CDeviceManager::setCommandToDevice(uint32_t txid, std::string abstractDevic
 		}
 		else
 		{
-
-			std::cout << "CDeviceManager::setCommandToDevice: " << abstractDevice << " not found in device list." << std::endl;
-
+			{
+				std::stringstream log;
+				log << "CDeviceManager::setCommandToDevice: " << abstractDevice << " not found in device list.";
+				SetTo::CommonLog(debug, log.str());
+			}
 		}
-
 	}
 	else
 	{
-		std::cout << "No instanced devices found" << std::endl;
+		SetTo::CommonLog(error, "No instanced devices found" );
 	}
 
 }
 
-void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std::string concreteDevice, std::string command, std::string parameters)
+void CDeviceManager::setCommandToClient(SetTo::CommandType eventFlag, std::string concreteDevice, std::string command, std::string parameters)
 {
 	/*
 	 * Событие надо просто разослать всем клиентам с помощью постановки задач
@@ -166,7 +208,7 @@ void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std
 
 	boost::mutex::scoped_lock lock(queMutex);
 
-	if ( eventFlag ==  setCommandTo::CommandType::Transaction )
+	if ( eventFlag ==  SetTo::CommandType::Transaction )
 	{
 		// Transaction
 		DeviceCtl::Task task;
@@ -176,9 +218,9 @@ void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std
 
 			std::stringstream error;
 			error << "ERROR! CDeviceManager::setCommandToClient: Transaction lost.";
-			setCommandTo::sendErrorToClient(error);
+			SetTo::sendErrorToClient(error);
 
-			std::cout << error.str() << std::endl;
+			SetTo::CommonLog(severity_level::error, error.str());
 			return;
 		}
 
@@ -189,8 +231,12 @@ void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std
 			if (task.adresat == "logic_bsns_layer")
 			{
 				// Set task to adresat
-				std::cout << "CDeviceManager::setCommandToClient: Set task for transaction " << task.txId << " to: "
-						<< task.adresat << std::endl;
+				{
+					std::stringstream log;
+					log << "CDeviceManager::setCommandToClient: Set task for transaction " << task.txId << " to: "
+							<< task.adresat;
+					SetTo::CommonLog(trace, log.str());
+				}
 
 				DeviceCtl::Task clientTask;
 				clientTask.txId = task.txId;
@@ -209,13 +255,21 @@ void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std
 				/*
 				 * Если задача в очереди клиента одна, то отправку на устройство сделать незамедлительно
 				 */
-				std::cout << "INFO! CDeviceManager::setCommandToCient: " << itAdresat->first << " queue has "
-						<<  itAdresat->second.taskQue.size() << " task(s)." << std::endl;
+				{
+					std::stringstream log;
+					log << "CDeviceManager::setCommandToCient: " << itAdresat->first << " queue has "
+						<<  itAdresat->second.taskQue.size() << " task(s).";
+					SetTo::CommonLog(trace, log.str());
+				}
 
 				if (itAdresat->second.taskQue.size() == 1)
 				{
 
-					std::cout << "CDeviceManager::setCommandToClient: task added to " << itAdresat->first << std::endl;
+					{
+						std::stringstream log;
+						log << "CDeviceManager::setCommandToClient: task added to " << itAdresat->first;
+						SetTo::CommonLog(debug, log.str());
+					}
 
 					/*
 					 *  Постановка задачи на отправку команды на абстрактное устройство.
@@ -230,8 +284,12 @@ void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std
 				 */
 				auto it = devices.find(task.abstract);
 
-				std::cout << "INFO! CDeviceManager::setCommandToClient: " << it->first << " queue has "
-						<< it->second.taskQue.size() << " task(s)." << std::endl;
+				{
+					std::stringstream log;
+					log << "CDeviceManager::setCommandToClient: " << it->first << " queue has "
+							<< it->second.taskQue.size() << " task(s).";
+					SetTo::CommonLog(trace, log.str());
+				}
 
 				if (it->second.taskQue.size())
 				{
@@ -243,14 +301,22 @@ void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std
 
 					std::string abstractName = it->second.devInstance.get()->deviceAbstractName();
 
-					std::cout << "CDeviceManager::setCommandToClient: task added to " << abstractName << std::endl;
+					{
+						std::stringstream log;
+						log << "CDeviceManager::setCommandToClient: task added to " << abstractName;
+						SetTo::CommonLog(debug, log.str());
+					}
 				}
 
 			}
 		}
 		else
 		{
-			std::cout << "CDeviceManager::setCommandToClient: Adresat '" << task.adresat << "'  not found in device list." << std::endl;
+			{
+				std::stringstream log;
+				log << "CDeviceManager::setCommandToClient: Adresat '" << task.adresat << "'  not found in device list.";
+				SetTo::CommonLog(debug, log.str());
+			}
 		}
 	}
 	else
@@ -268,7 +334,12 @@ void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std
 			clientTask.abstract = "logic_bsns_layer";
 			clientTask.concrete = "logic_http";
 
-			std::cout << "CDeviceManager::setCommandToClient: Set event to '" << clientTask.abstract <<"' from " << concreteDevice << " as Event." << std::endl;
+			{
+				std::stringstream log;
+				log << "CDeviceManager::setCommandToClient: Set event to '"
+						<< clientTask.abstract <<"' from " << concreteDevice << " as Event.";
+				SetTo::CommonLog(trace, log.str());
+			}
 
 			std::stringstream strparams;
 			for (auto& v: devices)
@@ -289,13 +360,21 @@ void CDeviceManager::setCommandToClient(setCommandTo::CommandType eventFlag, std
 			/*
 			 * Если задача в очереди клиента одна, то отправку на устройство сделать незамедлительно
 			 */
-			std::cout << "CDeviceManager::setCommandToClient: " << itAdresat->first << " queue has "
-					<<  itAdresat->second.taskQue.size() << " task(s)." << std::endl;
+			{
+				std::stringstream log;
+				log << "CDeviceManager::setCommandToClient: " << itAdresat->first << " queue has "
+						<<  itAdresat->second.taskQue.size() << " task(s).";
+				SetTo::CommonLog(trace, log.str());
+			}
 
 			if (itAdresat->second.taskQue.size() == 1)
 			{
 
-				std::cout << "CDeviceManager::setCommandToDevice: task added to " << itAdresat->first << std::endl;
+				{
+					std::stringstream log;
+					log << "CDeviceManager::setCommandToDevice: task added to " << itAdresat->first;
+					SetTo::CommonLog(debug, log.str());
+				}
 
 				/*
 				 *  Постановка задачи на отправку команды на абстрактное устройство.
@@ -322,14 +401,18 @@ void CDeviceManager::ackClient(std::string concreteDevice)
 	{
 		// Удивиться, что транзакция клиента была профачена. WTF! It's a BUG!
 		std::stringstream error;
-		error << "ERROR! CDeviceManager::ackClient: Transaction for " << concreteDevice << " lost" << std::endl;
-		setCommandTo::sendErrorToClient(error);
+		error << "ERROR! CDeviceManager::ackClient: Transaction for " << concreteDevice << " lost";
+		SetTo::sendErrorToClient(error);
 
-		std::cout << error.str() << std::endl;
+		SetTo::CommonLog(severity_level::error, error.str());
 		return;
 	}
 
-	std::cout << "CDeviceManager::ackClient: Check queue for '" << concreteDevice << "'" << std::endl;
+	{
+		std::stringstream log;
+		log << "CDeviceManager::ackClient: Check queue for '" << concreteDevice << "'";
+		SetTo::CommonLog(trace, log.str());
+	}
 
 	// Послать следующую команду из очереди на клиент
 
@@ -345,8 +428,12 @@ void CDeviceManager::ackClient(std::string concreteDevice)
 
 			std::string abstractName = it->second.devInstance.get()->deviceAbstractName();
 
-			std::cout << "CDeviceManager::ackClient: " << it->first << " queue has "
-					<<  it->second.taskQue.size() << " task(s)." << std::endl;
+			{
+				std::stringstream log;
+				log << "CDeviceManager::ackClient: " << it->first << " queue has "
+						<<  it->second.taskQue.size() << " task(s).";
+				SetTo::CommonLog(trace, log.str());
+			}
 
 			if (it->second.taskQue.size())
 			{
@@ -356,11 +443,19 @@ void CDeviceManager::ackClient(std::string concreteDevice)
 				DeviceCtl::Task& newTask = it->second.taskQue.front();
 				GlobalThreadPool::get().AddTask(0, newTask.taskFn);
 
-				std::cout << "CDeviceManager::ackClient: task added to '" << abstractName << "'" << std::endl;
+				{
+					std::stringstream log;
+					log << "CDeviceManager::ackClient: task added to '" << abstractName << "'";
+					SetTo::CommonLog(debug, log.str());
+				}
 			}
 			else
 			{
-				std::cout << "CDeviceManager::ackClient: queue of device '" << abstractName << "' is empty." << std::endl;
+				{
+					std::stringstream log;
+					log << "CDeviceManager::ackClient: queue of device '" << abstractName << "' is empty.";
+					SetTo::CommonLog(debug, log.str());
+				}
 			}
 
 			break;
@@ -378,20 +473,32 @@ bool CDeviceManager::popDeviceTask(std::string concreteDevice, DeviceCtl::Task& 
 		{
 			if (v.second.taskQue.size() == 0)
 			{
-				std::cout << "CDeviceManager::popDeviceTask: not found tasks in queue for '" << concreteDevice << "'" << std::endl;
+				{
+					std::stringstream log;
+					log << "CDeviceManager::popDeviceTask: not found tasks in queue for '" << concreteDevice << "'";
+					SetTo::CommonLog(trace, log.str());
+				}
 				return false;
 			}
 
 			task = v.second.taskQue.front();
 			v.second.taskQue.pop();
 
-			std::cout << "CDeviceManager::popDeviceTask: found tasks in queue for '" << concreteDevice <<  "'. Task popped." << std::endl;
+			{
+				std::stringstream log;
+				log << "CDeviceManager::popDeviceTask: found tasks in queue for '" << concreteDevice <<  "'. Task popped.";
+				SetTo::CommonLog(trace, log.str());
+			}
 
 			return true;
 		}
 	}
 
-	std::cout << "ERROR: CDeviceManager::popDeviceTask: not found device '" << concreteDevice << "'" << std::endl;
+	{
+		std::stringstream log;
+		log << "ERROR: CDeviceManager::popDeviceTask: not found device '" << concreteDevice << "'";
+		SetTo::CommonLog(error, log.str());
+	}
 
 	return false;
 }
