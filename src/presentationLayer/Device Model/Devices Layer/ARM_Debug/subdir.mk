@@ -6,6 +6,7 @@
 CPP_SRCS += \
 ../CBaseCodec.cpp \
 ../CBaseCommCtl.cpp \
+../CCharDevCtl.cpp \
 ../CDeviceManager.cpp \
 ../CDisplayCtl.cpp \
 ../CPinCodec.cpp \
@@ -21,6 +22,7 @@ CPP_SRCS += \
 OBJS += \
 ./CBaseCodec.o \
 ./CBaseCommCtl.o \
+./CCharDevCtl.o \
 ./CDeviceManager.o \
 ./CDisplayCtl.o \
 ./CPinCodec.o \
@@ -36,6 +38,7 @@ OBJS += \
 CPP_DEPS += \
 ./CBaseCodec.d \
 ./CBaseCommCtl.d \
+./CCharDevCtl.d \
 ./CDeviceManager.d \
 ./CDisplayCtl.d \
 ./CPinCodec.d \

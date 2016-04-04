@@ -18,6 +18,7 @@
 #include "abstract/UserButtonAbstract.h"
 #include "abstract/PrinterAbstract.h"
 #include "abstract/DisplayAbstract.h"
+#include "abstract/ScannerAbstract.h"
 
 // Abstract names
 // full
@@ -38,6 +39,7 @@ const std::string BsnsLogic::s_abstractName = "logic";
 const std::string AbstractUserButton::s_abstractName = "user-button";
 const std::string AbstractDisplay::s_abstractName = "display";
 const std::string AbstractPrinter::s_abstractName = "printer";
+const std::string AbstractScanner::s_abstractName = "scanner";
 
 // concrete names
 const std::string CTestConcreteDevice::s_concreteName = "concrete_device";
@@ -47,4 +49,5 @@ const std::string HttpClient::s_concreteName = "logic_http";
 const std::string HttpDevLayerClient::s_concreteName = "logic_http_dev_layer";
 const std::string CSLCDWinstar16x2::s_concreteName = "symbol_LCD_winstar_16x2";
 const std::string CPRN_vkp80ii_usb::s_concreteName = "printer_vkp80ii_usb";
+const std::string CSCN_quantumT_usb::s_concreteName = "scanner_quantumT_usb";
 

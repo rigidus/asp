@@ -5,8 +5,8 @@
  *      Author: bvl
  */
 
-#ifndef VKP80II_USB_H_
-#define VKP80II_USB_H_
+#ifndef _VKP80II_USB_H_
+#define _VKP80II_USB_H_
 
 
 #include "devices/CBaseDevice.h"
@@ -241,8 +241,8 @@ public:
 				std::cout << "CPRN_vkp80ii_usb::sendCommand: JSON attribute '" << attrBarcode << "' found!" << std::endl;
 
 				Value& valBarcode = d[attrBarcode.c_str()];
-				char bcgenStr[50];
-				char tmpstr1[20], tmpstr2[20];
+				char bcgenStr[90];
+				char tmpstr1[30], tmpstr2[30];
 				std::string compressedStr;
 				memset(bcgenStr, 0, sizeof(bcgenStr));
 				memset(tmpstr1, 0, sizeof(tmpstr1));
@@ -275,7 +275,7 @@ public:
 						}
 					}
 					std::cout << "CPRN_vkp80ii_usb::sendCommand: compressed barcode is " << tmpstr2 << std::endl;
-					sprintf(bcgenStr, "barcode -b \"%s\" -p 110x297mm -t 1x6 -o /aspp/barcode.ps", tmpstr2); //valBarcode.GetString());
+					sprintf(bcgenStr, "barcode -e \"code128c\" -b \"%s\" -p 110x297mm -t 1x6 -o /aspp/barcode.ps", tmpstr2); //valBarcode.GetString());
 					std::cout << "CPRN_vkp80ii_usb::sendCommand: barcode returned: " << std::system(bcgenStr) << std::endl;
 					std::cout << "CPRN_vkp80ii_usb::sendCommand: gs returned: " << std::system("gs -dQUIET -dSAFER -dBATCH "
 							"-dNOPAUSE -dNOPROMPT -dMaxBitmap=500000000 -dAlignToPixels=0 -dGridFitTT=2 -dTextAlphaBits=4 "
@@ -289,9 +289,11 @@ public:
 
 			htmlTicket << "</TR></TABLE></FONT></BODY></HTML>";
 
+			std::cout << "CPRN_vkp80ii_usb::sendCommand: started push_back htmlTicket" << std::endl;
 			while (!htmlTicket.eof()) {
 					data.push_back(htmlTicket.get());
 				}
+			std::cout << "CPRN_vkp80ii_usb::sendCommand: finished push_back htmlTicket" << std::endl;
 		}
 
 
@@ -323,4 +325,4 @@ public:
 };
 
 
-#endif /* VKP80II_USB_H_ */
+#endif /* _VKP80II_USB_H_ */

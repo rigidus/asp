@@ -15,6 +15,7 @@
 #include "abstract/UserButtonAbstract.h"
 #include "abstract/DisplayAbstract.h"
 #include "abstract/PrinterAbstract.h"
+#include "abstract/ScannerAbstract.h"
 
 class CDeviceFactory
 {
@@ -57,6 +58,9 @@ public:
 			if (dev) devs.push_back(dev);
 
 			dev = createAbstractDevice<AbstractDisplay>(abstractName, devName);
+			if (dev) devs.push_back(dev);
+
+			dev = createAbstractDevice<AbstractScanner>(abstractName, devName);
 			if (dev) devs.push_back(dev);
 
 //			dev = createAbstractDevice<AbstractPassSensor>(abstractName, devName);
