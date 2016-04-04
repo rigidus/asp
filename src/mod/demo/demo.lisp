@@ -253,7 +253,7 @@
 
 (in-package :asp)
 
-(restas:define-route highlevel-endpoint ("/highlevel" #|:method :post|#)
+(restas:define-route highlevel-endpoint ("/highlevel")
   (with-wrapper
     (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
       (error 'ajax :output "This is hi-level endpoint. You must send a POST")
@@ -334,9 +334,10 @@
                          (get-current-time-str)
                          *checkpoint-id*
                          *sector-id*))
-           (barcode     (hex<- (simmetric
-                         (barcode-assembly *checkpoint-id* *sector-id* *place-id* (get-unix-time) *ts-type*)
-                         (bits<- *secret*))))
+           (barcode     (format nil "~D"
+                                (int<- (simmetric
+                                        (barcode-assembly *checkpoint-id* *sector-id* *place-id* (get-unix-time) *ts-type*)
+                                        (bits<- *secret*)))))
            (msg-ticket  `((:TXID . ,*tx-counter*)
                           (:DEVICE . "printer")
                           (:COMMAND . "print")
