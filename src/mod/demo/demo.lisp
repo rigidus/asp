@@ -35,7 +35,7 @@
 (defparameter *ts-type*       1)
 
 (defparameter *low-level-endpoint* "http://localhost:8000/")
-(defparameter *hi-level-endpoint* "http://localhost:3999/gate")
+(defparameter *hi-level-endpoint* "http://localhost:3999/highlevel")
 
 (defparameter *tx-counter* 1)
 
@@ -253,13 +253,13 @@
 
 (in-package :asp)
 
-(restas:define-route gate ("/gate" #|:method :post|#)
+(restas:define-route highlevel-endpoint ("/highlevel" #|:method :post|#)
   (with-wrapper
     (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
       (error 'ajax :output "This is hi-level endpoint. You must send a POST")
       )))
 
-(restas:define-route gate-post ("/gate" :method :post)
+(restas:define-route highlevel-endpoint-post ("/highlevel" :method :post)
   (with-wrapper
     (let* ((p (alist-to-plist (hunchentoot:post-parameters*))))
       (error 'ajax :output "POST accepted")
