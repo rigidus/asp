@@ -105,7 +105,11 @@ int main(int argc, char* argv[])
 
 		if ( sig == signalReloadDeviceConfig)
 		{
-			std::cout << "Main: Catched signal to reload device config" << std::endl;
+			{
+				std::stringstream log;
+				log << "Main: Catched signal to reload device config";
+				SetTo::CommonLog(info, log.str());
+			}
 			GlobalThreadPool::stop();
 			CDeviceManager::destroyDeviceManager();
 			CDeviceManager::deviceManagerFactory( settings::getDeviceConfig() );
@@ -119,13 +123,21 @@ int main(int argc, char* argv[])
 		case SIGQUIT:
 		case SIGTERM:
 		case SIGTSTP:
-			std::cout << "Main: Catched signal to stopping application" << std::endl;
+			{
+				std::stringstream log;
+				log << "Main: Catched signal to stopping application";
+				SetTo::CommonLog(info, log.str());
+			}
 			GlobalThreadPool::stop();
 			CDeviceManager::destroyDeviceManager();
 			return 0;
 
 		default:
-			std::cout << "ERROR! Main: Catched not registered signal " << sig << std::endl;
+			{
+				std::stringstream log;
+				log << "ERROR! Main: Catched not registered signal " << sig;
+				SetTo::CommonLog(error, log.str());
+			}
 			break;
 		}
 	}

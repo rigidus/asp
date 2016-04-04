@@ -168,7 +168,7 @@ shared_ptr<CBaseCommCtl> CDisplayCtl::takeCommCtl(CBaseDevice* device, const std
 
 	catch(...)
 	{
-		SetTo::LocalLog(device->c_name, error, "ERROR! CDisplayCtl::takeCommCtl unknown exception");
+		SetTo::LocalLog(device->c_name, error, "ERROR! CDisplayCtl::takeCommCtl: unknown exception");
 		return nullptr;
 	}
 
@@ -179,13 +179,17 @@ shared_ptr<CBaseCommCtl> CDisplayCtl::takeCommCtl(CBaseDevice* device, const std
 void CDisplayCtl::freeCommCtl(CBaseDevice* device, const std::string& displayName)
 {
 
+	if (device == nullptr)
+	{
+		SetTo::CommonLog(error, "CDisplayCtl::freeCommCtl: No device");
+		return;
+	}
+
 	{
 		std::stringstream log;
 		log << "CDisplayCtl::freeCommCtl: getDisplayCtl try to free " << displayName;
 		SetTo::LocalLog(device->c_name, trace, log.str());
 	}
-
-	if (device == nullptr) return;
 
 	{
 		std::stringstream log;
