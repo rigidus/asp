@@ -5295,7 +5295,6 @@ void CBaseDevice::disconnectFromCommCtl()
     Снова запускаем nginx, открываем приветствие nginx по адресу http://10.0.10.114:8081/
     Вуаля.
 
-
 *** START Установка и запуск PostgreSQL                             :gmm:aav:
 
     На старте мы предполагаем, что постгрес не установлен на машине, если он
@@ -7686,6 +7685,7 @@ cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pins | grep "830"
   [TODO:bvl] Перенести в данный раздел всё, что касается сборки ядра и заголовков.
 
 ** Утилиты
+
    #+NAME: utility_file
    #+BEGIN_SRC lisp :tangle src/util.lisp :noweb tangle :exports code  :padline no :comments link
         ;;;; <<copyright>>
@@ -7946,6 +7946,145 @@ cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pins | grep "830"
            t))
    #+END_SRC
 
+** Макроутилиты
+
+   #+NAME: m_util
+   #+BEGIN_SRC lisp :tangle src/m-util.lisp :noweb tangle :padline no :comments link
+     (in-package #:asp)
+
+     <<m_util_contents>>
+   #+END_SRC
+
+   #+NAME: m_util_contents
+   #+BEGIN_SRC lisp
+     (in-package #:asp)
+
+
+     (defmacro !cons (car cdr)
+       "Destructive: Set CDR to the cons of CAR and CDR."
+       `(setq ,cdr (cons ,car ,cdr)))
+
+
+     (defmacro !cdr (list)
+       "Destructive: Set LIST to the cdr of LIST."
+       `(setq ,list (cdr ,list)))
+
+
+     (defmacro --each (list &rest body)
+       "Anaphoric form of `-each'."
+       ;; (declare (debug (form body))
+       ;;          (indent 1))
+       (let ((l (make-symbol "list")))
+         `(let ((,l ,list)
+                (it-index 0))
+            (while ,l
+              (let ((it (car ,l)))
+                ,@body)
+              (setq it-index (1+ it-index))
+              (!cdr ,l)))))
+
+     (defun -each (list fn)
+       "Call FN with every item in LIST. Return nil, used for side-effects only."
+       (--each list (funcall fn it)))
+
+
+     (defmacro --map-when (pred rep list)
+       "Anaphoric form of `-map-when'."
+       ;; (declare (debug (form form form)))
+       (let ((r (make-symbol "result")))
+         `(let (,r)
+            (--each ,list (!cons (if ,pred ,rep it) ,r))
+            (nreverse ,r))))
+
+
+     (defun -map-when (pred rep list)
+       "Return a new list where the elements in LIST that does not match the PRED function
+          are unchanged, and where the elements in LIST that do match the PRED function are mapped
+          through the REP function.
+
+          Alias: `-replace-where'
+
+          See also: `-update-at'"
+       (--map-when (funcall pred it) (funcall rep it) list))
+
+
+     (defmacro -> (x &optional form &rest more)
+       "Thread the expr through the forms. Insert X as the second item
+     in the first form, making a list of it if it is not a list
+     already. If there are more forms, insert the first form as the
+     second item in second form, etc."
+       (cond
+         ((null form) x)
+         ((null more) (if (listp form)
+                          `(,(car form) ,x ,@(cdr form))
+                          (list form x)))
+         (:else `(-> (-> ,x ,form) ,@more))))
+
+     ;; (-> 5 1- ODDP)
+     ;; => (-> (-> 5 1-) ODDP)
+     ;; => (ODDP (-> 5 1-))
+     ;; => (ODDP (1- 5))
+
+     ;; (sb-cltl2:macroexpand-all '(-> 'first (cons 'second) (cons 'third)))
+     ;; => (CONS (CONS 'FIRST 'SECOND) 'THIRD)
+
+     (defmacro ->> (x &optional form &rest more)
+       "Thread the expr through the forms. Insert X as the last item
+     in the first form, making a list of it if it is not a list
+     already. If there are more forms, insert the first form as the
+     last item in second form, etc."
+       (cond
+         ((null form) x)
+         ((null more) (if (listp form)
+                          `(,@form ,x)
+                          (list form x)))
+         (:else `(->> (->> ,x ,form) ,@more))))
+
+     ;; (sb-cltl2:macroexpand-all '(->> 'first (cons 'second) (cons 'third)))
+     ;; => (CONS 'THIRD (CONS 'SECOND 'FIRST))
+
+     (defmacro --> (x form &rest more)
+       "Thread the expr through the forms. Insert X at the position
+     signified by the token `it' in the first form. If there are more
+     forms, insert the first form at the position signified by `it' in
+     in second form, etc."
+       (if (null more)
+           (if (listp form)
+               (--map-when (eq it 'it) x form)
+               (list form x))
+           `(--> (--> ,x ,form) ,@more)))
+
+
+     (defmacro -some-> (x &optional form &rest more)
+       "When expr is non-nil, thread it through the first form (via `->'),
+          and when that result is non-nil, through the next form, etc."
+       (if (null form) x
+           (let ((result (make-symbol "result")))
+             `(-some-> (-when-let (,result ,x)
+                         (-> ,result ,form))
+                       ,@more))))
+
+
+     (defmacro -some->> (x &optional form &rest more)
+       "When expr is non-nil, thread it through the first form (via `->>'),
+          and when that result is non-nil, through the next form, etc."
+       (if (null form) x
+           (let ((result (make-symbol "result")))
+             `(-some->> (-when-let (,result ,x)
+                          (->> ,result ,form))
+                        ,@more))))
+
+
+     (defmacro -some--> (x &optional form &rest more)
+       "When expr in non-nil, thread it through the first form (via `-->'),
+          and when that result is non-nil, through the next form, etc."
+       (if (null form) x
+           (let ((result (make-symbol "result")))
+             `(-some--> (-when-let (,result ,x)
+                          (--> ,result ,form))
+                        ,@more))))
+   #+END_SRC
+
 ** Глобальные определения
 
    #+NAME: globals
@@ -8089,6 +8228,7 @@ cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pins | grep "830"
                     #:optima
                     #:fare-quasiquote-extras
                     #:fare-quasiquote-optima
+                    #:bit-smasher
                     )
        :description "asp"
        :author "Glukhov Mikhail"
@@ -8098,6 +8238,7 @@ cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pins | grep "830"
                     (:static-file "templates.htm")
                     (:file "prepare")    ;; подготовка к старту
                     (:file "util")       ;; файл с утилитами
+                    (:file "m-util")     ;; файл с макроутилитами
                     (:file "globals")    ;; файл с глобальными определеями
                     (:file "bricks")     ;; компоненты для создания интерфейсов
                     ;; Модуль сущностей, автоматов и их тестов
@@ -8127,7 +8268,7 @@ cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pins | grep "830"
      ;;;; package.lisp
 
      (restas:define-module #:asp
-       (:use  #:cl #:closer-mop #:postmodern #:anaphora #:hunchentoot #:cl-who #:parenscript #:cl-fad #:optima)
+       (:use  #:cl #:closer-mop #:postmodern #:anaphora #:hunchentoot #:cl-who #:parenscript #:cl-fad #:optima #:bit-smasher)
        (:shadowing-import-from #:closer-mop
                                #:defclass
                                #:defmethod
