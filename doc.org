@@ -2126,6 +2126,15 @@ InError
         | Светофор сигнал 2             | relay-sign-2       |        1 |
         | Подсветка кнопки              | relay-backlight    |        1 |
 
+
+      [COMMENT:gmm] - По результатам телефонного разговора с Раномй 06.04.2016 00:00
+      Где искать названия абстрактных устройств:
+      ~/repo/asp/src/presentationLayer/Device Model/Devices Layer/
+      там интересует только вторая строчка - это название абстрактного устойства
+      Подсветка кнопки - это устройство =user-button=
+      Синтаксис json сделать по образцу из demo.org
+      На каждую строчку посылать по одному сообщению.
+
       #+NAME: gen_relay
       #+BEGIN_SRC emacs-lisp :var name="" docstring="" flds='() :exports none
         (defun gen-switches (rows)
