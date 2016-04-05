@@ -4,12 +4,8 @@
 (in-package #:asp)
 
 (define-automat checkpoint "Автомат стойки"
-  ((Шлагбаум открытие (вверх) relay-gate-open)
-   (Шлагбаум закрытие (вниз) relay-gate-close)
-   (Шлагбаум стоп (запрет работы) relay-gate-stop)
-   (Светофор сигнал 1 relay-sign-1)
-   (Светофор сигнал 2 relay-sign-2)
-   (Подсветка кнопки relay-backlight))
+  ((id serial)
+   (name varchar))
   (:fin :goon :payment :init :finding :dialog :standby :softlock :hardlock :selftest :poweron)
   ((:poweron :selftest :poweron-to-selftest)
    (:selftest :hardlock :selftest-to-hardlock)

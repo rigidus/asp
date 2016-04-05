@@ -2116,7 +2116,7 @@ InError
       давая сигнал на выход =relay-gate-stop=.
 
       #+CAPTION: Выходы на сухой контакт
-      #+NAME: checkpoint_flds
+      #+NAME: dry_contact_casrfid-barcode-enter-selftest
         | Назначение                    | Название в системе | Значение |
         |-------------------------------+--------------------+----------|
         | Шлагбаум открытие (вверх)     | relay-gate-open    |        0 |
@@ -2154,7 +2154,7 @@ InError
 
       #+NAME: test_gen
       #+BEGIN_SRC lisp :tangle test.lisp :noweb tangle :exports none :padline no :comments link
-        <<gen_relay("enter", "selftest", checkpoint_flds)>>
+        <<gen_relay("enter", "selftest", dry_contact_casrfid-barcode-enter-selftest)>>
       #+END_SRC
 
       #+CAPTION: Cигнал на шину арбитаража
