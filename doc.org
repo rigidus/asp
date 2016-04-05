@@ -1,4 +1,4 @@
-+HTML_HEAD: <!-- -*- fill-column: 87 -*- -->
+#+HTML_HEAD: <!-- -*- fill-column: 87 -*- -->
 #+HTML_HEAD: <!-- org-toggle-inline-images -->
 
 #+TITLE: Техническое задание и спецификация на разработку АСПП
@@ -646,7 +646,6 @@
    =Тарифная сетка= - настраиваемая система применения почасовых тарифо и
    основных опций для них, создаваемое администратором парковки.  к зонам
 
-
 *** TODO Тарифная зона                                                 :pyub:
 
     Необходимо реализовать гибкую систему тарифов, при этом постаравшись
@@ -677,7 +676,6 @@
       - стоимость 1го..2го..23го..24го.. часа после истечения бесплатного времени
     - коэффициент стоймости в зависимости от времени суток (с 20:00 до 22:00 k=2, с 9:00 до 18:00 k=0,5)
     - коэффицикнт стоймости в зависимости от дня недели (пн, вт, ср, чт, пт k2=1, сб,вс k2=2)
-
 
 *** TODO Рассчёт тарифов
 **** По тарифным зонам
@@ -735,7 +733,6 @@
 
 По крате приписанной к «тарифу 2» можно въезжать и выезжать всегда (или только с 10:00
 до 23:00), но стоит она 3000 рублей в месяц.
-
 
 *** TODO Распределение паркомест                                       :pyub:
 
@@ -1065,7 +1062,7 @@
    состояния: оплата (с момента инициации платёжного устройства до равенства требуемой
    суммы внесенной сумме), выдача сдачи (если необходимо), проведение оплаты (печать чека).
 
-    #+CAPTION: Состояния конечного автомата стойки и преходы между ними
+   #+CAPTION: Состояния конечного автомата стойки и преходы между ними
    #+NAME: checkpoint_state
      | action               | from     | to       |
      |----------------------+----------+----------|
@@ -1438,7 +1435,6 @@ InError
 
 |action|from|to|
 |------|----|--|
-
 
 ** TODO Обработка сигналов с датчиков                                  :pyub:
 
@@ -2046,14 +2042,28 @@ InError
 **** Состояние включения стойки =casrfid-barcode-enter-poweron=
 
      Здесь мы просто создадим модельную стойку в этом состоянии - этот код будет частью
-     теста на модели
+     теста на модели.
+
+     [TODO:gmm] - Если стойка уже есть, незачем ее создавать - подгружаем из базы.
 
      #+NAME: test_make_checkpoint
      #+BEGIN_SRC lisp
-       (make-checkpoint :name "1" :state ":SELFTEST")
+       (in-package #:asp)
+
+       (let ((checkpoint (car (find-checkpoint :name "1"))))
+         (when (null checkpoint)
+           (setf checkpoint
+                 (make-checkpoint :name "1" :state ":SELFTEST")))
+         <<test_make_checkpoint_continuation>>
+         )
      #+END_SRC
 
-     [TODO:pyub] По какому событию мы переходим в =selftest=?:
+     [TODO:pyub] По какому событию мы переходим в =selftest=?
+
+     #+NAME: test_make_checkpoint_continuation
+     #+BEGIN_SRC lisp
+       (takt checkpoint :selftest)
+     #+END_SRC
 
 **** TODO Состояние инициализации =casrfid-barcode-enter-selftest=      :gmm:
 
@@ -2096,14 +2106,46 @@ InError
       давая сигнал на выход =relay-gate-stop=.
 
       #+CAPTION: Выходы на сухой контакт
-      |   | Назначение                    | Название в системе | Знач. |
-      |---+-------------------------------+--------------------+-------|
-      | 1 | Шлагбаум открытие (вверх)     | =relay-gate-open=  | =0=   |
-      | 2 | Шлагбаум закрытие (вниз)      | =relay-gate-close= | =0=   |
-      | 3 | Шлагбаум стоп (запрет работы) | =relay-gate-stop=  | =1=   |
-      | 4 | Светофор сигнал 1             | =relay-sign-1=     | =1=   |
-      | 5 | Светофор сигнал 2             | =relay-sign-2=     | =1=   |
-      | 6 | Подсветка кнопки              | =relay-backlight=  | =1=   |
+      #+NAME: checkpoint_flds
+        | Назначение                    | Название в системе | Значение |
+        |-------------------------------+--------------------+----------|
+        | Шлагбаум открытие (вверх)     | relay-gate-open    |        0 |
+        | Шлагбаум закрытие (вниз)      | relay-gate-close   |        1 |
+        | Шлагбаум стоп (запрет работы) | relay-gate-stop    |        1 |
+        | Светофор сигнал 1             | relay-sign-1       |        1 |
+        | Светофор сигнал 2             | relay-sign-2       |        1 |
+        | Подсветка кнопки              | relay-backlight    |        1 |
+
+      #+NAME: gen_relay
+      #+BEGIN_SRC emacs-lisp :var name="" docstring="" flds='() :exports none
+        (defun gen-switches (rows)
+          (let ((result))
+            (push "\n" result)
+            (let ((x (car rows)))
+              (push (format "  ((switch-to %s %s) ;; %s\n"
+                            (cadr x) (car (last x)) (car x)) result))
+            (mapcar #'(lambda (x)
+                        (push (format "   (switch-to %s %s) ;; %s\n" ;; (butlast x)
+                                      (cadr x) (car (last x)) (car x))
+                              result))
+                    (butlast (cdr rows)))
+            (let ((x (car (last rows))))
+              (push (format "   (switch-to %s %s) ;; %s"
+                            (cadr x) (car (last x)) (car x))
+                    result))
+            (mapconcat 'identity (reverse result) "")))
+
+        (let ((result))
+          (push (format "(set-switch %s %s" name docstring) result)
+          (push (gen-switches flds) result)
+          (push ")\n" result)
+          (mapconcat 'identity (reverse result) ""))
+      #+END_SRC
+
+      #+NAME: test_gen
+      #+BEGIN_SRC lisp :tangle test.lisp :noweb tangle :exports none :padline no :comments link
+        <<gen_relay("enter", "selftest", checkpoint_flds)>>
+      #+END_SRC
 
       #+CAPTION: Cигнал на шину арбитаража
       |   | Действие                 | Событие в системе | Знач. |

@@ -26,7 +26,14 @@
 
 ;; Тестируем asp
 (defun asp-test ()
-  (make-checkpoint :name "1" :state ":SELFTEST")
+  (in-package #:asp)
+  
+  (let ((checkpoint (car (find-checkpoint :name "1"))))
+    (when (null checkpoint)
+      (setf checkpoint
+            (make-checkpoint :name "1" :state ":SELFTEST")))
+    (takt checkpoint :selftest)
+    )
   
   (dbg "passed: asp-test~%"))
 (asp-test)
