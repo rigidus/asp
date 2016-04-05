@@ -1,9 +1,11 @@
-/*
- * GlobalThreadPool.h
- *
- *  Created on: 11 февр. 2016 г.
- *      Author: alex
- */
+//============================================================================
+// Name        : GlobalThreadPool.h
+// Author      : aav
+// Created on  : 11 февр. 2016 г.
+// Version     : v.0.2
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Singleton for MyThreadPool
+//============================================================================
 
 #ifndef GLOBALTHREADPOOL_H_
 #define GLOBALTHREADPOOL_H_

@@ -1,10 +1,3 @@
-///////////////////////////////////////////////////////////
-//  CPinCodec.h
-//  Implementation of the Class CPinCodec
-//  Created on:      19-���-2016 19:58:08
-//  Original author: user-PC
-///////////////////////////////////////////////////////////
-
 #if !defined(EA_B48E02C6_BE7B_44f4_93A5_0224FD4BA094__INCLUDED_)
 #define EA_B48E02C6_BE7B_44f4_93A5_0224FD4BA094__INCLUDED_
 

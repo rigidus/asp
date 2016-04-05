@@ -1,9 +1,11 @@
-/*
- * testAbstractDevice.h
- *
- *  Created on: 5 марта 2016 г.
- *      Author: drema
- */
+//============================================================================
+// Name        : testAbstractDevice.h
+// Author      : aav
+// Created on  : 5 марта 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Abstract device for echo unittest.
+//============================================================================
 
 #ifndef TESTABSTRACTDEVICE_H_
 #define TESTABSTRACTDEVICE_H_

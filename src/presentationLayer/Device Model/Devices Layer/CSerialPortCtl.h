@@ -1,9 +1,11 @@
-///////////////////////////////////////////////////////////
-//  CSerialPortCtl.h
-//  Implementation of the Class CSerialPortCtl
-//  Created on:      19-���-2016 19:58:08
-//  Original author: user-PC
-///////////////////////////////////////////////////////////
+//============================================================================
+// Name        : CSerialPortCtl.h
+// Author      : aav
+// Created on  : 19 февр. 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Multitone for communication resources of the UART type.
+//============================================================================
 
 #if !defined(EA_0925CBD4_E13C_48f3_93E7_16C4D33C203E__INCLUDED_)
 #define EA_0925CBD4_E13C_48f3_93E7_16C4D33C203E__INCLUDED_

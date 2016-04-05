@@ -1,9 +1,11 @@
-/*
- * CDeviceManager.cpp
- *
- *  Created on: 8 февр. 2016 г.
- *      Author: alex
- */
+//============================================================================
+// Name        : CDeviceManager.cpp
+// Author      : aav
+// Created on  : 8 февр. 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Device and transaction manager instances.
+//============================================================================
 
 #include "CDeviceManager.h"
 #include "CPinCtl.h"

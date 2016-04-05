@@ -1,9 +1,11 @@
-/*
- * HttpServer.h
- *
- *  Created on: 21 февр. 2016 г.
- *      Author: drema
- */
+//============================================================================
+// Name        : HttpServer.h
+// Author      : aav
+// Created on  : 21 февр. 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : File logger based by boost library libboost_log
+//============================================================================
 
 #ifndef HTTPSERVER_H_
 #define HTTPSERVER_H_

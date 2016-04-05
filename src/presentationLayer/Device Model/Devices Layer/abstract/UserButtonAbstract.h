@@ -1,9 +1,11 @@
-/*
- * UserButtonAbstract.h
- *
- *  Created on: 14 марта 2016 г.
- *      Author: drema
- */
+//============================================================================
+// Name        : UserButtonAbstract.h
+// Author      : aav
+// Created on  : 14 марта 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Abstract device for all user buttons
+//============================================================================
 
 #ifndef USERBUTTONABSTRACT_H_
 #define USERBUTTONABSTRACT_H_

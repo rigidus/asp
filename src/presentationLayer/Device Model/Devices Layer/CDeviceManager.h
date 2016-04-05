@@ -1,9 +1,11 @@
-/*
- * CDeviceManager.h
- *
- *  Created on: 8 февр. 2016 г.
- *      Author: alex
- */
+//============================================================================
+// Name        : CDeviceManager.h
+// Author      : aav
+// Created on  : 8 февр. 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Device and transaction manager is core for device presentation level.
+//============================================================================
 
 #ifndef CDEVICEMANAGER_H_
 #define CDEVICEMANAGER_H_

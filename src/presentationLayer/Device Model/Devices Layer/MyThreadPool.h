@@ -4,7 +4,7 @@
 // Created on  : 9 февр. 2016 г.
 // Version     : v.0.2
 // Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
-// Description : File logger based by boost library libboost_log
+// Description : Primitive and fast thread pool for embedded applications
 //============================================================================
 
 #ifndef MYTHREADPOOL_H_

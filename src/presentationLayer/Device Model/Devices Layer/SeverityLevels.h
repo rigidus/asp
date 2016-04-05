@@ -1,9 +1,11 @@
-/*
- * SeverityLevels.h
- *
- *  Created on: 31 марта 2016 г.
- *      Author: alex
- */
+//============================================================================
+// Name        : SeverityLevels.h
+// Author      : aav
+// Created on  : 31 марта 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Levels for file logger based by boost library libboost_log
+//============================================================================
 
 #ifndef SEVERITYLEVELS_H_
 #define SEVERITYLEVELS_H_

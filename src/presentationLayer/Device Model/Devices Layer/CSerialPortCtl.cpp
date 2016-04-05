@@ -1,9 +1,11 @@
-///////////////////////////////////////////////////////////
-//  CSerialPortCtl.cpp
-//  Implementation of the Class CSerialPortCtl
-//  Created on:      19-���-2016 19:58:08
-//  Original author: user-PC
-///////////////////////////////////////////////////////////
+//============================================================================
+// Name        : CSerialPortCtl.cpp
+// Author      : aav
+// Created on  : 19 февр. 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Multitone instance for communication resources of the UART type.
+//============================================================================
 
 #include "CSerialPortCtl.h"
 

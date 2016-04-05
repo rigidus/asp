@@ -1,9 +1,11 @@
-/*
- * NameInstanses.cpp
- *
- *  Created on: 5 марта 2016 г.
- *      Author: drema
- */
+//============================================================================
+// Name        : NameInstanses.cpp
+// Author      : aav
+// Created on  : 5 марта 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Static name instances
+//============================================================================
 
 #include "devices/LCD_winstar16x2.h"
 #include "devices/testConcreteDevice.h"
