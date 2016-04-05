@@ -1,9 +1,11 @@
-/*
- * SetCommandTo.cpp
- *
- *  Created on: 23 февр. 2016 г.
- *      Author: drema
- */
+//============================================================================
+// Name        : SetCommandTo.cpp
+// Author      : aav
+// Created on  : 23 февр. 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Facade instances for device and transaction manager.
+//============================================================================
 
 #include "SetCommandTo.h"
 #include "CDeviceManager.h"

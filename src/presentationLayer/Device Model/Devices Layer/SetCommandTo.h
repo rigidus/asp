@@ -1,9 +1,12 @@
-/*
- * SetCommandTo.h
- *
- *  Created on: 23 февр. 2016 г.
- *      Author: drema
- */
+//============================================================================
+// Name        : SetCommandTo.h
+// Author      : aav
+// Created on  : 23 февр. 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Facade for device and transaction manager.
+// All exchange must use that interface.
+//============================================================================
 
 #ifndef SETCOMMANDTO_H_
 #define SETCOMMANDTO_H_

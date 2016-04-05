@@ -1,9 +1,11 @@
-/*
- * clientHttp.h
- *
- *  Created on: 24 февр. 2016 г.
- *      Author: alex
- */
+//============================================================================
+// Name        : HttpClient.h
+// Author      : aav
+// Created on  : 24 февр. 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Concrete device "Http client for Rigudus'es Lisp businness logic"
+//============================================================================
 
 #ifndef HTTPCLIENT_H_
 #define HTTPCLIENT_H_

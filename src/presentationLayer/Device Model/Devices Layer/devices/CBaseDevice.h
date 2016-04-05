@@ -1,9 +1,11 @@
-///////////////////////////////////////////////////////////
-//  CBaseDevice.h
-//  Implementation of the Class CBaseDevice
-//  Created on:      19-���-2016 19:58:07
-//  Original author: user-PC
-///////////////////////////////////////////////////////////
+//============================================================================
+// Name        : CBaseDevice
+// Author      : aav
+// Created on  : 9 февр. 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Base class for concrete devices. Any concrete device has to inherit it.
+//============================================================================
 
 #if !defined(EA_AAF6E551_FF21_4908_B83B_A548A70782BC__INCLUDED_)
 #define EA_AAF6E551_FF21_4908_B83B_A548A70782BC__INCLUDED_

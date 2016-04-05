@@ -1,9 +1,11 @@
-/*
- * CDeviceFactory.h
- *
- *  Created on: 10 февр. 2016 г.
- *      Author: alex
- */
+//============================================================================
+// Name        : CDeviceFactory.h
+// Author      : aav
+// Created on  : 10 февр. 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Abstract device factory
+//============================================================================
 
 #ifndef CDEVICEFACTORY_H_
 #define CDEVICEFACTORY_H_

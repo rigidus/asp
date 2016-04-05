@@ -1,9 +1,11 @@
-/*
- * BsnsLogic.h
- *
- *  Created on: 24 февр. 2016 г.
- *      Author: alex
- */
+//============================================================================
+// Name        : BsnsLogic.h
+// Author      : aav
+// Created on  : 24 февр. 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Abstract device connects to Businness Logic
+//============================================================================
 
 #ifndef BSNSLOGIC_H_
 #define BSNSLOGIC_H_

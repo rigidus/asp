@@ -1,9 +1,11 @@
-/*
- * ShlagbaumAbstract.h
- *
- *  Created on: 18 февр. 2016 г.
- *      Author: alex
- */
+//============================================================================
+// Name        : ShlagbaumAbstract.h
+// Author      : aav
+// Created on  : 17 февр. 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Abstract shlagbaum.
+//============================================================================
 
 #ifndef SHLAGBAUMABSTRACT_H_
 #define SHLAGBAUMABSTRACT_H_

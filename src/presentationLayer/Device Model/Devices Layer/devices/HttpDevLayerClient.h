@@ -1,9 +1,11 @@
-/*
- * HttpDevLayerClient.h
- *
- *  Created on: 6 марта 2016 г.
- *      Author: drema
- */
+//============================================================================
+// Name        : HttpClient.h
+// Author      : aav
+// Created on  : 6 марта 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Concrete device "Http client imitates businness logic for test"
+//============================================================================
 
 #ifndef HTTPDEVLAYERCLIENT_H_
 #define HTTPDEVLAYERCLIENT_H_

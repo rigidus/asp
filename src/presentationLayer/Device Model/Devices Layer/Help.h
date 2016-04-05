@@ -1,9 +1,11 @@
-/*
- * Help.h
- *
- *  Created on: 31 марта 2016 г.
- *      Author: alex
- */
+//============================================================================
+// Name        : Help.h
+// Author      : aav
+// Created on  : 31 марта 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : --help provider
+//============================================================================
 
 #ifndef HELP_H_
 #define HELP_H_

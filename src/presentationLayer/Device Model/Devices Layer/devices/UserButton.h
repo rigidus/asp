@@ -1,9 +1,12 @@
-/*
- * UserButton.h
- *
- *  Created on: 14 марта 2016 г.
- *      Author: drema
- */
+//============================================================================
+// Name        : testShlagbaum.h
+// Author      : aav
+// Created on  : 18 февр. 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Concrete device
+// "User hardware button on the checkpoint for income to parking"
+//============================================================================
 
 #ifndef USERBUTTON_H_
 #define USERBUTTON_H_

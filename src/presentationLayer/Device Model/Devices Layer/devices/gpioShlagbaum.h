@@ -1,9 +1,11 @@
-/*
- * gpioShlagbaum.h
- *
- *  Created on: 5 марта 2016 г.
- *      Author: drema
- */
+//============================================================================
+// Name        : gpioShlagbaum.h
+// Author      : aav
+// Created on  : 9 февр. 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Concrete device "Gate"
+//============================================================================
 
 #ifndef GPIOSHLAGBAUM_H_
 #define GPIOSHLAGBAUM_H_

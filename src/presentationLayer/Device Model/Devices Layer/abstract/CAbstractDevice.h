@@ -1,9 +1,11 @@
-/*
- * CAbstractDevice.h
- *
- *  Created on: 17 февр. 2016 г.
- *      Author: alex
- */
+//============================================================================
+// Name        : CAbstractDevice.h
+// Author      : aav
+// Created on  : 17 февр. 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Base abstract device. Any abstract device has to inherit it.
+//============================================================================
 
 #ifndef CABSTRACTDEVICE_H_
 #define CABSTRACTDEVICE_H_

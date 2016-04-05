@@ -1,9 +1,11 @@
-/*
- * presentationMain.cpp
- *
- *  Created on: 8 февр. 2016 г.
- *      Author: alex
- */
+//============================================================================
+// Name        : presentationMain.cpp
+// Author      : aav
+// Created on  : 8 февр. 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Main function and static instances.
+//============================================================================
 
 #include "HttpServer.h"
 #include "devices/HttpClient.h"

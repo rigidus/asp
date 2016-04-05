@@ -1,9 +1,11 @@
-/*
- * testShlagbaum.h
- *
- *  Created on: 18 февр. 2016 г.
- *      Author: alex
- */
+//============================================================================
+// Name        : testShlagbaum.h
+// Author      : aav
+// Created on  : 18 февр. 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Concrete device "Http client imitates businness logic for test"
+//============================================================================
 
 #ifndef TESTCONCRETEDEVICE_H_
 #define TESTCONCRETEDEVICE_H_

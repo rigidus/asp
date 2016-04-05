@@ -1,9 +1,11 @@
-///////////////////////////////////////////////////////////
-//  CBaseCommCtl.h
-//  Implementation of the Class CBaseCommCtl
-//  Created on:      19-���-2016 19:58:07
-//  Original author: user-PC
-///////////////////////////////////////////////////////////
+//============================================================================
+// Name        : CBaseCommCtl.h
+// Author      : aav
+// Created on  : 19 февр. 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Base class for communication device. Any comm device has to inherit it as parent.
+//============================================================================
 
 #if !defined(EA_96F2CEBA_CC67_4b9a_B21B_8FBBD7D55F20__INCLUDED_)
 #define EA_96F2CEBA_CC67_4b9a_B21B_8FBBD7D55F20__INCLUDED_

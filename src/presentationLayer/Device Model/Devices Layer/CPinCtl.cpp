@@ -1,9 +1,11 @@
-///////////////////////////////////////////////////////////
-//  CPinCtl.cpp
-//  Implementation of the Class CPinCtl
-//  Created on:      19-���-2016 19:58:08
-//  Original author: user-PC
-///////////////////////////////////////////////////////////
+//============================================================================
+// Name        : CPinCtl.h
+// Author      : aav
+// Created on  : 19 февр. 2016 г.
+// Version     : v.0.1
+// Copyright   : Non nobis, Domine, non nobis, sed nomini tuo da gloriam.
+// Description : Multitone instances for GPIO resources
+//============================================================================
 
 #include "CPinCtl.h"
 #include "SetCommandTo.h"
