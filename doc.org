@@ -6385,6 +6385,7 @@
        Скачиваем архив в =~/build/= , распаковываем:
 
        #+BEGIN_SRC sh
+         cd ~/build
          tar -xvf 1635-vkp80_cupsdrv-1.05.tgz
        #+END_SRC
 
@@ -6430,15 +6431,25 @@
 
        После этого всего подмыкаем принтер к USB, производим установку распакованного
        драйвера запуском ./setup, на панели администрирования в вебстранице CUPS
-       добавляем принтер. Принтер устанавливается, мы можем печатать текст через =echo
-       "text" > /dev/usb/lp0=, но при попытке печати картинки или pdf мы получаем
-       "rastertoVKP80 failed". Косяк здедсь в том, что тот самый rastertoVKP80 собран
-       как исполняемый модуль под архитектуру armel, а у нас архитектура armhf. По
-       счастью, они совместимы - нам нужно только набросать необходимых библиотек.
+       добавляем принтер. Принтер устанавливается, мы можем печатать текст через
 
-       Каких библиотек не хватает будет видно по команде =ldd
-       /usr/lib/cups/filter/rastertovkp80= ровно до тех пор, пока все библиотеки не
-       будут найдены и установлены. Полный список выглядит так:
+       #+BEGIN_SRC sh
+         echo "text" > /dev/usb/lp0
+       #+END_SRC
+
+       Но при попытке печати картинки или pdf мы получаем "rastertoVKP80 failed". Косяк
+       здедсь в том, что тот самый rastertoVKP80 собран как исполняемый модуль под
+       архитектуру armel, а у нас архитектура armhf. По счастью, они совместимы - нам
+       нужно только набросать необходимых библиотек.
+
+       Каких библиотек не хватает будет видно по команде:
+
+       #+BEGIN_SRC sh
+         ldd /usr/lib/cups/filter/rastertovkp80
+       #+END_SRC
+
+       ровно до тех пор, пока все библиотеки не будут найдены и установлены. Полный
+       список выглядит так:
 
        #+BEGIN_EXAMPLE
          libavahi-client3_0.6.31-5_armel.deb
@@ -6470,42 +6481,91 @@
        на /lib/ld-linux-armhf.so.3
 
        Теперь мы можем печатать картинки и .pdf. Для полного счастья нужно научиться
-       печатать html. В этом нам поможет пакет =wkhtmltopdf=. Делаем =apt-get install
-       wkhtmltopdf=. Для работы ему нужен Xserver. Сначала проверяем работу, набросав
-       какой-нибудь простенький html
+       печатать html. В этом нам поможет пакет =wkhtmltopdf=. Делаем
 
-       #+BEGIN_SRC
-         /usr/local/bin/wkhtmltopdf ~/test.html test.pdf
+       #+BEGIN_SRC sh
+         apt-get install wkhtmltopdf
        #+END_SRC
 
-       Если мы получаем "Cannot connect to X server" - =apt-get install xvfb=. Далее
-       сам запуск заворачивается в строку
+       Для работы ему нужен Xserver. Сначала проверяем работу, набросав какой-нибудь
+       простенький html и сохранив его в ~/build/cups_test.html
 
-       #+BEGIN_SRC
+       #+NAME: cups_test.html
+       #+BEGIN_SRC html
+         <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+         <html xmlns="http://www.w3.org/1999/xhtml">
+             <head>
+                 <meta http-equiv="Content-Type" content="text/html;
+                 charset=utf-8" />
+                 <title>The Title</title>
+                 <style type="text/css">
+                     p {
+                         font-size: 16px;
+                     }
+                 </style>
+             </head>
+             <body>
+                 <h2>Lorem Ipsum</h2>
+                 <img src="cups_test.jpg" style="align:center; width:100px; height:100px" />
+                 <p>
+                     Есть много вариантов Lorem Ipsum, но большинство из них
+                     имеет не всегда приемлемые модификации, например,
+                     юмористические вставки или слова, которые даже отдалённо
+                     не напоминают латынь. Если вам нужен Lorem Ipsum для
+                     серьёзного проекта, вы наверняка не хотите какой-нибудь
+                     шутки, скрытой в середине абзаца.
+             </body>
+         </html>
+       #+END_SRC
+
+       #+BEGIN_SRC sh
+         wkhtmltopdf ~/cups_test.html cups_test.pdf
+       #+END_SRC
+
+       Если мы получаем "Cannot connect to X server" -
+
+       #+BEGIN_SRC sh
+         apt-get install xvfb
+       #+END_SRC
+
+       Далее сам запуск заворачивается в строку:
+
+       #+NAME: wkhtmltopdf.sh
+       #+BEGIN_SRC sh
          xvfb-run -a -s "-screen 0 640x480x16" wkhtmltopdf "$@"
        #+END_SRC
 
-       сохраняется в /usr/local/bin/wkhtmltopdf.sh, выставляем права на исполнение.
+       сохраняется в =/usr/local/bin/wkhtmltopdf.sh=, выставляем права на исполнение.
+
+       #+BEGIN_SRC sh
+         chmod +x /usr/local/bin/wkhtmltopdf.sh
+       #+END_SRC
+
        Запуск на преобразование файла идет примерно так:
 
        #+BEGIN_SRC
-         wkhtmltopdf.sh -s A7 test_check.html test_check2.pdf
+         wkhtmltopdf.sh -s A7 cups_test.html cups_test.pdf
        #+END_SRC
 
        после чего запускаем на печать:
 
        #+BEGIN_SRC
-         lp test_check2.pdf
+         lp cups_test.pdf
        #+END_SRC
 
        Если принтер по умолчанию не выбран, это можно сделать, узнав точное имя
        установленных принтеров в системе:
 
-       #+BEGIN_SRC
+       #+BEGIN_SRC sh
          lpstat -p -d
        #+END_SRC
 
-       и вогнав результат в =lpoptions -d CUSTOM_Engineering_VKP80=.
+       и вогнав результат в
+
+       #+BEGIN_SRC sh
+         lpoptions -d CUSTOM_Engineering_VKP80
+       #+END_SRC
 
        Что важно: из-за неких мифических косяков ядра ВВВ, отвалившееся устройство USB
        не подхватывается обратно. Поэтому пока рассчитываем "тепличные условия", при
