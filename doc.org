@@ -5730,7 +5730,8 @@
    Для начала, стоит создать каталог =~/build= в подкаталогах которого мы будем
    собирать все необходимое.
 
-*** DONE Операционная система                                          :bvl:
+
+*** Операционная система                                                :bvl:
 
     На данный момент в качестве ОС выбрана BeagleBoardDebian - Debian 7.4 "Wheezy" для
     архитектуры ARMhf, который идёт в стандартной поставке.
@@ -5738,7 +5739,20 @@
     Почитать о других вариантах ОС для BBB  можно здесь:
     http://elinux.org/BeagleBone_Operating_Systems
 
-*** DONE Инициализация операционной системы                            :bvl:
+*** Локаль
+
+    dpkg-reconfigure locales
+
+    Следует выбрать, как минимум:
+
+    #+BEGIN_EXAMPLE
+      ru_RU.UTF-8
+    #+END_EXAMPLE
+
+    И выбрать ее в качестве локали по умолчанию. После чего все необходимые локали
+    будут сгенерированы.
+
+*** Инициализация операционной системы                                  :bvl:
 
     В качестве демона инициализации ОС используется =systemd=.
 
@@ -5798,11 +5812,188 @@
     =Systemd= позволяет следить за состоянием сервисов и может их =автоматически перезапускать=
     (отслеживается по pid). Информации по работе с зомбями для systemd практически нет.
 
-*** START Конфигурация SSH сервера                                     :bvl:
+*** Включение сети Ethernet
 
-    [TODO:bvl] Описать нюансы конфигурации SSH-сервера.
+    Надо раскомментировать 2 строчки в =/etc/network/interfaces= и подключить Ethernet
+    кабель к компу или роутеру, который раздает инет по DHCP
 
-*** DONE Установка и запуск nginx                                      :bvl:
+*** Установка Emacs
+
+    #+BEGIN_SRC sh
+      apt-get install emacs23-nox
+      rm -Rf ~/.emacs.d/
+      cd ~/
+      wget https://github.com/rigidus/.emacs.d/archive/master.zip
+      unzip master.zip
+      mv .emacs.d-master/ .emacs.d
+      emacs
+    #+END_SRC
+
+    Теперь нужно подожать, пока emacs не скажет
+
+    #+BEGIN_EXAMPLE
+      Cloning into 'el-get'...
+      POST git-upload-pack (836 bytes)
+
+      Congrats, el-get is installed and ready to serve!
+    #+END_EXAMPLE
+
+    Не стоит обращать внимание на то что некоторая инициализация не прошла, сейчас мы
+    это исправим, поставив недостающее
+
+*** Установка Closure Common Lisp на bbb                                :gmm:
+
+    Скачиваем (с оффсайта) и распаковываем ccl-1.11-linuxarm.tar.gz
+    http://ccl.clozure.com/download.html
+
+    Прямая ссылка:
+    ftp://ftp.clozure.com/pub/release/1.11/ccl-1.11-linuxarm.tar.gz
+
+    Эта краткая последовательность действий, она должна сработать
+
+    #+BEGIN_SRC sh
+      apt-get install m4
+      cd build
+      wget ftp://ftp.clozure.com/pub/release/1.11/ccl-1.11-linuxarm.tar.gz
+      tar -xvf ccl-1.11-linuxarm.tar.gz
+      cd /root/build/ccl/lisp-kernel/linuxarm
+      make clean
+      make
+      cd ../..
+      ./armcl
+      (ccl:compile-ccl)
+      (quit)
+      ./armcl
+      (ccl:rebuild-ccl :full t)
+    #+END_SRC
+
+    Установка и возможные проблемы описаны в документации:
+    http://ccl.clozure.com/docs/ccl.html#installing-and-running-clozure-cl
+
+    Если не сработала, то можно добавить еще вот это:
+
+    После того как ребилд прошел, выходим, набирая "(quit)" и переходим в папку
+    =ccl/lisp-kernel/linuxarm=. Там делаем:
+
+    #+BEGIN_SRC sh
+      make clean
+      make
+    #+END_SRC
+
+    Снова запускаем =armcl= и выполгяем компиляцию:
+
+    #+BEGIN_SRC lisp
+      (ccl:compile-ccl t)
+    #+END_SRC
+
+    Выходим, загружаемся снова и загружаем нулевой уровень:
+
+    #+BEGIN_SRC lisp
+      (ccl:xload-level-0)
+    #+END_SRC
+
+    Снова выходим и загружаем полученный образ
+
+    #+BEGIN_SRC sh
+      armcl --image-name armcl.image --no-init
+    #+END_SRC
+
+    Теперь можно его сохранить в окончательный файл
+
+    #+BEGIN_SRC lisp
+      (ccl:save-application "new.image")
+    #+END_SRC
+
+*** Установка Slime                                                     :gmm:
+
+    [VRFY:aav] Воспроизвести и верифицировать.
+
+    Необходимо скачать версию 2.8 с оффсайта:
+    https://github.com/slime/slime/releases/tag/v2.8
+
+    #+BEGIN_SRC sh
+      cd ~/build
+      wget https://github.com/slime/slime/archive/v2.8.tar.gz
+      tar -xvf v2.8.tar.gz
+    #+END_SRC
+
+    Теперь в папке =~/build/slime-2.8= лежит все необходимое
+
+    Затем выполнить операции по установке (обычно это =make= но стоит смотреть в файлы
+    README и INSTALL поставляемые с релизом)
+
+    Потом прописать в init.el:
+
+    #+BEGIN_SRC lisp
+      ;; CCL
+      (setq inferior-lisp-program "/root/build/ccl/armcl")
+      ;; SLIME
+      (add-to-list 'load-path "/root/build/slime-2.8")
+      (require 'slime)
+      (slime-setup '(slime-fancy))
+    #+END_SRC
+
+    После перезагрузить емакс и сделать M-x slime
+
+    В первый раз придется подождать пока все скомпилится.
+
+*** Установка Jabber
+
+    #+BEGIN_SRC sh
+      apt-get install emacs-jabber
+    #+END_SRC
+
+*** Установка dict
+
+    #+BEGIN_SRC sh
+      apt-get install dict
+    #+END_SRC
+
+*** Установка jabber-accounts
+
+    Имеется ввиду файл =/root/.emacs.d/jabber-account.el= его надо создать и заполнить
+    теми аккаунтами на которых будет висеть jabber устройства
+
+*** Установка erlang
+
+    Пока он нам не нужен мы просто закомментируем его и =Distel= вызов в =init.el= чтобы
+    сэкономить дисковое пространство.
+
+*** Установка gnuplot
+
+    #+BEGIN_SRC sh
+      apt-get install gnuplot
+    #+END_SRC
+
+*** Установка org-mode                                                  :gmm:
+
+    [VRFY:aav] Воспроизвести и верифицировать.
+
+    Заключается в том, чтобы склонировать правильный org-mode
+
+    #+BEGIN_SRC sh
+      cd ~/build/
+      wget https://github.com/rigidus/org-mode/archive/master.zip
+      mv master.zip org-mode.zip
+      mv org-mode-master/ org-mode
+    #+END_SRC
+
+    Зайти в его каталог, сделать:
+
+    #+BEGIN_SRC sh
+      cd ~/build/org-mode
+      make autoloads
+    #+END_SRC
+
+    и прописать его в ~/.emacs.d/init.el
+
+    #+BEGIN_SRC lisp
+      ;; OrgMode
+      (add-to-list 'load-path "/root/build/org-mode/lisp")
+      (require 'org-install)
+    #+END_SRC
+
+*** Установка и запуск nginx                                            :bvl:
 
     По умолчанию на ВВВ крутится apache2. Готовых .deb пакетов nginx для архитектуры
     ARM нет, надо собирать из исходников. Исходники лежат здесь:
@@ -5849,45 +6040,34 @@
     Снова запускаем nginx, открываем приветствие nginx по адресу http://10.0.10.114:8081/
     Вуаля.
 
-*** START Установка и запуск PostgreSQL                             :gmm:aav:
+*** Установка и запуск PostgreSQL                                   :gmm:aav:
 
     На старте мы предполагаем, что постгрес не установлен на машине, если он
     установлен, то сносим все.
 
-    [TODO:aav] [TODO:gmm] Верифицируйтесь, пожалуйста. Я не вижупроблем в том, чтобы
-    регламентировать порядок установки пакетов если есть хотя бы вероятность того, что
-    это важно. Хуже от него не будет.
-
-    =purge= не всегда удаляет все, что могло быть понаставлено постгрей дополнительно.
-    Иногда все равно придется удалять некоторые конфигурационные вещи или базы.
-    Про пурж общеизвестные вещи более подробно можно об этом узнать тут:
-    http://unix.stackexchange.com/questions/118880/should-i-use-apt-get-remove-or-apt-get-purge
-    Но в этом конкретном случае это не так и надо перестраховаться и удалить все возможные
-    включения постгри поиском.
-
     #+BEGIN_SRC sh
       apt-get purge postgresql-common postgresql postgresql-client postgresql-client-9.1
-      find / -name "postgres*" | xargs rm -rv
     #+END_SRC
+
+    =purge= не всегда удаляет все, что могло быть понаставлено постгрей дополнительно.
+    Иногда все равно придется удалять некоторые конфигурационные вещи или базы.  Про
+    пурж общеизвестные вещи более подробно можно об этом узнать тут:
+    http://unix.stackexchange.com/questions/118880/should-i-use-apt-get-remove-or-apt-get-purge
+
+    Но в этом конкретном случае это не так и хочется перестраховаться и удалить все
+    возможные включения постгри поиском, например так:
+
+    #+BEGIN_SRC sh
+      # > find / -name "postgres*" | xargs rm -rv
+    #+END_SRC
+
+    Ни в коем случае не надо этого делать! Я попробовал и поймал тучу трудно
+    воспроизводимых багов.
 
     Начинаем ставить.
 
-    [COMMENT:aav] Эти пакеты надо ставить строго в этом порядке и по одному, иначе
-    можно словить проблему с клиентом.
-
-    [COMMENT:gmm] Возможные проблемы от способа установки пакетов не зависят.
-
-    [COMMENT:aav] Вот конкретно ЗДЕСЬ и с этой версией зависят.
-
-    [COMMENT:aav] Всегда явно обозначайте ОТВЕТ на команду.
-    Не надо стирать слово "ответ". Другой человек в запаре или занимаясь сразу двумя делами
-    может начать ответ вводить как команду, если это будет неочевидно. Или не введет
-    часть команд, если подумает, что это должен быть такой ответ.
-
     #+BEGIN_SRC sh
-      apt-get install postgresql-common
-      apt-get install postgresql
-      apt-get install postgresql-client-9.1
+      apt-get install postgresql-common postgresql postgresql-client-9.1
     #+END_SRC
 
     Смотрим как установилось:
@@ -5961,9 +6141,7 @@
     #+END_SRC
 
     Мы в консоли.
-
-    Теперь создаем БД. Это можно было сделать все целиком из консоли, но влом было уже
-    тестить, оставил как раньше.
+    Теперь создаем БД.
 
     #+BEGIN_SRC sql
       CREATE USER asp_admin WITH PASSWORD 'qwe123';
@@ -5979,7 +6157,7 @@
       GRANT
     #+END_SRC
 
-*** DONE Установка и запуск Boost                                      :bvl:
+*** CANCEL Установка и запуск Boost                                     :bvl:
 
     [VRFY:gmm] Воспроизвести и верифицировать.
 
@@ -6027,9 +6205,7 @@
     Boost установлен в /usr/include/boost/ .
     Можно пересобирать исходники с использованием Буста прямо на ВВВ.
 
-*** DONE Установка и запуск git-core                                    :gmm:
-
-    [VRFY:aav] Воспроизвести и верифицировать.
+*** Установка и запуск git-core                                         :gmm:
 
     Для того, чтобы обновлять код во время тестирования и в продакшене мы можем
     использовать GIT. Это достаточно гибко и просто в эксплуатации. В том числе, мы
@@ -6044,112 +6220,12 @@
       git clone git@github.com:rigidus/asp.git
     #+END_SRC
 
-*** DONE Установка Closure Common Lisp на bbb                           :gmm:
-
-    [VRFY:aav] Воспроизвести и верифицировать.
-
-    Скачиваем (с оффсайта) и распаковываем ccl-1.11-linuxarm.tar.gz
-    http://ccl.clozure.com/download.html
-
-    Установка и возможные проблемы описаны в документации:
-    http://ccl.clozure.com/docs/ccl.html#installing-and-running-clozure-cl
-
-    Заходим в папку, в которую распаковался архив, вызываем armcl и выполняем
-
-    aav сообщает, что на bbb armcl не запустился, пока не был сделан ребилд ядра этого
-    armcl.  Он хотел другую либу ядра. Поэтому шаги по сборке и по первому запуску
-    armcl надо поменять местами или строить ядро 2 раза, я на всякий случай строил 2
-    раза. Правда непонятно в каком лиспе тогда он ребилдил ядро.
-
-    #+BEGIN_SRC lisp
-      (ccl:rebuild-ccl :full t)
-    #+END_SRC
-
-    После того как ребилд прошел, выходим, набирая "(quit)" и переходим в папку
-    =ccl/lisp-kernel/linuxarm=. Там делаем:
-
-    #+BEGIN_SRC sh
-      make clean
-      make
-    #+END_SRC
-
-    Иногда перед этим нужно поставить макропроцессор m4
-
-    Снова запускаем =armcl= и выполгяем компиляцию:
-
-    #+BEGIN_SRC lisp
-      (ccl:compile-ccl t)
-    #+END_SRC
-
-    Выходим, загружаемся снова и загружаем нулевой уровень:
-
-    #+BEGIN_SRC lisp
-      (ccl:xload-level-0)
-    #+END_SRC
-
-    Снова выходим и загружаем полученный образ
-
-    #+BEGIN_SRC sh
-      armcl --image-name armcl.image --no-init
-    #+END_SRC
-
-    Теперь можно его сохранить в окончательный файл
-
-    #+BEGIN_SRC lisp
-      (ccl:save-application "new.image")
-    #+END_SRC
-
-*** DONE Установка org-mode                                             :gmm:
-
-    [VRFY:aav] Воспроизвести и верифицировать.
-
-    Заключается в том, чтобы склонировать правильный org-mode
-
-    #+BEGIN_SRC sh
-      cd ~/repo/
-      https://github.com/rigidus/org-mode.git
-    #+END_SRC
-
-    Зайти в его каталог, сделать:
-
-    #+BEGIN_SRC sh
-      make autoloads
-    #+END_SRC
-
-    и прописать его в ~/.emacs.d/init.el
-
-    #+BEGIN_SRC lisp
-      ;; OrgMode
-      (add-to-list 'load-path "/root/repo/org-mode/lisp")
-      (require 'org-install)
-    #+END_SRC
-
-*** DONE Установка Slime                                                :gmm:
-
-    [VRFY:aav] Воспроизвести и верифицировать.
-
-    Необходимо скачать версию 2.8 с оффсайта:
-    https://github.com/slime/slime/releases/tag/v2.8
-
-    Затем выполнить операции по установке (обычно это =make= но стоит смотреть в файлы
-    README и INSTALL поставляемые с релизом)
-
-    Потом прописать в init.el:
-
-    #+BEGIN_SRC lisp
-      ;; CCL
-      (setq inferior-lisp-program "/root/build/ccl/armcl")
-      ;; SLIME
-      (add-to-list 'load-path "/root/build/slime-2.8")
-      (require 'slime)
-      (slime-setup '(slime-fancy))
-    #+END_SRC
-
 *** DONE Установка Quicklisp                                            :gmm:
 
-    [VRFY:aav] Воспроизвести и верифицировать.
 
     #+BEGIN_SRC sh
+      cd ~/build
+      wget https://beta.quicklisp.org/quicklisp.lisp
       ccl/armcl --load quicklisp.lisp
     #+END_SRC
 
@@ -6252,16 +6328,38 @@
 ***** TODO CUSTOM VKP-80II
 ****** DONE Работа через CUPS (USB)
 
+       Для начала надо, конечно же, нужно поставить CUPS, а перед этим сделать
+       апдейт, иначе половина зависимостей CUPS не будет найдена:
+
+       #+BEGIN_SRC sh
+         apt-get update
+         apt-get install cups --fix-missing
+       #+END_SRC
+
        Драйверы для принтера под Linux можно найти у нас в хранилище или скачать здесь:
        http://www.custom.biz/industrial-and-kiosk/solutions-for-self-service-kiosks/kiosk-printers/vkp80ii-sx
 
-       Нужный файл - 1635-vkp80_cupsdrv-1.05.tgz, внутри - VKP80_CUPSDrv_armv7l-1.05,
-       где исполнимый файл "setup" бодро раскидывает остальные файлы по системе CUPS.
+       Прямая ссылка:
+       http://www.custom.biz/scarica/2/scarica.php?file=1635-vkp80_cupsdrv-1.05.tgz
 
-       Перед этим, конечно же, нужно поставить CUPS:
+       Скачиваем архив в =~/build/= , распаковываем:
 
        #+BEGIN_SRC sh
-         apt-get install cups
+         tar -xvf 1635-vkp80_cupsdrv-1.05.tgz
+       #+END_SRC
+
+       Нас интересует вложенный архив VKP80_CUPSDrv_armv7l-1.05, распаковываем его
+
+       #+BEGIN_SRC sh
+         tar -xvf VKP80_CUPSDrv_armv7l-1.05
+       #+END_SRC
+
+       Внутри этого архива исполнимый файл "setup" бодро раскидывает остальные файлы по
+       системе CUPS.
+
+       #+BEGIN_SRC sh
+         cd ~/build/VKP80_CUPSDrv_armvl7-1.05
+         ./setup
        #+END_SRC
 
        Проверить работоспособность этой подсистемы можно, зайдя на контроллер через
@@ -8821,7 +8919,6 @@
        :pathname "src"
        :depends-on (#:closer-mop
                     #:postmodern
-                    #:cl-mysql
                     #:anaphora
                     #:cl-ppcre
                     #:restas

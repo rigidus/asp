@@ -8,7 +8,6 @@
   :pathname "src"
   :depends-on (#:closer-mop
                #:postmodern
-               #:cl-mysql
                #:anaphora
                #:cl-ppcre
                #:restas
@@ -57,7 +56,7 @@
                         :pathname "mod/que"
                         :components ((:file "que")))
                ;; Модуль сообщений
-               
+
                ;; (:file "events")     ;; события системы
                (:file "iface")      ;; файл веб-интерфейса
                ;; Модуль демонстрации
